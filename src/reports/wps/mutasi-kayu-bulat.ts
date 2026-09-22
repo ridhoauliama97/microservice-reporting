@@ -1,8 +1,9 @@
 import sql from "mssql";
 import {
   escapeHtml,
+  formatNumber4,
   formatPrintedAt,
-  formatVolume,
+  formatTanggalId,
   pageFooterHtml,
   renderPage,
 } from "../../templates/html";
@@ -44,22 +45,20 @@ export const mutasiKayuBulatReport: ReportDefinition<
           .map(
             (row) => `<tr>
       <td>${escapeHtml(row.Jenis)}</td>
-      <td class="num">${escapeHtml(formatVolume(row.SaldoAwal))}</td>
-      <td class="num">${escapeHtml(formatVolume(row.SaldoMasuk))}</td>
-      <td class="num">${escapeHtml(formatVolume(row.SaldoKeluar))}</td>
-      <td class="num">${escapeHtml(formatVolume(row.SaldoJual))}</td>
-      <td class="num">${escapeHtml(formatVolume(row.SaldoAkhir))}</td>
+      <td class="num">${escapeHtml(formatNumber4(row.SaldoAwal))}</td>
+      <td class="num">${escapeHtml(formatNumber4(row.SaldoMasuk))}</td>
+      <td class="num">${escapeHtml(formatNumber4(row.SaldoKeluar))}</td>
+      <td class="num">${escapeHtml(formatNumber4(row.SaldoJual))}</td>
+      <td class="num">${escapeHtml(formatNumber4(row.SaldoAkhir))}</td>
     </tr>`,
           )
           .join("\n")
       : `<tr><td colspan="6" class="empty">Tidak ada data untuk periode ini</td></tr>`;
 
     const body = `
-<h1>Mutasi Kayu Bulat</h1>
-<div class="meta">
-  Periode: ${escapeHtml(meta.params.tglAwal)} s/d ${escapeHtml(meta.params.tglAkhir)} &middot;
-  Diminta oleh: ${escapeHtml(meta.requestedBy)} &middot;
-  Dibuat: ${escapeHtml(meta.generatedAt.toISOString())}
+<h1 class="center">Mutasi Kayu Bulat</h1>
+<div class="meta center">
+  Dari: ${escapeHtml(formatTanggalId(meta.params.tglAwal))} s/d ${escapeHtml(formatTanggalId(meta.params.tglAkhir))}
 </div>
 <table>
   <thead>

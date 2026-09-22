@@ -14,25 +14,28 @@ export function escapeHtml(value: unknown): string {
 }
 
 /**
- * Formats a m³ volume with fixed 4 decimals. null/undefined (no movement)
- * renders as an empty cell.
+ * Formats a number like PHP's number_format(value, 4, '.', ','): 4 fixed
+ * decimals with thousands separators, e.g. 1234.5678 -> "1,234.5678".
+ * null/undefined (no movement) and near-zero values render as an empty
+ * cell, mirroring the legacy WPS (Blade) report output.
  */
-export function formatVolume(value: number | null | undefined): string {
-  return typeof value === "number" && Number.isFinite(value)
-    ? value.toFixed(4)
-    : "";
+export function formatNumber4(value: number | null | undefined): string {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "";
+  if (Math.abs(value) < 0.0000001) return "";
+  const [intPart, decPart] = value.toFixed(4).split(".");
+  return intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "." + decPart;
 }
 
 const BASE_CSS = `
-  body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; color: #1a1a1a; margin: 0; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; color: #000; margin: 0; }
   h1 { font-size: 18px; margin: 0 0 4px 0; }
-  .meta { color: #555555; font-size: 11px; margin-bottom: 16px; }
+  .meta { color: #555555; font-size: 12px; margin-bottom: 16px; }
   table { border-collapse: collapse; width: 100%; }
-  th, td { border: 1px solid #999999; padding: 6px 8px; text-align: left; }
+  th, td { border: 1px solid #000; padding: 6px 8px; text-align: left; }
   thead { display: table-header-group; }
   tr { page-break-inside: avoid; }
   td.num { text-align: right; }
-  td.empty { text-align: center; font-style: italic; color: #777777; }
+  td.empty { text-align: center; font-style: italic; color: #000; }
   h2 { font-size: 15px; margin: 18px 0 6px 0; }
   h2.section-break { page-break-before: always; margin-top: 0; }
   .center { text-align: center; }
@@ -90,14 +93,29 @@ export const MONTHS_SHORT_ID = [
   "Des",
 ];
 
-/** Short date + 24h time, e.g. "22-Sep-26 08:14". */
+/** Short date + 24h time, e.g. "22-Sep-2026 08:14". */
 export function formatPrintedAt(date: Date): string {
   const dd = String(date.getDate()).padStart(2, "0");
   const mon = MONTHS_SHORT_ID[date.getMonth()];
-  const yy = String(date.getFullYear()).slice(2);
+  const yyyy = String(date.getFullYear());
   const hh = String(date.getHours()).padStart(2, "0");
   const mi = String(date.getMinutes()).padStart(2, "0");
-  return `${dd}-${mon}-${yy} ${hh}:${mi}`;
+  return `${dd}-${mon}-${yyyy} ${hh}:${mi}`;
+}
+
+/**
+ * Formats an ISO date string (YYYY-MM-DD, e.g. period params) as a short
+ * Indonesian date: "2026-01-01" -> "01-Jan-2026". Pure string handling (no
+ * Date parsing) to avoid timezone shifts; unparseable input passes through
+ * unchanged (period params are validated upstream by Zod).
+ */
+export function formatTanggalId(iso: string): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!match) return iso;
+  const [, yyyy, mm, dd] = match;
+  const month = MONTHS_SHORT_ID[Number(mm) - 1];
+  if (!month) return iso;
+  return `${dd}-${month}-${yyyy}`;
 }
 
 /**

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { escapeHtml, pageFooterHtml, renderPage } from '../src/templates/html'
+import { escapeHtml, formatNumber4, formatTanggalId, pageFooterHtml, renderPage } from '../src/templates/html'
 
 describe('escapeHtml', () => {
   test('escapes <script> tags', () => {
@@ -34,6 +34,33 @@ describe('renderPage', () => {
     expect(html).toContain('<meta charset="utf-8" />')
     expect(html).toContain('&lt;XSS&gt;')
     expect(html).toContain('<p>halo</p>')
+  })
+})
+
+describe('formatNumber4', () => {
+  test('formats like PHP number_format(value, 4, ".", ",")', () => {
+    expect(formatNumber4(1234.5678)).toBe('1,234.5678')
+    expect(formatNumber4(-1234.5)).toBe('-1,234.5000')
+    expect(formatNumber4(0.5)).toBe('0.5000')
+  })
+
+  test('renders null, undefined and near-zero values as empty strings', () => {
+    expect(formatNumber4(null)).toBe('')
+    expect(formatNumber4(undefined)).toBe('')
+    expect(formatNumber4(0)).toBe('')
+    expect(formatNumber4(0.00000005)).toBe('')
+  })
+})
+
+describe('formatTanggalId', () => {
+  test('formats ISO dates as short Indonesian dates with 4-digit year', () => {
+    expect(formatTanggalId('2026-01-01')).toBe('01-Jan-2026')
+    expect(formatTanggalId('2026-09-21')).toBe('21-Sep-2026')
+    expect(formatTanggalId('2026-05-15')).toBe('15-Mei-2026')
+  })
+
+  test('passes through unparseable input unchanged', () => {
+    expect(formatTanggalId('not-a-date')).toBe('not-a-date')
   })
 })
 

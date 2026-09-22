@@ -1,7 +1,9 @@
 import sql from "mssql";
 import {
   escapeHtml,
+  formatNumber4,
   formatPrintedAt,
+  formatTanggalId,
   pageFooterHtml,
   renderPage,
 } from "../../templates/html";
@@ -273,44 +275,7 @@ export const mutasiBarangJadiReport: ReportDefinition<
   },
 
   render(vm, meta): RenderResult {
-    // Mirrors the legacy Blade helpers ($fmt / Carbon date format).
-    const MONTHS_ID = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "Mei",
-      "Jun",
-      "Jul",
-      "Agu",
-      "Sep",
-      "Okt",
-      "Nov",
-      "Des",
-    ];
-    const formatDateId = (iso: string): string => {
-      const [y, m, d] = iso.split("-").map(Number);
-      return `${String(d).padStart(2, "0")}-${MONTHS_ID[m - 1]}-${String(y).slice(2)}`;
-    };
-    const formatDateTimeId = (date: Date): string => {
-      const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-      const hh = String(date.getHours()).padStart(2, "0");
-      const mi = String(date.getMinutes()).padStart(2, "0");
-      return `${formatDateId(iso)} ${hh}:${mi}`;
-    };
-    // PHP number_format(value, 4, '.', ',') equivalent.
-    const formatNumber4 = (value: number): string => {
-      const [intPart, decPart] = value.toFixed(4).split(".");
-      return intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "." + decPart;
-    };
-    const fmt = (value: number | null | undefined): string => {
-      if (typeof value !== "number" || !Number.isFinite(value)) return "";
-      if (Math.abs(value) < 0.0000001) return "";
-      return formatNumber4(value);
-    };
-
-    const printedAt = formatDateTimeId(meta.generatedAt);
-    const subtitle = `Dari ${formatDateId(meta.params.tglAwal)} s/d ${formatDateId(meta.params.tglAkhir)}`;
+    const subtitle = `Dari ${formatTanggalId(meta.params.tglAwal)} s/d ${formatTanggalId(meta.params.tglAkhir)}`;
 
     const mainBodyRows = vm.main
       .map(
@@ -320,42 +285,42 @@ export const mutasiBarangJadiReport: ReportDefinition<
         ) => `<tr class="data-row ${index % 2 === 0 ? "row-odd" : "row-even"}">
                             <td class="center">${index + 1}</td>
                             <td class="label">${escapeHtml(row.jenis)}</td>
-                            <td class="number">${fmt(row.awal)}</td>
-                            <td class="number">${fmt(row.adjOutput)}</td>
-                            <td class="number">${fmt(row.bsOutput)}</td>
-                            <td class="number">${fmt(row.packingOutput)}</td>
-                            <td class="number" style="font-weight: bold;">${fmt(row.totalMasuk)}</td>
-                            <td class="number">${fmt(row.adjInput)}</td>
-                            <td class="number">${fmt(row.bsInput)}</td>
-                            <td class="number">${fmt(row.jual)}</td>
-                            <td class="number">${fmt(row.ccaInput)}</td>
-                            <td class="number">${fmt(row.lmtInput)}</td>
-                            <td class="number">${fmt(row.mldInput)}</td>
-                            <td class="number">${fmt(row.packingInput)}</td>
-                            <td class="number">${fmt(row.sandInput)}</td>
-                            <td class="number" style="font-weight: bold;">${fmt(row.totalKeluar)}</td>
-                            <td class="number" style="font-weight: bold;">${fmt(row.akhir)}</td>
+                            <td class="number">${formatNumber4(row.awal)}</td>
+                            <td class="number">${formatNumber4(row.adjOutput)}</td>
+                            <td class="number">${formatNumber4(row.bsOutput)}</td>
+                            <td class="number">${formatNumber4(row.packingOutput)}</td>
+                            <td class="number" style="font-weight: bold;">${formatNumber4(row.totalMasuk)}</td>
+                            <td class="number">${formatNumber4(row.adjInput)}</td>
+                            <td class="number">${formatNumber4(row.bsInput)}</td>
+                            <td class="number">${formatNumber4(row.jual)}</td>
+                            <td class="number">${formatNumber4(row.ccaInput)}</td>
+                            <td class="number">${formatNumber4(row.lmtInput)}</td>
+                            <td class="number">${formatNumber4(row.mldInput)}</td>
+                            <td class="number">${formatNumber4(row.packingInput)}</td>
+                            <td class="number">${formatNumber4(row.sandInput)}</td>
+                            <td class="number" style="font-weight: bold;">${formatNumber4(row.totalKeluar)}</td>
+                            <td class="number" style="font-weight: bold;">${formatNumber4(row.akhir)}</td>
                           </tr>`,
       )
       .join("\n");
 
     const mainTotalsRow = `<tr class="totals-row">
                             <td colspan="2" class="blank" style="text-align: center">Total</td>
-                            <td class="number">${fmt(vm.mainTotals.awal)}</td>
-                            <td class="number">${fmt(vm.mainTotals.adjOutput)}</td>
-                            <td class="number">${fmt(vm.mainTotals.bsOutput)}</td>
-                            <td class="number">${fmt(vm.mainTotals.packingOutput)}</td>
-                            <td class="number" style="font-weight: bold;">${fmt(vm.mainTotals.totalMasuk)}</td>
-                            <td class="number">${fmt(vm.mainTotals.adjInput)}</td>
-                            <td class="number">${fmt(vm.mainTotals.bsInput)}</td>
-                            <td class="number">${fmt(vm.mainTotals.jual)}</td>
-                            <td class="number">${fmt(vm.mainTotals.ccaInput)}</td>
-                            <td class="number">${fmt(vm.mainTotals.lmtInput)}</td>
-                            <td class="number">${fmt(vm.mainTotals.mldInput)}</td>
-                            <td class="number">${fmt(vm.mainTotals.packingInput)}</td>
-                            <td class="number">${fmt(vm.mainTotals.sandInput)}</td>
-                            <td class="number" style="font-weight: bold;">${fmt(vm.mainTotals.totalKeluar)}</td>
-                            <td class="number" style="font-weight: bold;">${fmt(vm.mainTotals.akhir)}</td>
+                            <td class="number">${formatNumber4(vm.mainTotals.awal)}</td>
+                            <td class="number">${formatNumber4(vm.mainTotals.adjOutput)}</td>
+                            <td class="number">${formatNumber4(vm.mainTotals.bsOutput)}</td>
+                            <td class="number">${formatNumber4(vm.mainTotals.packingOutput)}</td>
+                            <td class="number" style="font-weight: bold;">${formatNumber4(vm.mainTotals.totalMasuk)}</td>
+                            <td class="number">${formatNumber4(vm.mainTotals.adjInput)}</td>
+                            <td class="number">${formatNumber4(vm.mainTotals.bsInput)}</td>
+                            <td class="number">${formatNumber4(vm.mainTotals.jual)}</td>
+                            <td class="number">${formatNumber4(vm.mainTotals.ccaInput)}</td>
+                            <td class="number">${formatNumber4(vm.mainTotals.lmtInput)}</td>
+                            <td class="number">${formatNumber4(vm.mainTotals.mldInput)}</td>
+                            <td class="number">${formatNumber4(vm.mainTotals.packingInput)}</td>
+                            <td class="number">${formatNumber4(vm.mainTotals.sandInput)}</td>
+                            <td class="number" style="font-weight: bold;">${formatNumber4(vm.mainTotals.totalKeluar)}</td>
+                            <td class="number" style="font-weight: bold;">${formatNumber4(vm.mainTotals.akhir)}</td>
                           </tr>`;
 
     const subBodyRows = vm.sub
@@ -366,24 +331,24 @@ export const mutasiBarangJadiReport: ReportDefinition<
         ) => `<tr class="data-row ${index % 2 === 0 ? "row-odd" : "row-even"}">
                             <td class="center">${index + 1}</td>
                             <td class="label">${escapeHtml(row.jenis)}</td>
-                            <td class="number">${fmt(row.barangJadi)}</td>
-                            <td class="number">${fmt(row.ccAkhir)}</td>
-                            <td class="number">${fmt(row.moulding)}</td>
-                            <td class="number">${fmt(row.sanding)}</td>
-                            <td class="number">${fmt(row.wip)}</td>
-                            <td class="number" style="font-weight: bold;">${fmt(row.total)}</td>
+                            <td class="number">${formatNumber4(row.barangJadi)}</td>
+                            <td class="number">${formatNumber4(row.ccAkhir)}</td>
+                            <td class="number">${formatNumber4(row.moulding)}</td>
+                            <td class="number">${formatNumber4(row.sanding)}</td>
+                            <td class="number">${formatNumber4(row.wip)}</td>
+                            <td class="number" style="font-weight: bold;">${formatNumber4(row.total)}</td>
                           </tr>`,
       )
       .join("\n");
 
     const subTotalsRow = `<tr class="totals-row">
                             <td colspan="2" class="blank" style="text-align:center">Total</td>
-                            <td class="number">${fmt(vm.subTotals.barangJadi)}</td>
-                            <td class="number">${fmt(vm.subTotals.ccAkhir)}</td>
-                            <td class="number">${fmt(vm.subTotals.moulding)}</td>
-                            <td class="number">${fmt(vm.subTotals.sanding)}</td>
-                            <td class="number">${fmt(vm.subTotals.wip)}</td>
-                            <td class="number" style="font-weight: bold;">${fmt(vm.subTotals.total)}</td>
+                            <td class="number">${formatNumber4(vm.subTotals.barangJadi)}</td>
+                            <td class="number">${formatNumber4(vm.subTotals.ccAkhir)}</td>
+                            <td class="number">${formatNumber4(vm.subTotals.moulding)}</td>
+                            <td class="number">${formatNumber4(vm.subTotals.sanding)}</td>
+                            <td class="number">${formatNumber4(vm.subTotals.wip)}</td>
+                            <td class="number" style="font-weight: bold;">${formatNumber4(vm.subTotals.total)}</td>
                           </tr>`;
 
     const body = `
@@ -409,7 +374,7 @@ export const mutasiBarangJadiReport: ReportDefinition<
       <th>Adj Input</th>
       <th>B.Susun Input</th>
       <th>Jual</th>
-      <th>CCAProd Input</th>
+      <th>CCA Prod Input</th>
       <th>LMT Prod Input</th>
       <th>MLD Prod Input</th>
       <th>Packing Prod Inpt</th>
