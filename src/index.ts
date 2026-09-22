@@ -1,9 +1,33 @@
-import { Hono } from 'hono'
+import { app } from './app'
+import { env } from './config/env'
+import { closePool } from './db/mssql'
+import { logger } from './lib/logger'
+import { reportQueueEvents } from './queue/events'
+import { reportQueue } from './queue/report.queue'
+import { websocket } from './lib/ws'
 
-const app = new Hono()
+// Bun requires the websocket handler to be exported at the entrypoint;
+// `export default app` alone is NOT enough for WebSocket upgrades.
+export default {
+  port: env.PORT,
+  fetch: app.fetch,
+  websocket,
+}
 
-app.get('/', (c) => {
-  return c.text('Hello Hono!')
-})
+logger.info({ port: env.PORT }, 'API ready')
 
-export default app
+let shuttingDown = false
+async function shutdown(signal: string): Promise<void> {
+  if (shuttingDown) return
+  shuttingDown = true
+  logger.info({ signal }, 'API shutting down')
+  try {
+    await reportQueue.close()
+    await closePool()
+  } finally {
+    process.exit(0)
+  }
+}
+
+process.on('SIGTERM', () => void shutdown('SIGTERM'))
+process.on('SIGINT', () => void shutdown('SIGINT'))

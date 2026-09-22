@@ -1,0 +1,65 @@
+name: report-service
+
+x-app: &app
+  build: .
+  image: report-service:local
+  restart: unless-stopped
+  env_file: .env
+  environment:
+    NODE_ENV: production
+    REDIS_HOST: redis
+    REDIS_PORT: "6379"
+    GOTENBERG_URL: http://gotenberg:3000
+    STORAGE_DIR: /app/storage
+  volumes:
+    - report-storage:/app/storage
+  depends_on:
+    redis:
+      condition: service_healthy
+    gotenberg:
+      condition: service_started
+
+services:
+  api:
+    <<: *app
+    container_name: report-api
+    command: ["bun", "run", "src/index.ts"]
+    ports:
+      - "${PORT:-5003}:${PORT:-5003}"
+    healthcheck:
+      test: ["CMD", "bun", "-e", "fetch('http://localhost:' + (process.env.PORT || 5003) + '/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  worker:
+    <<: *app
+    container_name: report-worker
+    command: ["bun", "run", "src/worker.ts"]
+
+  redis:
+    image: redis:7
+    container_name: report-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    container_name: report-gotenberg
+    restart: unless-stopped
+    command:
+      - gotenberg
+      - --api-timeout=120s
+      - --chromium-disable-javascript=true
+
+volumes:
+  report-storage:
+  redis-data:

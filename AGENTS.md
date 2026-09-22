@@ -18,6 +18,7 @@ Instruksi kerja untuk Code Agent. Baca **seluruh file ini** sebelum mengubah apa
    - Pesan error di response API (`message`): **Bahasa Indonesia**.
 8. Setelah selesai, beri laporan singkat: apa yang dibuat, perintah verifikasi yang dijalankan beserta hasilnya, dan hal yang masih perlu dikonfirmasi user (bagian 14).
 9. Kalau sebuah verifikasi gagal: perbaiki akar masalahnya. Jangan menonaktifkan pengecekan (`// @ts-ignore`, menghapus test) supaya lolos.
+10. **Verifikasi dulu, jangan asumsi teknis.** Versi package di bagian 3 dan nama file lockfile di Dockerfile (bagian 11) adalah asumsi penulis dokumen ini, **bukan fakta terverifikasi**. Sebelum mulai Fase 1: buka `package.json` dan cek nama file lockfile yang benar-benar ada di root proyek (`bun.lock` teks — default Bun 1.2+, atau `bun.lockb` biner — Bun versi lebih lama), lalu jalankan `bun --version`. Kalau ada yang beda dari yang tertulis di dokumen ini, sesuaikan (terutama Dockerfile) dan laporkan ke user — jangan diam-diam menebak atau membiarkan build gagal karena nama file salah.
 
 ---
 
@@ -59,18 +60,19 @@ Client ◀── WebSocket (progress) / GET /reports/:id / GET /reports/:id/down
 
 ## 3. Tech Stack (final, jangan diganti)
 
-| Layer | Pilihan | Catatan |
-|---|---|---|
-| Runtime | **Bun** | Bun otomatis membaca `.env`. **Jangan** install `dotenv`. |
-| Framework | **Hono** `^4.13` | |
-| Validasi | **Zod v4** + `@hono/zod-validator` | `@hono/zod-openapi` hanya untuk fase opsional, lihat bagian 13. |
-| Realtime | **WebSocket** via `hono/bun` (`createBunWebSocket`) | |
-| Database | **Microsoft SQL Server** via `mssql` `^12` | |
-| Auth | **`verify` dari `hono/jwt`** | Secret sama dengan WPS. |
-| Queue | **BullMQ** `^6` + **Redis 7** (Docker) | |
-| PDF | **Gotenberg 8** (Docker, dipanggil lewat HTTP `fetch`) | **Bukan package npm.** |
-| Logging | **pino** | Tanpa `pino-pretty`. |
-| Test | `bun test` | |
+| Layer     | Pilihan                                                | Catatan                                                                               |
+| --------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| Runtime   | **Bun**                                                | Bun otomatis membaca `.env`. **Jangan** install `dotenv`.                             |
+| Framework | **Hono** `^4.13`                                       |                                                                                       |
+| Validasi  | **Zod v4** + `@hono/zod-validator`                     | Dipakai untuk hal di luar OpenAPI (mis. body WebSocket, kalau ada).                   |
+| Docs API  | **`@hono/zod-openapi`** (`OpenAPIHono`)                | Dibangun **bertahap seiring development**, bukan ditunda ke akhir. Lihat bagian 7.13. |
+| Realtime  | **WebSocket** via `hono/bun` (`createBunWebSocket`)    |                                                                                       |
+| Database  | **Microsoft SQL Server** via `mssql` `^12`             |                                                                                       |
+| Auth      | **`verify` dari `hono/jwt`**                           | Secret sama dengan WPS.                                                               |
+| Queue     | **BullMQ** `^6` + **Redis 7** (Docker)                 | Butuh `ioredis` eksplisit: sejak BullMQ 6.3.x, `ioredis` adalah optional peer dependency, tidak lagi dibundel. |
+| PDF       | **Gotenberg 8** (Docker, dipanggil lewat HTTP `fetch`) | **Bukan package npm.**                                                                |
+| Logging   | **pino**                                               | Tanpa `pino-pretty`.                                                                  |
+| Test      | `bun test`                                             |                                                                                       |
 
 Satu-satunya package tambahan yang **diizinkan**:
 
@@ -129,7 +131,11 @@ report-service/
     ├── reports/
     │   ├── types.ts               # interface ReportDefinition
     │   ├── registry.ts            # daftar jenis laporan
-    │   └── example.ts             # laporan contoh (tanpa database)
+    │   ├── example.ts             # laporan contoh (tanpa database)
+    │   ├── period-params.ts       # skema bersama parameter rentang tanggal
+    │   └── wps/                   # laporan yang menyentuh DB WPS
+    │       ├── mutasi-kayu-bulat.ts
+    │       └── mutasi-barang-jadi.ts
     ├── services/
     │   ├── pdf.ts                 # panggil Gotenberg
     │   └── storage.ts             # simpan/baca file
@@ -201,7 +207,7 @@ const boolFromString = z
   .transform((v) => v === 'true')
 ```
 
-- `JWT_SECRET`: minimal 16 karakter. `JWT_ALG`: enum `HS256 | HS384 | HS512`, default `HS256`.
+- `JWT_SECRET`: minimal 8 karakter. **Dilonggarkan dari 16** karena secret WPS backend asli hanya 10 karakter dan `JWT_SECRET` wajib sama persis dengan WPS — jangan naikkan lagi tanpa sinkron dengan WPS. `JWT_ALG`: enum `HS256 | HS384 | HS512`, default `HS256`.
 - `REDIS_PASSWORD`: opsional; string kosong dianggap tidak ada.
 - `CORS_ORIGINS`: di-split koma, di-trim.
 - Export tipe `Env` dan objek `env`. **Tidak ada** `process.env.X` yang dibaca di luar file ini.
@@ -216,14 +222,29 @@ Semua response error memakai format seragam:
 { "error": { "code": "VALIDATION_ERROR", "message": "Input tidak valid", "details": [] } }
 ```
 
-| Method | Path | Auth | Fungsi |
-|---|---|---|---|
-| GET | `/health` | tidak | `{ "status": "ok" }`. Tidak menyentuh DB/Redis. |
-| GET | `/health/ready` | tidak | Cek DB (`SELECT 1`), Redis (ping), Gotenberg (`GET {GOTENBERG_URL}/health`). 200 kalau semua ok, 503 kalau ada yang gagal. Isi hanya boolean per komponen, **tanpa detail error**. |
-| POST | `/reports` | Bearer | Membuat job. Balas **202** `{ jobId, status: "pending" }`. |
-| GET | `/reports/:id` | Bearer | Status job. |
-| GET | `/reports/:id/download` | Bearer | Unduh PDF (hanya kalau selesai). |
-| GET (WS) | `/ws/reports/:jobId?token=<jwt>` | token di query | Progress realtime. |
+### Daftar kode error baku (`src/lib/errors.ts`)
+
+Semua kode error **wajib** berasal dari daftar ini (definisikan sebagai konstanta/union type di `errors.ts`). Jangan hardcode string kode di file route — supaya tidak ada dua route yang memakai kode berbeda untuk kasus yang sama.
+
+| Code                  | HTTP Status | Dipakai untuk                                          |
+| --------------------- | ----------- | ------------------------------------------------------ |
+| `VALIDATION_ERROR`    | 400         | Body/params gagal validasi Zod                         |
+| `UNKNOWN_REPORT_TYPE` | 400         | `type` tidak ada di registry                           |
+| `UNAUTHORIZED`        | 401         | Token hilang, salah tanda tangan, atau kedaluwarsa     |
+| `NOT_FOUND`           | 404         | Job tidak ada, atau job/route bukan milik user         |
+| `REPORT_NOT_READY`    | 409         | Download dipanggil sebelum job `completed`             |
+| `FILE_EXPIRED`        | 410         | File PDF sudah dihapus oleh retensi                    |
+| `PAYLOAD_TOO_LARGE`   | 413         | Body request > 1 MB                                    |
+| `INTERNAL_ERROR`      | 500         | Error tak terduga — jangan bocorkan detail ke response |
+
+| Method   | Path                             | Auth           | Fungsi                                                                                                                                                                             |
+| -------- | -------------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET      | `/health`                        | tidak          | `{ "status": "ok" }`. Tidak menyentuh DB/Redis.                                                                                                                                    |
+| GET      | `/health/ready`                  | tidak          | Cek DB (`SELECT 1`), Redis (ping), Gotenberg (`GET {GOTENBERG_URL}/health`). 200 kalau semua ok, 503 kalau ada yang gagal. Isi hanya boolean per komponen, **tanpa detail error**. |
+| POST     | `/reports`                       | Bearer         | Membuat job. Balas **202** `{ jobId, status: "pending" }`.                                                                                                                         |
+| GET      | `/reports/:id`                   | Bearer         | Status job.                                                                                                                                                                        |
+| GET      | `/reports/:id/download`          | Bearer         | Unduh PDF (hanya kalau selesai).                                                                                                                                                   |
+| GET (WS) | `/ws/reports/:jobId?token=<jwt>` | token di query | Progress realtime.                                                                                                                                                                 |
 
 ### POST `/reports`
 
@@ -245,7 +266,7 @@ Body:
   "id": "…", "type": "example",
   "status": "pending | processing | completed | failed",
   "progress": 0,
-  "result": { "fileName": "…", "size": 12345 },
+  "result": { "fileName": "…", "size": 12345, "generatedAt": "ISO-8601" },
   "error": "pesan singkat jika gagal",
   "createdAt": "ISO-8601"
 }
@@ -264,6 +285,7 @@ Job hanya boleh diakses oleh user yang membuatnya. Kalau `job.data.requestedBy !
 - Nama file dibentuk **hanya dari jobId** (`report-<jobId>.pdf`), **tidak pernah** dari input user (cegah path traversal).
 - Header: `Content-Type: application/pdf`, `Content-Disposition: attachment; filename="<type>-<jobId>.pdf"`.
 - Stream dengan `Bun.file(path)`. Kalau file tidak ada di disk (sudah dibersihkan) → 410 `FILE_EXPIRED`.
+- **Catatan:** nama file **di disk** (`report-<jobId>.pdf`) sengaja dibuat generik demi keamanan (tidak bergantung pada input `type`). Nama file **saat diunduh** (`Content-Disposition`) boleh lebih deskriptif (`<type>-<jobId>.pdf`) karena itu hanya nama yang dilihat user, bukan path di server. Ini bukan bug — jangan disamakan.
 
 ### WebSocket `/ws/reports/:jobId?token=`
 
@@ -320,7 +342,7 @@ Urutan middleware (penting):
 4. Route: `/health`, `/reports`, `/ws`.
 5. `app.onError` (format seragam; `AppError` → status-nya, lainnya → 500 tanpa membocorkan detail) dan `app.notFound` (404 format seragam).
 
-Untuk validasi, `zValidator` **harus** diberi hook agar error Zod memakai format error seragam (`VALIDATION_ERROR`, status 400).
+Untuk validasi: karena `app` dibuat dengan `OpenAPIHono` (bagian 7.13), gunakan opsi `defaultHook` di constructor-nya (`new OpenAPIHono<AppEnv>({ defaultHook: ... })`) supaya **semua** error validasi Zod dari `createRoute` otomatis diformat seragam (`VALIDATION_ERROR`, status 400) tanpa perlu diulang di tiap route. `zValidator` tetap dipakai kalau ada bagian yang divalidasi di luar `createRoute` — beri hook yang sama.
 
 ### 7.3 `src/middleware/auth.ts`
 
@@ -344,7 +366,7 @@ export type AppEnv = { Variables: { username: string } }
 - Konfigurasi dari `env`: `server: DB_SERVER`, `port: DB_PORT`, `database`, `user`, `password`, `options: { encrypt: DB_ENCRYPT, trustServerCertificate: DB_TRUST_CERT }`, `pool: { max: 10, min: 0 }`.
 - Pasang `pool.on('error', …)` yang mencatat ke logger (tanpa handler ini, error koneksi bisa membuat proses crash).
 - Kalau koneksi gagal, reset singleton agar percobaan berikutnya mencoba lagi.
-- Query **selalu** berparameter dengan tipe eksplisit: `request.input('month', sql.VarChar(7), value)`. Utamakan `request.execute('nama_sp')`. **Dilarang** menyambung string SQL dengan input user.
+- Query **selalu** berparameter dengan tipe eksplisit: `request.input('month', sql.VarChar(7), value)`. Boleh pakai `request.execute('nama_sp')` (stored procedure) **atau** `request.query('SELECT ...')` (query manual) — tergantung laporannya, dua-duanya sama sah selama parameter tidak digabung sebagai string. **Dilarang mutlak** menyambung (concat) string SQL dengan nilai apa pun dari input user, baik untuk SP maupun query manual.
 - Export `closePool()` untuk graceful shutdown.
 
 ### 7.5 Queue (`src/queue/*`)
@@ -431,8 +453,11 @@ export interface ReportDefinition<TParams = unknown, TData = unknown> {
 ```
 
 - `registry.ts` mengekspor `reports: Record<string, ReportDefinition<any, any>>`. Ini **satu-satunya** tempat `any` yang diizinkan (beri komentar alasannya).
+- **Penempatan file laporan:** laporan yang menyentuh database WPS diletakkan di `src/reports/wps/`; laporan umum/tanpa DB (mis. `example`) tetap di `src/reports/`. Semua tetap didaftarkan di `src/reports/registry.ts`.
 - Buat satu laporan **`example`** yang **tidak menyentuh tabel database**: `paramsSchema` = `z.object({ title: z.string().min(1).max(100).default('Laporan Contoh'), rows: z.number().int().min(1).max(500).default(20) })`; `fetchData` membuat data dummy di memori; `render` menghasilkan tabel. Tujuannya membuktikan seluruh pipeline (queue → Gotenberg → file → WebSocket) berjalan.
-- **Jangan membuat laporan yang memakai tabel/stored procedure WPS.** Nama-namanya tidak diketahui. Cukup dokumentasikan di README cara menambah laporan baru (salin `example.ts`, ganti `fetchData` dengan `pool.request().input(...).execute('<NAMA_SP>')`, daftarkan di registry).
+- **Jangan membuat laporan yang memakai tabel/stored procedure WPS.** Nama-namanya tidak diketahui. Cukup dokumentasikan di README cara menambah laporan baru: salin `example.ts`, ganti `fetchData` dengan salah satu dari dua pola berikut (tergantung laporan), lalu daftarkan di registry.
+  - Stored procedure: `pool.request().input('bulan', sql.VarChar(7), params.bulan).execute('nama_sp')`.
+  - Query manual: `pool.request().input('bulan', sql.VarChar(7), params.bulan).query('SELECT ... WHERE bulan = @bulan')`.
 
 ### 7.10 Logging (`src/lib/logger.ts`)
 
@@ -443,6 +468,16 @@ export interface ReportDefinition<TParams = unknown, TData = unknown> {
 ### 7.11 Graceful shutdown API
 
 Di `src/index.ts`: pada `SIGTERM`/`SIGINT` tutup `QueueEvents`, `Queue`, `closePool()`, lalu `process.exit(0)`.
+
+### 7.13 Dokumentasi API (`@hono/zod-openapi`)
+
+Dibangun **bertahap** seiring route dibuat (mulai Fase 2), **bukan** fase terpisah di akhir — supaya dokumentasi tidak pernah ketinggalan dari kode.
+
+- Di `src/app.ts`, ganti `new Hono<AppEnv>()` menjadi `new OpenAPIHono<AppEnv>()` (import dari `@hono/zod-openapi`). API-nya kompatibel dengan Hono biasa; middleware (CORS, logger, body-limit) tidak berubah.
+- Setiap endpoint HTTP (bukan WebSocket) didefinisikan lewat `createRoute({ method, path, request: { body, params }, responses: { ... } })`, didaftarkan dengan `app.openapi(route, handler)`. **Pakai ulang** skema Zod yang sudah ada (mis. `paramsSchema` laporan) — jangan menduplikasi skema untuk keperluan dokumentasi.
+- Expose spec: `app.doc('/docs/openapi.json', { openapi: '3.1.0', info: { title: 'Report Service API', version: '1.0.0' } })`.
+- Expose UI **tanpa** menambah package npm baru: buat route `GET /docs` yang mengembalikan string HTML statis (bukan file terpisah) yang memuat `swagger-ui-dist` dari CDN dan menunjuk ke `/docs/openapi.json`. Ini hanya HTML + CDN, bukan dependency, jadi tidak melanggar aturan bagian 0.3.
+- Route WebSocket (`/ws/reports/:jobId`) **tidak** didaftarkan lewat `createRoute` (OpenAPI tidak mencakup WS) — tetap route Hono biasa, cukup dijelaskan manual di README.
 
 ### 7.12 Gaya kode
 
@@ -538,6 +573,11 @@ CMD ["bun", "run", "src/index.ts"]
 ```
 
 Bun menjalankan TypeScript langsung, tidak perlu build step. Satu image dipakai untuk API dan worker (beda `command`).
+
+**Dua hal wajib dicek sebelum build (lihat juga aturan 0.10):**
+
+1. `COPY package.json bun.lock ./` mengasumsikan lockfile bernama `bun.lock` (format teks, default Bun 1.2+). Kalau proyek ini memakai Bun versi lama, lockfile-nya `bun.lockb` (biner) — kalau nama tidak cocok, `COPY` akan gagal dan build berhenti. Cek dulu dengan `ls bun.lock*` di root proyek, lalu sesuaikan nama file di baris `COPY` itu.
+2. `FROM oven/bun:1` memakai tag mengambang (bisa berubah isi image-nya seiring waktu). Untuk build yang bisa direproduksi, jalankan `bun --version` di mesin lokal dan pin ke versi yang sama persis (mis. `FROM oven/bun:1.2.10`) di kedua stage.
 
 ### `.dockerignore`
 
@@ -676,7 +716,7 @@ Kerjakan: ubah `package.json` (bagian 8), `tsconfig.json` (9), `.gitignore` (10)
 
 ### Fase 2 — App inti
 Kerjakan: `src/app.ts`, `src/lib/ws.ts`, `src/index.ts`, `src/routes/health.ts` (sementara `/health/ready` boleh hanya mengecek komponen yang sudah ada), handler error, CORS, body limit.
-**Selesai jika:** `bun run dev` berjalan di port `5003`. `curl.exe http://localhost:5003/health` → `{"status":"ok"}`. Path acak → 404 berformat error seragam.
+**Selesai jika:** `bun run dev` berjalan di port `5003`. `curl.exe http://localhost:5003/health` → `{"status":"ok"}`. Path acak → 404 berformat error seragam. `curl.exe http://localhost:5003/docs/openapi.json` mengembalikan JSON valid (minimal berisi `info` dan path `/health`). `GET /docs` menampilkan halaman Swagger UI.
 
 ### Fase 3 — Auth JWT
 Kerjakan: `src/middleware/auth.ts`, `scripts/dev-token.ts`.
@@ -703,6 +743,7 @@ Kerjakan: `src/routes/reports.ts` (POST, status, download) sesuai bagian 6.
 - GET status berubah `pending/processing` → `completed`.
 - Download mengembalikan PDF yang bisa dibuka.
 - Token milik user lain untuk `jobId` yang sama → 404 (status dan download).
+- `GET /docs/openapi.json` sudah memuat path `/reports` dengan skema yang sama dengan yang dipakai validasi (bukan skema duplikat).
 
 ### Fase 7 — WebSocket
 Kerjakan: `src/queue/events.ts`, `src/routes/ws.ts`, `scripts/ws-test.ts` (klien memakai `WebSocket` bawaan Bun, argumen: `<jobId> <token>`, mencetak semua pesan).
@@ -718,7 +759,7 @@ Kerjakan:
 - `tests/env.test.ts`: nilai valid diterima; `JWT_SECRET` pendek ditolak; `"false"` menjadi boolean `false`.
 - `tests/html.test.ts`: `escapeHtml` meng-escape `<script>`, tanda kutip, `&`; `null` menjadi string kosong.
 - `tests/registry.test.ts`: `example.paramsSchema` menerima default dan menolak `rows: 0`.
-- Ganti `README.md`: fungsi service, cara jalan lokal, cara jalan Docker, daftar endpoint, cara menambah laporan baru, troubleshooting.
+- Ganti `README.md`: fungsi service, cara jalan lokal, cara jalan Docker, daftar endpoint, cara membuka dokumentasi interaktif (`GET /docs`), cara menambah laporan baru (SP maupun query manual), troubleshooting.
 **Selesai jika:** `bun run typecheck` dan `bun test` lulus. Tidak ada secret di file yang akan ter-commit (`git status` tidak menampilkan `.env`).
 
 ---
@@ -726,7 +767,7 @@ Kerjakan:
 ## 13. Di Luar Lingkup (jangan dikerjakan kecuali diminta)
 
 - Export Excel (`exceljs` belum terinstall).
-- Swagger/OpenAPI UI (butuh `@hono/swagger-ui`, belum diinstall; `@hono/zod-openapi` sudah ada untuk fase ini di masa depan).
+- Package `@hono/swagger-ui` (belum diinstall dan tidak perlu — UI dokumentasi cukup lewat HTML statis + CDN, lihat bagian 7.13).
 - Laporan yang memakai tabel/stored procedure WPS.
 - Rate limiting, multi-tenant, penyimpanan S3/MinIO.
 - Streaming hasil query untuk laporan di atas ±50.000 baris (diskusikan dengan user dulu bila muncul kebutuhan).
@@ -744,23 +785,25 @@ Kerjakan:
 
 ## 15. Jebakan Umum (baca sebelum coding)
 
-| Jebakan | Yang benar |
-|---|---|
-| `z.coerce.boolean()` untuk env | Jadi `true` untuk string `"false"`. Pakai enum `'true'/'false'` + transform. |
-| `export default app` di Bun | WebSocket tidak jalan. Export `{ port, fetch, websocket }`. |
-| `bun run --hot` untuk worker/API | Menumpuk koneksi Redis dan Worker ganda. Pakai `--watch`. |
-| `localhost` di dalam container | Menunjuk ke container itu sendiri. Pakai nama service (`redis`, `gotenberg`) atau `host.docker.internal`. |
-| Meneruskan instance IORedis ke BullMQ Worker | Beri objek opsi koneksi, biarkan BullMQ yang mengelola. |
-| Hanya decode JWT | Tidak memeriksa tanda tangan. Selalu `verify`. |
-| Set `Content-Type` manual pada FormData | Merusak boundary multipart. Biarkan `fetch` yang mengisi. |
-| File HTML untuk Gotenberg bernama lain | Harus `index.html`. |
-| Top-level `await` untuk koneksi DB | App gagal start kalau DB mati. Pakai lazy `getPool()`. |
-| Logging URL lengkap WebSocket | Token di query ikut tercatat. Log path saja. |
-| `curl` di PowerShell | Itu alias `Invoke-WebRequest`. Pakai `curl.exe`, dan kirim JSON dari file: `curl.exe -X POST … -H "Content-Type: application/json" -d "@body.json"`. |
-| Nilai HTML dari database tanpa escape | Selalu `escapeHtml`. |
-| ID job auto-increment | Mudah ditebak. Pakai `crypto.randomUUID()` + cek kepemilikan. |
-| Bind mount untuk `storage` di Docker | Masalah izin tulis. Pakai named volume. |
-| Menambah `dotenv` | Tidak perlu, Bun membaca `.env` sendiri. |
+| Jebakan                                                        | Yang benar                                                                                                                                           |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `z.coerce.boolean()` untuk env                                 | Jadi `true` untuk string `"false"`. Pakai enum `'true'/'false'` + transform.                                                                         |
+| `export default app` di Bun                                    | WebSocket tidak jalan. Export `{ port, fetch, websocket }`.                                                                                          |
+| `bun run --hot` untuk worker/API                               | Menumpuk koneksi Redis dan Worker ganda. Pakai `--watch`.                                                                                            |
+| `localhost` di dalam container                                 | Menunjuk ke container itu sendiri. Pakai nama service (`redis`, `gotenberg`) atau `host.docker.internal`.                                            |
+| Meneruskan instance IORedis ke BullMQ Worker                   | Beri objek opsi koneksi, biarkan BullMQ yang mengelola.                                                                                              |
+| Hanya decode JWT                                               | Tidak memeriksa tanda tangan. Selalu `verify`.                                                                                                       |
+| Set `Content-Type` manual pada FormData                        | Merusak boundary multipart. Biarkan `fetch` yang mengisi.                                                                                            |
+| File HTML untuk Gotenberg bernama lain                         | Harus `index.html`.                                                                                                                                  |
+| Top-level `await` untuk koneksi DB                             | App gagal start kalau DB mati. Pakai lazy `getPool()`.                                                                                               |
+| Logging URL lengkap WebSocket                                  | Token di query ikut tercatat. Log path saja.                                                                                                         |
+| `curl` di PowerShell                                           | Itu alias `Invoke-WebRequest`. Pakai `curl.exe`, dan kirim JSON dari file: `curl.exe -X POST … -H "Content-Type: application/json" -d "@body.json"`. |
+| Nilai HTML dari database tanpa escape                          | Selalu `escapeHtml`.                                                                                                                                 |
+| ID job auto-increment                                          | Mudah ditebak. Pakai `crypto.randomUUID()` + cek kepemilikan.                                                                                        |
+| Bind mount untuk `storage` di Docker                           | Masalah izin tulis. Pakai named volume.                                                                                                              |
+| Menambah `dotenv`                                              | Tidak perlu, Bun membaca `.env` sendiri.                                                                                                             |
+| Percaya versi package & nama lockfile di bagian 3/11 tanpa cek | Itu asumsi penulis dokumen, bukan fakta. Cek `package.json` dan `ls bun.lock*` dulu (aturan 0.10).                                                   |
+| Kode error di-hardcode beda-beda per route                     | Bikin klien sulit menangani error. Semua kode harus dari daftar baku bagian 6.                                                                       |
 
 ---
 

@@ -1,0 +1,26 @@
+name: report-service-dev
+
+services:
+  redis:
+    image: redis:7
+    container_name: report-dev-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis-dev-data:/data
+
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    container_name: report-dev-gotenberg
+    restart: unless-stopped
+    command:
+      - gotenberg
+      - --api-timeout=120s
+      - --chromium-disable-javascript=true
+    ports:
+      - "127.0.0.1:3100:3000"
+
+volumes:
+  redis-dev-data:

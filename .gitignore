@@ -1,2 +1,14 @@
 # deps
 node_modules/
+
+# env & secret
+.env
+.env.*
+!.env.example
+
+# runtime
+storage/*
+!storage/.gitkeep
+*.log
+dist/
+.DS_Store
