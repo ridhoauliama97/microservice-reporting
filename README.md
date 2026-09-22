@@ -94,7 +94,34 @@ Salin `src/reports/example.ts`, sesuaikan, lalu daftarkan di `src/reports/regist
 
 **Penempatan file:** laporan yang menyentuh database WPS diletakkan di `src/reports/wps/` (mis. `src/reports/wps/mutasi-kayu-bulat.ts`); laporan umum/tanpa DB tetap di `src/reports/`.
 
-`fetchData` menerima `ctx.pool` berupa **promise lazy** — koneksi SQL Server baru dibuka saat promise itu di-await, jadi laporan yang tidak butuh DB tidak pernah membuka koneksi.
+## Menambah laporan baru
+
+**Standar: laporan 1 stored procedure (tabel tunggal)** — pakai factory `createSingleTableReport` dari `src/reports/wps/template.ts`. File laporan **tanpa styling**; judul, subtitle periode, tabel (zebra rows, baris Total opsional), footer, dan orientasi otomatis dari template:
+
+```ts
+// src/reports/wps/mutasi-xxx.ts
+import { createSingleTableReport } from './template'
+
+export const mutasiXxxReport = createSingleTableReport({
+  type: 'mutasi-xxx',
+  title: 'Laporan Mutasi XXX (m3)',
+  spName: 'SP_Mutasi_Xxx',
+  landscape: false, // true kalau landscape
+  columns: [
+    { label: 'No', kind: 'no', width: '30px' },
+    { label: 'Jenis', kind: 'label', field: 'Jenis', width: '180px' },
+    { label: 'Saldo Awal', kind: 'number', field: 'SaldoAwal' },
+    { label: 'Saldo Akhir', kind: 'number', field: 'SaldoAkhir' },
+  ],
+  // totals: true, // opsional: baris Total (jumlah semua kolom number)
+})
+```
+
+Lalu daftarkan di `src/reports/registry.ts`.
+
+**Penempatan file:** laporan yang menyentuh database WPS diletakkan di `src/reports/wps/` (mis. `src/reports/wps/mutasi-kayu-bulat.ts`); laporan umum/tanpa DB tetap di `src/reports/`.
+
+**Kasus khusus** (2 SP / tabel ganda / header bergrup seperti `mutasi-barang-jadi`, atau parameter non-periode): tulis `fetchData` + `render` sendiri di file laporan — pakai blok bangunan template (`renderWpsReportPage`, `buildReportTable`, `formatNumber4`, `formatTanggalId`) supaya tampilan tetap konsisten, jangan menulis CSS sendiri. Tanpa DB, tiru `src/reports/example.ts`.</think><tool_call>edit<arg_key>newString</arg_key><arg_value>`fetchData` menerima `ctx.pool` berupa **promise lazy** — koneksi SQL Server baru dibuka saat promise itu di-await, jadi laporan yang tidak butuh DB tidak pernah membuka koneksi.
 
 Dua pola query yang sah (selalu berparameter, **jangan** menyambung string SQL dengan input user):
 
