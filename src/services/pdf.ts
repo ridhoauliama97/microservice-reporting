@@ -1,4 +1,5 @@
 import { env } from "../config/env";
+import { PDF_PAGE_MARGINS } from "../config/pdf-page";
 
 export interface HtmlToPdfInput {
   html: string;
@@ -28,10 +29,10 @@ export async function htmlToPdf(input: HtmlToPdfInput): Promise<Uint8Array> {
 
   form.append("paperWidth", "8.27");
   form.append("paperHeight", "11.69");
-  form.append("marginTop", "0.25");
-  form.append("marginBottom", "0.5");
-  form.append("marginLeft", "0.25");
-  form.append("marginRight", "0.25");
+  form.append("marginTop", String(PDF_PAGE_MARGINS.top));
+  form.append("marginBottom", String(PDF_PAGE_MARGINS.bottom));
+  form.append("marginLeft", String(PDF_PAGE_MARGINS.left));
+  form.append("marginRight", String(PDF_PAGE_MARGINS.right));
   form.append("printBackground", "true");
   if (input.landscape) {
     form.append("landscape", "true");

@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { escapeHtml, formatNumber4, formatTanggalId, pageFooterHtml, renderPage } from '../src/templates/html'
+import { PDF_PAGE_MARGINS } from '../src/config/pdf-page'
 
 describe('escapeHtml', () => {
   test('escapes <script> tags', () => {
@@ -72,11 +73,13 @@ describe('pageFooterHtml', () => {
     expect(footer).toContain('font-size')
   })
 
-  test('wrapper spans the paper and aligns texts with the table edges (48px = 0.5in)', () => {
+  test('wrapper spans the paper and aligns texts with the table edges', () => {
     const footer = pageFooterHtml()
+    const padL = Math.round(PDF_PAGE_MARGINS.left * 96)
+    const padR = Math.round(PDF_PAGE_MARGINS.right * 96)
     expect(footer).toContain('width: 100%')
     expect(footer).toContain('box-sizing: border-box')
-    expect(footer).toContain('padding: 12px 48px 0 48px')
+    expect(footer).toContain(`padding: 12px ${padR}px 0 ${padL}px`)
     expect(footer).toContain('float: left')
     expect(footer).toContain('float: right')
   })

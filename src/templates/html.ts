@@ -1,3 +1,5 @@
+import { PDF_PAGE_MARGINS } from "../config/pdf-page";
+
 /**
  * Escapes any value for safe inclusion in HTML. Null/undefined become an
  * empty string. EVERY value coming from the database or the user MUST go
@@ -131,17 +133,24 @@ export function formatTanggalId(iso: string): string {
  *    has no room to distribute. The wrapper needs an explicit `width: 100%`
  *    to span the paper, after which the classic float-left/float-right pair
  *    puts the two texts at opposite edges on one line.
- *  - CSS px map to PDF pt at 0.75 (96dpi): the page's 0.5in margin equals
- *    36pt, i.e. 48px. 48px paddings therefore line both texts up exactly
- *    with the table edges (width: 100% tables span the full content area).
+ *  - CSS px map to PDF pt at 0.75 (96dpi): a margin of M inches equals M × 72pt
+ *    of paper, i.e. M × 96px of template padding. Paddings are therefore
+ *    computed from PDF_PAGE_MARGINS so both texts stay flush with the table
+ *    edges (width: 100% tables span the full content area) whatever the
+ *    margins are.
  *
  * Chromium fills <span class="pageNumber"> and <span class="totalPages">
  * automatically; no JavaScript is involved. The 12px top padding (~9pt)
  * keeps the line clear of the content above inside the 36pt margin band.
  */
 export function pageFooterHtml(options: PageFooterOptions = {}): string {
+  // Footer paddings must equal the page's horizontal margins so the two
+  // texts stay flush with the table edges: margin in inches × 96 px
+  // (1in = 96 CSS px = 72pt, hence px = pt / 0.75).
+  const padLeft = Math.round(PDF_PAGE_MARGINS.left * 96);
+  const padRight = Math.round(PDF_PAGE_MARGINS.right * 96);
   const wrapperStyle =
-    "width: 100%; box-sizing: border-box; padding: 12px 48px 0 48px; font-family: Arial, Helvetica, sans-serif; font-size: 9px; font-style: italic; color: #333333; white-space: nowrap;";
+    `width: 100%; box-sizing: border-box; padding: 12px ${padRight}px 0 ${padLeft}px; font-family: Arial, Helvetica, sans-serif; font-size: 9px; font-style: italic; color: #333333; white-space: nowrap;`;
 
   const printedPart = options.printedBy
     ? `Dicetak oleh: ${escapeHtml(options.printedBy)}${options.printedAt ? ` pada ${escapeHtml(options.printedAt)}` : ""}`
