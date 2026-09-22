@@ -39,6 +39,40 @@ describe('buildReportTable', () => {
     expect(html).toContain('<th>Adj</th>')
   })
 
+  test('date columns format Date objects and ISO strings as dd-Mon-yyyy', () => {
+    const cols: ReportColumn[] = [{ label: 'Tgl', kind: 'date', field: 'Tgl' }]
+    const html = buildReportTable({
+      columns: cols,
+      rows: [
+        { Tgl: new Date('2026-09-01T00:00:00.000Z') },
+        { Tgl: '2026-12-25' },
+        { Tgl: null },
+      ],
+    })
+    expect(html).toContain('01-Sep-2026')
+    expect(html).toContain('25-Des-2026')
+    expect(html).not.toContain('T00:00:00')
+  })
+
+  test('custom column format applies to data cells and totals cells', () => {
+    const cols: ReportColumn[] = [
+      { label: 'Jenis', kind: 'label', field: 'Jenis' },
+      {
+        label: 'Berat',
+        kind: 'number',
+        field: 'Berat',
+        format: (v) => (v === null || v === undefined ? '' : `${v} X`),
+      },
+    ]
+    const html = buildReportTable({
+      columns: cols,
+      rows: [{ Jenis: 'A', Berat: 5 }],
+      totals: { values: { Berat: 1000 } },
+    })
+    expect(html).toContain('>5 X</td>')
+    expect(html).toContain('>1000 X</td>')
+  })
+
   test('totals row spans the leading columns and formats values', () => {
     const html = buildReportTable({ columns, rows: [], totals: { values: { Awal: 12 } } })
     expect(html).toContain(

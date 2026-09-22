@@ -33,9 +33,9 @@ export const WPS_REPORT_CSS = `
   tr { page-break-inside: avoid; page-break-after: auto; }
   th, td { border: 1px solid #000; padding: 2px 4px; vertical-align: middle; }
   th { text-align: center; font-weight: bold; background: #ffffff; color: #000; }
-  td.center { text-align: center; }
-  td.label { white-space: nowrap; }
-  td.number { text-align: right; white-space: nowrap; }
+  td.center { text-align: center; overflow-wrap: anywhere; }
+  td.label { overflow-wrap: anywhere; }
+  td.number { text-align: right; overflow-wrap: anywhere; }
   .row-odd td { background: #c9d1df; }
   .row-even td { background: #eef2f8; }
   .totals-row td { font-weight: bold; font-size: 11px; border-top: 1px solid #000; border-right: 1px solid #000; border-bottom: 0; border-left: 0; }
@@ -50,14 +50,20 @@ export const WPS_REPORT_CSS = `
 export interface ReportColumn {
   /** Header label. "\n" becomes a <br> line break inside the cell. */
   label: string;
-  /** "no" renders the 1-based row index; "label" escaped text; "number" via formatNumber4. */
-  kind: "no" | "label" | "number";
+  /** "no" renders the 1-based row index; "label" escaped text; "date" a dd-Mon-yyyy date; "number" via formatNumber4. */
+  kind: "no" | "label" | "date" | "number";
   /** Row property holding the cell value (unused for kind "no"). */
   field?: string;
   /** CSS width, e.g. "30px". */
   width?: string;
   /** Renders the cell bold (e.g. a total column). */
   bold?: boolean;
+  /**
+   * Custom cell formatter replacing formatNumber4; also applied to the
+   * totals cell of this column. Dev-provided, so no escaping happens here
+   * beyond what the formatter returns.
+   */
+  format?: (value: number | null | undefined) => string;
   /**
    * Group header: consecutive columns sharing a `group` render under one
    * colspan'd header cell; columns without a `group` span both header rows.
@@ -93,7 +99,8 @@ const widthAttr = (width?: string): string =>
 function buildHeaderRows(columns: ReportColumn[]): string {
   // Consecutive columns sharing a `group` merge into one colspan'd th in row
   // 1 with their own labels in row 2; ungrouped columns span both rows.
-  const segments: Array<{ group: string | undefined; items: ReportColumn[] }> = [];
+  const segments: Array<{ group: string | undefined; items: ReportColumn[] }> =
+    [];
   for (const column of columns) {
     const last = segments[segments.length - 1];
     if (column.group && last?.group === column.group) last.items.push(column);
@@ -104,13 +111,19 @@ function buildHeaderRows(columns: ReportColumn[]): string {
   const secondRow: string[] = [];
   for (const segment of segments) {
     if (segment.group) {
-      firstRow.push(`<th colspan="${segment.items.length}">${labelToHtml(segment.group)}</th>`);
+      firstRow.push(
+        `<th colspan="${segment.items.length}">${labelToHtml(segment.group)}</th>`,
+      );
       for (const item of segment.items) {
-        secondRow.push(`<th${widthAttr(item.width)}>${labelToHtml(item.label)}</th>`);
+        secondRow.push(
+          `<th${widthAttr(item.width)}>${labelToHtml(item.label)}</th>`,
+        );
       }
     } else {
       const item = segment.items[0];
-      firstRow.push(`<th rowspan="2"${widthAttr(item.width)}>${labelToHtml(item.label)}</th>`);
+      firstRow.push(
+        `<th rowspan="2"${widthAttr(item.width)}>${labelToHtml(item.label)}</th>`,
+      );
     }
   }
 
@@ -119,25 +132,52 @@ function buildHeaderRows(columns: ReportColumn[]): string {
     </tr>${secondRow.length ? `\n    <tr class="headers-row">\n      ${secondRow.join("\n      ")}\n    </tr>` : ""}`;
 }
 
-function buildCell(column: ReportColumn, row: Record<string, unknown>, index: number): string {
+function buildCell(
+  column: ReportColumn,
+  row: Record<string, unknown>,
+  index: number,
+): string {
   if (column.kind === "no") return `<td class="center">${index + 1}</td>`;
-  const value = (column.field ? row[column.field] : undefined) as number | string | null | undefined;
+  const value = column.field ? row[column.field] : undefined;
+  if (column.kind === "date")
+    return `<td class="center">${formatDateCell(value)}</td>`;
   if (column.kind === "number") {
     const bold = column.bold ? ` style="font-weight: bold;"` : "";
-    return `<td class="number"${bold}>${formatNumber4(value as number | null | undefined)}</td>`;
+    const text = column.format
+      ? column.format(value as number | null | undefined)
+      : formatNumber4(value as number | null | undefined);
+    return `<td class="number"${bold}>${text}</td>`;
   }
   return `<td class="label">${escapeHtml(value)}</td>`;
 }
 
+/**
+ * Date column cell: JS Date (mssql date columns) or an ISO string, rendered
+ * as "01-Sep-2026". Empty/unknown values render as an empty cell.
+ */
+function formatDateCell(value: unknown): string {
+  if (value instanceof Date) {
+    const iso = value.toISOString().slice(0, 10);
+    return formatTanggalId(iso);
+  }
+  if (typeof value === "string") return formatTanggalId(value);
+  return "";
+}
+
 function buildTotalsRow(columns: ReportColumn[], totals: ReportTotals): string {
-  const firstNumberIndex = columns.findIndex((column) => column.kind === "number");
-  const colspan = totals.colspan ?? (firstNumberIndex === -1 ? columns.length : firstNumberIndex);
-  const cells = columns
-    .slice(colspan)
-    .map((column) => {
-      if (column.kind !== "number" || !column.field) return `<td class="number"></td>`;
-      return `<td class="number">${formatNumber4(totals.values[column.field])}</td>`;
-    });
+  const firstNumberIndex = columns.findIndex(
+    (column) => column.kind === "number",
+  );
+  const colspan =
+    totals.colspan ??
+    (firstNumberIndex === -1 ? columns.length : firstNumberIndex);
+  const cells = columns.slice(colspan).map((column) => {
+    if (column.kind !== "number" || !column.field)
+      return `<td class="number"></td>`;
+    const value = totals.values[column.field];
+    const text = column.format ? column.format(value) : formatNumber4(value);
+    return `<td class="number">${text}</td>`;
+  });
   return `<tr class="totals-row">
                             <td colspan="${colspan}" class="blank" style="text-align:center">${escapeHtml(totals.label ?? "Total")}</td>
                             ${cells.join("\n                            ")}
@@ -151,7 +191,10 @@ export function buildReportTable(spec: ReportTableSpec): string {
   const bodyRows = spec.rows.length
     ? spec.rows
         .map(
-          (row, index) => `<tr class="data-row ${index % 2 === 0 ? "row-odd" : "row-even"}">
+          (
+            row,
+            index,
+          ) => `<tr class="data-row ${index % 2 === 0 ? "row-odd" : "row-even"}">
                             ${spec.columns.map((column) => buildCell(column, row, index)).join("\n                            ")}
                           </tr>`,
         )
@@ -171,23 +214,29 @@ export function buildReportTable(spec: ReportTableSpec): string {
 
 export interface WpsReportPageOptions {
   /** Document title AND centered h1. */
-  title: string
-  subtitle: string
+  title: string;
+  subtitle: string;
   /** Tables/sections; the title and subtitle are added by the shell. */
-  bodyHtml: string
-  landscape?: boolean
-  printedBy?: string
-  printedAt?: string
+  bodyHtml: string;
+  landscape?: boolean;
+  printedBy?: string;
+  printedAt?: string;
 }
 
 /** Wraps report body HTML in the standard WPS page shell (title, subtitle, CSS, footer). */
-export function renderWpsReportPage(options: WpsReportPageOptions): RenderResult {
+export function renderWpsReportPage(
+  options: WpsReportPageOptions,
+): RenderResult {
   const body = `<h1 class="report-title">${escapeHtml(options.title)}</h1>
 <p class="report-subtitle">${escapeHtml(options.subtitle)}</p>
 ${options.bodyHtml}`;
 
   return {
-    html: renderPage({ title: options.title, bodyHtml: body, extraCss: WPS_REPORT_CSS }),
+    html: renderPage({
+      title: options.title,
+      bodyHtml: body,
+      extraCss: WPS_REPORT_CSS,
+    }),
     footerHtml: pageFooterHtml({
       printedBy: options.printedBy,
       printedAt: options.printedAt,
@@ -199,8 +248,13 @@ ${options.bodyHtml}`;
 export interface SingleTableReportSpec {
   type: string;
   title: string;
-  /** Stored procedure called with TglAwal/TglAkhir (sql.Date) inputs. */
+  /** Stored procedure called with the period (sql.Date) inputs. */
   spName: string;
+  /**
+   * SP parameter names bound to the period params. Defaults to
+   * "TglAwal"/"TglAkhir" (e.g. `{ tglAwal: "StartDate", tglAkhir: "EndDate" }`).
+   */
+  inputNames?: { tglAwal?: string; tglAkhir?: string };
   columns: ReportColumn[];
   /** Omit for no totals row; `true` sums every "number" column. */
   totals?: ReportTotals | true | false;
@@ -209,17 +263,16 @@ export interface SingleTableReportSpec {
 
 /**
  * Factory for the most common WPS report shape: one stored procedure taking
- * TglAwal/TglAkhir and returning ONE recordset, rendered as a single table
- * in the standard template. The report file contains no styling.
+ * the report period (param names configurable via `inputNames`) and
+ * returning ONE recordset, rendered as a single table in the standard
+ * template. The report file contains no styling.
  */
-export function createSingleTableReport(spec: {
-  type: string;
-  title: string;
-  spName: string;
-  columns: ReportColumn[];
-  totals?: ReportTotals | true | false;
-  landscape?: boolean;
-}): ReportDefinition<PeriodParams, Array<Record<string, unknown>>> {
+export function createSingleTableReport(
+  spec: SingleTableReportSpec,
+): ReportDefinition<PeriodParams, Array<Record<string, unknown>>> {
+  const startDateParam = spec.inputNames?.tglAwal ?? "TglAwal";
+  const endDateParam = spec.inputNames?.tglAkhir ?? "TglAkhir";
+
   return {
     type: spec.type,
     title: spec.title,
@@ -229,19 +282,20 @@ export function createSingleTableReport(spec: {
       const conn = await pool;
       const result = await conn
         .request()
-        .input("TglAwal", sql.Date, params.tglAwal)
-        .input("TglAkhir", sql.Date, params.tglAkhir)
+        .input(startDateParam, sql.Date, params.tglAwal)
+        .input(endDateParam, sql.Date, params.tglAkhir)
         .execute(spec.spName);
       return (result.recordset ?? []) as Array<Record<string, unknown>>;
     },
 
     render(rows, meta) {
       const subtitle = `Dari ${formatTanggalId(meta.params.tglAwal)} s/d ${formatTanggalId(meta.params.tglAkhir)}`;
-      const totals = spec.totals === true
-        ? sumNumericColumns(spec.columns, rows)
-        : spec.totals === false || spec.totals === undefined
-          ? undefined
-          : spec.totals;
+      const totals =
+        spec.totals === true
+          ? sumNumericColumns(spec.columns, rows)
+          : spec.totals === false || spec.totals === undefined
+            ? undefined
+            : spec.totals;
 
       return renderWpsReportPage({
         title: spec.title,

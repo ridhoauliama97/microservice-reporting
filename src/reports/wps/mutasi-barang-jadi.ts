@@ -422,9 +422,9 @@ export const mutasiBarangJadiReport: ReportDefinition<
   tr { page-break-inside: avoid; page-break-after: auto; }
   th, td { border: 1px solid #000; padding: 2px 4px; vertical-align: middle; }
   th { text-align: center; font-weight: bold; background: #ffffff; color: #000; }
-  td.center { text-align: center; }
-  td.label { white-space: nowrap; }
-  td.number { text-align: right; white-space: nowrap; }
+  td.center { text-align: center; overflow-wrap: anywhere; }
+  td.label { overflow-wrap: anywhere; }
+  td.number { text-align: right; overflow-wrap: anywhere; }
   .row-odd td { background: #c9d1df; }
   .row-even td { background: #eef2f8; }
   .totals-row td { font-weight: bold; font-size: 11px; border-top: 1px solid #000; border-right: 1px solid #000; border-bottom: 0; border-left: 0; }
