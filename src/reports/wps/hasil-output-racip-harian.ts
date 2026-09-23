@@ -1,4 +1,5 @@
 import { createSingleDateTableReport } from "./template";
+import { formatTrimmed } from "../../templates/html";
 
 /**
  * "As of" daily report — the SP takes only @EndDate, body params are a
@@ -14,9 +15,9 @@ export const hasilOutputRacipHarianReport = createSingleDateTableReport({
   columns: [
     { label: "No", kind: "no", width: "40px" },
     { label: "Jenis", kind: "label", field: "Jenis" },
-    { label: "Tebal (mm)", kind: "number", field: "Tebal", sumInTotal: false },
-    { label: "Lebar (mm)", kind: "number", field: "Lebar", sumInTotal: false },
-    { label: "Panjang (ft)", kind: "number", field: "Panjang", sumInTotal: false },
+    { label: "Tebal (mm)", kind: "number", field: "Tebal", sumInTotal: false, format: formatTrimmed },
+    { label: "Lebar (mm)", kind: "number", field: "Lebar", sumInTotal: false, format: formatTrimmed },
+    { label: "Panjang (ft)", kind: "number", field: "Panjang", sumInTotal: false, format: formatTrimmed },
     { label: "Jumlah Batang (pcs)", kind: "int", field: "JlhBtg", bold: true },
     { label: "Masuk", kind: "number", field: "Masuk", bold: true },
   ],

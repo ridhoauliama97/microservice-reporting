@@ -106,6 +106,19 @@ export function formatPrintedAt(date: Date): string {
 }
 
 /**
+ * Formats a number with up to 4 decimals but STRIPS trailing zeros —
+ * 10 -> "10", 2.5 -> "2.5", 43.5261 -> "43.5261" (thousands separators
+ * kept). Blank for null/near-zero, mirroring the legacy detail format.
+ */
+export function formatTrimmed(value: number | null | undefined): string {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "";
+  if (Math.abs(value) < 0.0000001) return "";
+  const [intPart, decPart] = value.toFixed(4).split(".");
+  const trimmedDec = decPart.replace(/0+$/, "");
+  return `${intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}${trimmedDec ? `.${trimmedDec}` : ""}`;
+}
+
+/**
  * Formats an ISO date string (YYYY-MM-DD, e.g. period params) as a short
  * Indonesian date: "2026-01-01" -> "01-Jan-2026". Pure string handling (no
  * Date parsing) to avoid timezone shifts; unparseable input passes through

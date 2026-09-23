@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { escapeHtml, formatNumber4, formatTanggalId, pageFooterHtml, renderPage } from '../src/templates/html'
+import { escapeHtml, formatNumber4, formatTanggalId, formatTrimmed, pageFooterHtml, renderPage } from '../src/templates/html'
 import { PDF_PAGE_MARGINS } from '../src/config/pdf-page'
 
 describe('escapeHtml', () => {
@@ -50,6 +50,21 @@ describe('formatNumber4', () => {
     expect(formatNumber4(undefined)).toBe('')
     expect(formatNumber4(0)).toBe('')
     expect(formatNumber4(0.00000005)).toBe('')
+  })
+})
+
+describe('formatTrimmed', () => {
+  test('strips trailing zeros but keeps meaningful decimals', () => {
+    expect(formatTrimmed(10)).toBe('10')
+    expect(formatTrimmed(2.5)).toBe('2.5')
+    expect(formatTrimmed(43.5261)).toBe('43.5261')
+    expect(formatTrimmed(1234.5)).toBe('1,234.5')
+  })
+
+  test('renders null and near-zero values as empty strings', () => {
+    expect(formatTrimmed(null)).toBe('')
+    expect(formatTrimmed(0)).toBe('')
+    expect(formatTrimmed(0.00000005)).toBe('')
   })
 })
 

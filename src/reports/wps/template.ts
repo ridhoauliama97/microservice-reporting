@@ -63,6 +63,10 @@ export interface ReportColumn {
   width?: string;
   /** Renders the cell bold (e.g. a total column). */
   bold?: boolean;
+  /** Center-aligns a numeric/date cell (legacy dims are centered). */
+  align?: "center";
+  /** Renders the cell red when the value is negative (e.g. AkhirJlhBtg). */
+  colorNegative?: boolean;
   /**
    * Custom cell formatter replacing the default number/int formatter; also
    * applied to the totals cell of this column. Dev-provided, so no escaping
@@ -162,21 +166,30 @@ function buildCell(
 ): string {
   if (column.kind === "no") return `<td class="center">${index + 1}</td>`;
   const value = column.field ? row[column.field] : undefined;
+
   if (column.kind === "date")
     return `<td class="center">${formatDateCell(value)}</td>`;
+
   if (column.kind === "number" || column.kind === "int") {
-    const bold = column.bold ? ` style="font-weight: bold;"` : "";
     const numeric = value as number | null | undefined;
     const text = column.format
       ? column.format(numeric)
       : column.kind === "int"
         ? formatInt(numeric)
         : formatNumber4(numeric);
-    return `<td class="number"${bold}>${text}</td>`;
+    const styles: string[] = [];
+    if (column.bold) styles.push("font-weight: bold;");
+    if (column.colorNegative && typeof numeric === "number" && numeric < 0)
+      styles.push("color: red;");
+    const styleAttr = styles.length ? ` style="${styles.join(" ")}"` : "";
+    const cellClass = column.align === "center" ? "center" : "number";
+    return `<td class="${cellClass}"${styleAttr}>${text}</td>`;
   }
+
   // mssql merges duplicated column names into arrays — take the first value.
   const labelValue = Array.isArray(value) ? value[0] : value;
-  return `<td class="label">${escapeHtml(labelValue)}</td>`;
+  const labelClass = column.align === "center" ? "center" : "label";
+  return `<td class="${labelClass}">${escapeHtml(labelValue)}</td>`;
 }
 
 /**
@@ -273,6 +286,11 @@ export interface WpsReportPageOptions {
   /** Tables/sections; the title and subtitle are added by the shell. */
   bodyHtml: string;
   landscape?: boolean;
+  /**
+   * Extra CSS appended after the standard WPS CSS — for special-case form
+   * layouts (e.g. the penerimaan kayu bulat Ton form).
+   */
+  extraCss?: string;
   printedBy?: string;
   printedAt?: string;
 }
@@ -293,7 +311,9 @@ ${subtitle}${options.bodyHtml}`;
     html: renderPage({
       title: options.title,
       bodyHtml: body,
-      extraCss: WPS_REPORT_CSS,
+      extraCss: options.extraCss
+        ? `${WPS_REPORT_CSS}\n${options.extraCss}`
+        : WPS_REPORT_CSS,
     }),
     footerHtml: pageFooterHtml({
       printedBy: options.printedBy,
@@ -465,6 +485,62 @@ export function createSingleDateTableReport(
 
     render(rows, meta) {
       const subtitle = `Per Tanggal : ${formatTanggalId(meta.params.tgl)}`;
+      return renderStandardTable(spec, rows, subtitle, meta);
+    },
+  };
+}
+
+export interface NoKayuBulatLookupParams {
+  /** Nomor kayu bulat, e.g. "A.017215". */
+  noKayuBulat: string;
+}
+
+export interface NoKayuBulatLookupTableReportSpec {
+  type: string;
+  title: string;
+  /** Stored procedure bound to @NoKayuBulat (varchar). */
+  spName: string;
+  /** SP parameter name. Default "NoKayuBulat". */
+  inputName?: string;
+  columns: ReportColumn[];
+  totals?: ReportTotals | true | false;
+  emptyMessage?: string;
+  /** Row transformer applied before rendering (e.g. computed columns). */
+  transformRows?: (
+    rows: Array<Record<string, unknown>>,
+  ) => Array<Record<string, unknown>>;
+  landscape?: boolean;
+}
+
+/**
+ * Factory for reports keyed by a single Nomor Kayu Bulat. Body params:
+ * `{ noKayuBulat: "A.017215" }`; the subtitle reads "Nomor : …".
+ */
+export function createNoKayuBulatLookupReport(
+  spec: NoKayuBulatLookupTableReportSpec,
+): ReportDefinition<
+  NoKayuBulatLookupParams,
+  Array<Record<string, unknown>>
+> {
+  const paramName = spec.inputName ?? "NoKayuBulat";
+  return {
+    type: spec.type,
+    title: spec.title,
+    paramsSchema: z.object({
+      noKayuBulat: z.string().trim().min(1).max(50),
+    }),
+
+    async fetchData(params, { pool }) {
+      const conn = await pool;
+      const result = await conn
+        .request()
+        .input(paramName, sql.VarChar(50), params.noKayuBulat)
+        .execute(spec.spName);
+      return (result.recordset ?? []) as Array<Record<string, unknown>>;
+    },
+
+    render(rows, meta) {
+      const subtitle = `Nomor : ${meta.params.noKayuBulat}`;
       return renderStandardTable(spec, rows, subtitle, meta);
     },
   };
