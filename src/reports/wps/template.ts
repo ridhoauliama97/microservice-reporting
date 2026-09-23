@@ -1,9 +1,11 @@
+import { z } from "zod";
 import sql from "mssql";
 import {
   escapeHtml,
   formatNumber4,
   formatPrintedAt,
   formatTanggalId,
+  MONTHS_SHORT_ID,
   pageFooterHtml,
   renderPage,
 } from "../../templates/html";
@@ -50,8 +52,11 @@ export const WPS_REPORT_CSS = `
 export interface ReportColumn {
   /** Header label. "\n" becomes a <br> line break inside the cell. */
   label: string;
-  /** "no" renders the 1-based row index; "label" escaped text; "date" a dd-Mon-yyyy date; "number" via formatNumber4. */
-  kind: "no" | "label" | "date" | "number";
+  /**
+   * "no" 1-based row index; "label" escaped text; "date" dd-Mon-yyyy;
+   * "number" via formatNumber4 (4 decimals); "int" whole with separators.
+   */
+  kind: "no" | "label" | "date" | "number" | "int";
   /** Row property holding the cell value (unused for kind "no"). */
   field?: string;
   /** CSS width, e.g. "30px". */
@@ -59,11 +64,16 @@ export interface ReportColumn {
   /** Renders the cell bold (e.g. a total column). */
   bold?: boolean;
   /**
-   * Custom cell formatter replacing formatNumber4; also applied to the
-   * totals cell of this column. Dev-provided, so no escaping happens here
-   * beyond what the formatter returns.
+   * Custom cell formatter replacing the default number/int formatter; also
+   * applied to the totals cell of this column. Dev-provided, so no escaping
+   * happens here beyond what the formatter returns.
    */
   format?: (value: number | null | undefined) => string;
+  /**
+   * Whether `totals: true` sums this numeric column. Default true — set
+   * false for columns whose sum is meaningless (e.g. board dimensions).
+   */
+  sumInTotal?: boolean;
   /**
    * Group header: consecutive columns sharing a `group` render under one
    * colspan'd header cell; columns without a `group` span both header rows.
@@ -76,8 +86,12 @@ export interface ReportTotals {
   label?: string;
   /** Cells spanned before the first value. Defaults to the index of the first "number" column. */
   colspan?: number;
-  /** Totals keyed by column field; number columns without a value render empty. */
-  values: Record<string, number | null | undefined>;
+  /**
+   * Totals keyed by column field; numeric columns without a value render
+   * empty. Omitted when the factory auto-sums (`totals: true` or an object
+   * with only label/colspan overrides).
+   */
+  values?: Record<string, number | null | undefined>;
 }
 
 export interface ReportTableSpec {
@@ -132,6 +146,15 @@ function buildHeaderRows(columns: ReportColumn[]): string {
     </tr>${secondRow.length ? `\n    <tr class="headers-row">\n      ${secondRow.join("\n      ")}\n    </tr>` : ""}`;
 }
 
+/** Integer cell with thousand separators; null/near-zero render empty. */
+export function formatInt(value: number | null | undefined): string {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "";
+  if (Math.abs(value) < 0.0000001) return "";
+  return Math.round(value)
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
 function buildCell(
   column: ReportColumn,
   row: Record<string, unknown>,
@@ -141,41 +164,71 @@ function buildCell(
   const value = column.field ? row[column.field] : undefined;
   if (column.kind === "date")
     return `<td class="center">${formatDateCell(value)}</td>`;
-  if (column.kind === "number") {
+  if (column.kind === "number" || column.kind === "int") {
     const bold = column.bold ? ` style="font-weight: bold;"` : "";
+    const numeric = value as number | null | undefined;
     const text = column.format
-      ? column.format(value as number | null | undefined)
-      : formatNumber4(value as number | null | undefined);
+      ? column.format(numeric)
+      : column.kind === "int"
+        ? formatInt(numeric)
+        : formatNumber4(numeric);
     return `<td class="number"${bold}>${text}</td>`;
   }
-  return `<td class="label">${escapeHtml(value)}</td>`;
+  // mssql merges duplicated column names into arrays — take the first value.
+  const labelValue = Array.isArray(value) ? value[0] : value;
+  return `<td class="label">${escapeHtml(labelValue)}</td>`;
 }
 
 /**
- * Date column cell: JS Date (mssql date columns) or an ISO string, rendered
- * as "01-Sep-2026". Empty/unknown values render as an empty cell.
+ * Date column cell: JS Date (mssql date columns), an ISO string, or an SP
+ * string like "18 Sep 2026" — all rendered as "18-Sep-2026". Empty/unknown
+ * values render as an empty cell.
  */
 function formatDateCell(value: unknown): string {
   if (value instanceof Date) {
-    const iso = value.toISOString().slice(0, 10);
-    return formatTanggalId(iso);
+    return formatTanggalId(value.toISOString().slice(0, 10));
   }
-  if (typeof value === "string") return formatTanggalId(value);
+  if (typeof value === "string") {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return formatTanggalId(value);
+    const m = /^(\d{1,2}) ([A-Za-z]{3}) (\d{4})$/.exec(value.trim());
+    if (m) {
+      // SP month abbreviations use English names; map the odd ones.
+      const alias: Record<string, string> = {
+        may: "mei",
+        aug: "agu",
+        oct: "okt",
+        dec: "des",
+      };
+      const given = m[2].toLowerCase();
+      const normalized = alias[given] ?? given;
+      const month = MONTHS_SHORT_ID.find(
+        (candidate) => candidate.toLowerCase() === normalized,
+      );
+      if (month) return `${m[1].padStart(2, "0")}-${month}-${m[3]}`;
+    }
+  }
   return "";
 }
 
 function buildTotalsRow(columns: ReportColumn[], totals: ReportTotals): string {
-  const firstNumberIndex = columns.findIndex(
-    (column) => column.kind === "number",
+  const firstValueIndex = columns.findIndex(
+    (column) => column.kind === "number" || column.kind === "int",
   );
   const colspan =
     totals.colspan ??
-    (firstNumberIndex === -1 ? columns.length : firstNumberIndex);
+    (firstValueIndex === -1 ? columns.length : firstValueIndex);
   const cells = columns.slice(colspan).map((column) => {
-    if (column.kind !== "number" || !column.field)
+    if (
+      (column.kind !== "number" && column.kind !== "int") ||
+      !column.field
+    )
       return `<td class="number"></td>`;
-    const value = totals.values[column.field];
-    const text = column.format ? column.format(value) : formatNumber4(value);
+    const value = totals.values?.[column.field];
+    const text = column.format
+      ? column.format(value)
+      : column.kind === "int"
+        ? formatInt(value)
+        : formatNumber4(value);
     return `<td class="number">${text}</td>`;
   });
   return `<tr class="totals-row">
@@ -215,7 +268,8 @@ export function buildReportTable(spec: ReportTableSpec): string {
 export interface WpsReportPageOptions {
   /** Document title AND centered h1. */
   title: string;
-  subtitle: string;
+  /** Omit (or pass "") to skip the subtitle (e.g. parameterless snapshot reports). */
+  subtitle?: string;
   /** Tables/sections; the title and subtitle are added by the shell. */
   bodyHtml: string;
   landscape?: boolean;
@@ -227,9 +281,13 @@ export interface WpsReportPageOptions {
 export function renderWpsReportPage(
   options: WpsReportPageOptions,
 ): RenderResult {
-  const body = `<h1 class="report-title">${escapeHtml(options.title)}</h1>
-<p class="report-subtitle">${escapeHtml(options.subtitle)}</p>
-${options.bodyHtml}`;
+  const subtitle = options.subtitle
+    ? `<p class="report-subtitle">${escapeHtml(options.subtitle)}</p>\n`
+    : "";
+  // Without a subtitle the title needs its own bottom gap (snapshot reports).
+  const titleGap = options.subtitle ? "" : ` style="margin-bottom: 22px;"`;
+  const body = `<h1 class="report-title"${titleGap}>${escapeHtml(options.title)}</h1>
+${subtitle}${options.bodyHtml}`;
 
   return {
     html: renderPage({
@@ -252,12 +310,24 @@ export interface SingleTableReportSpec {
   spName: string;
   /**
    * SP parameter names bound to the period params. Defaults to
-   * "TglAwal"/"TglAkhir" (e.g. `{ tglAwal: "StartDate", tglAkhir: "EndDate" }`).
+   * "TglAwal"/"TglAkhir" (e.g. `{ tglAkhir: "EndDate" }`).
    */
   inputNames?: { tglAwal?: string; tglAkhir?: string };
+  /**
+   * "both" (default) binds tglAwal AND tglAkhir; "endOnly" binds only
+   * `inputNames.tglAkhir` — for "as of" SPs that take a single end date
+   * (the SP ignores the period start).
+   */
+  bindMode?: "both" | "endOnly";
   columns: ReportColumn[];
-  /** Omit for no totals row; `true` sums every "number" column. */
+  /** Omit for no totals row; `true` sums every numeric column. */
   totals?: ReportTotals | true | false;
+  /** Overrides the default "Tidak ada data untuk periode ini" empty-cell text. */
+  emptyMessage?: string;
+  /** Row transformer applied before rendering (e.g. computed columns). */
+  transformRows?: (
+    rows: Array<Record<string, unknown>>,
+  ) => Array<Record<string, unknown>>;
   landscape?: boolean;
 }
 
@@ -272,6 +342,7 @@ export function createSingleTableReport(
 ): ReportDefinition<PeriodParams, Array<Record<string, unknown>>> {
   const startDateParam = spec.inputNames?.tglAwal ?? "TglAwal";
   const endDateParam = spec.inputNames?.tglAkhir ?? "TglAkhir";
+  const bindMode = spec.bindMode ?? "both";
 
   return {
     type: spec.type,
@@ -280,47 +351,180 @@ export function createSingleTableReport(
 
     async fetchData(params, { pool }) {
       const conn = await pool;
-      const result = await conn
-        .request()
-        .input(startDateParam, sql.Date, params.tglAwal)
-        .input(endDateParam, sql.Date, params.tglAkhir)
-        .execute(spec.spName);
+      const request = conn.request();
+      if (bindMode === "endOnly") {
+        request.input(endDateParam, sql.Date, params.tglAkhir);
+      } else {
+        request.input(startDateParam, sql.Date, params.tglAwal);
+        request.input(endDateParam, sql.Date, params.tglAkhir);
+      }
+      const result = await request.execute(spec.spName);
       return (result.recordset ?? []) as Array<Record<string, unknown>>;
     },
 
     render(rows, meta) {
       const subtitle = `Dari ${formatTanggalId(meta.params.tglAwal)} s/d ${formatTanggalId(meta.params.tglAkhir)}`;
-      const totals =
-        spec.totals === true
-          ? sumNumericColumns(spec.columns, rows)
-          : spec.totals === false || spec.totals === undefined
-            ? undefined
-            : spec.totals;
-
-      return renderWpsReportPage({
-        title: spec.title,
-        subtitle,
-        bodyHtml: buildReportTable({
-          columns: spec.columns,
-          rows,
-          totals,
-        }),
-        landscape: spec.landscape,
-        printedBy: meta.requestedBy,
-        printedAt: formatPrintedAt(meta.generatedAt),
-      });
+      return renderStandardTable(spec, rows, subtitle, meta);
     },
   };
 }
 
-/** Sums every "number" column across rows (nulls ignored) for `totals: true`. */
+export interface SnapshotTableReportSpec {
+  type: string;
+  title: string;
+  /** Stored procedure WITHOUT parameters (live snapshot of the current state). */
+  spName: string;
+  columns: ReportColumn[];
+  totals?: ReportTotals | true | false;
+  emptyMessage?: string;
+  /** Row transformer applied before rendering (e.g. computed columns). */
+  transformRows?: (
+    rows: Array<Record<string, unknown>>,
+  ) => Array<Record<string, unknown>>;
+  landscape?: boolean;
+}
+
+/**
+ * Factory for parameterless stored procedures (live snapshots, e.g. current
+ * balances): no request params, no period subtitle. The POST body simply
+ * omits `params`.
+ */
+export function createSnapshotTableReport(
+  spec: SnapshotTableReportSpec,
+): ReportDefinition<Record<never, never>, Array<Record<string, unknown>>> {
+  const emptyMessage = spec.emptyMessage ?? "Tidak ada data";
+  return {
+    type: spec.type,
+    title: spec.title,
+    // strict: the SP takes no parameters — sending any params (e.g. dates)
+    // must fail loudly instead of being silently ignored.
+    paramsSchema: z.strictObject({}),
+
+    async fetchData(_params, { pool }) {
+      const conn = await pool;
+      const result = await conn.request().execute(spec.spName);
+      return (result.recordset ?? []) as Array<Record<string, unknown>>;
+    },
+
+    render(rows, meta) {
+      return renderStandardTable(
+        { ...spec, emptyMessage },
+        rows,
+        "",
+        meta,
+      );
+    },
+  };
+}
+
+export interface SingleDateParams {
+  /** As-of date, "YYYY-MM-DD". */
+  tgl: string;
+}
+
+export interface SingleDateTableReportSpec {
+  type: string;
+  title: string;
+  /** Stored procedure bound to ONE as-of date (e.g. @EndDate). */
+  spName: string;
+  /** SP parameter name bound to the date. Default "TglAkhir". */
+  inputName?: string;
+  columns: ReportColumn[];
+  totals?: ReportTotals | true | false;
+  emptyMessage?: string;
+  /** Row transformer applied before rendering (e.g. computed columns). */
+  transformRows?: (
+    rows: Array<Record<string, unknown>>,
+  ) => Array<Record<string, unknown>>;
+  landscape?: boolean;
+}
+
+/**
+ * Factory for "as of" daily SPs that take a single date parameter. Body
+ * params: `{ tgl: "YYYY-MM-DD" }`; the subtitle reads "Per Tanggal : …".
+ */
+export function createSingleDateTableReport(
+  spec: SingleDateTableReportSpec,
+): ReportDefinition<SingleDateParams, Array<Record<string, unknown>>> {
+  const paramName = spec.inputName ?? "TglAkhir";
+  return {
+    type: spec.type,
+    title: spec.title,
+    paramsSchema: z.object({
+      tgl: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal harus YYYY-MM-DD"),
+    }),
+
+    async fetchData(params, { pool }) {
+      const conn = await pool;
+      const result = await conn
+        .request()
+        .input(paramName, sql.Date, params.tgl)
+        .execute(spec.spName);
+      return (result.recordset ?? []) as Array<Record<string, unknown>>;
+    },
+
+    render(rows, meta) {
+      const subtitle = `Per Tanggal : ${formatTanggalId(meta.params.tgl)}`;
+      return renderStandardTable(spec, rows, subtitle, meta);
+    },
+  };
+}
+
+/** Shared render for both factories (title, table, totals, footer). */
+function renderStandardTable(
+  spec: {
+    title: string;
+    columns: ReportColumn[];
+    totals?: ReportTotals | true | false;
+    emptyMessage?: string;
+    transformRows?: (
+      rows: Array<Record<string, unknown>>,
+    ) => Array<Record<string, unknown>>;
+    landscape?: boolean;
+  },
+  rawRows: Array<Record<string, unknown>>,
+  subtitle: string,
+  meta: { requestedBy: string; generatedAt: Date },
+): RenderResult {
+  const rows = spec.transformRows ? spec.transformRows(rawRows) : rawRows;
+  const totals =
+    spec.totals === true
+      ? sumNumericColumns(spec.columns, rows)
+      : spec.totals === false || spec.totals === undefined
+        ? undefined
+        : spec.totals.values
+          ? spec.totals
+          // Object with only label/colspan overrides: auto-sum the values.
+          : { ...spec.totals, values: sumNumericColumns(spec.columns, rows).values };
+
+  return renderWpsReportPage({
+    title: spec.title,
+    subtitle,
+    bodyHtml: buildReportTable({
+      columns: spec.columns,
+      rows,
+      totals,
+      emptyMessage: spec.emptyMessage,
+    }),
+    landscape: spec.landscape,
+    printedBy: meta.requestedBy,
+    printedAt: formatPrintedAt(meta.generatedAt),
+  });
+}
+
+/** Sums every numeric column across rows (nulls ignored) for `totals: true`. */
 function sumNumericColumns(
   columns: ReportColumn[],
   rows: Array<Record<string, unknown>>,
 ): ReportTotals {
   const values: Record<string, number> = {};
   for (const column of columns) {
-    if (column.kind !== "number" || !column.field) continue;
+    if (column.sumInTotal === false) continue;
+    if (
+      (column.kind !== "number" && column.kind !== "int") ||
+      !column.field
+    )
+      continue;
     let sum = 0;
     for (const row of rows) {
       const value = row[column.field];

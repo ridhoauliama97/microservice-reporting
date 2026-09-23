@@ -1,7 +1,10 @@
 import { describe, expect, test } from 'bun:test'
 import {
   buildReportTable,
+  createSingleDateTableReport,
   createSingleTableReport,
+  createSnapshotTableReport,
+  formatInt,
   type ReportColumn,
 } from '../src/reports/wps/template'
 import type { RenderMeta } from '../src/reports/types'
@@ -88,6 +91,182 @@ describe('buildReportTable', () => {
   })
 })
 
+describe('new template capabilities', () => {
+  test('formatInt renders whole numbers with separators', () => {
+    expect(formatInt(1234)).toBe('1,234')
+    expect(formatInt(7)).toBe('7')
+    expect(formatInt(null)).toBe('')
+    expect(formatInt(0)).toBe('')
+  })
+
+  test('int columns render in the totals row like numbers', () => {
+    const intCols: ReportColumn[] = [
+      { label: 'Jenis', kind: 'label', field: 'Jenis' },
+      { label: 'Pcs', kind: 'int', field: 'Pcs' },
+    ]
+    const html = buildReportTable({
+      columns: intCols,
+      rows: [{ Jenis: 'A', Pcs: 10 }, { Jenis: 'B', Pcs: 20 }],
+      totals: { values: { Pcs: 30 } },
+    })
+    expect(html).toContain('>30<')
+  })
+
+  test('label cells take the first value when the driver returns an array', () => {
+    const html = buildReportTable({
+      columns: [{ label: 'Jenis', kind: 'label', field: 'Jenis' }],
+      rows: [{ Jenis: ['A.017209', 'A.017209'] }],
+    })
+    expect(html).toContain('>A.017209<')
+    expect(html).not.toContain('A.017209,A.017209')
+  })
+
+  test('date cells normalize SP strings like "18 Sep 2026"', () => {
+    const cols: ReportColumn[] = [{ label: 'Tgl', kind: 'date', field: 'Tgl' }]
+    const html = buildReportTable({
+      columns: cols,
+      rows: [{ Tgl: '18 Sep 2026' }, { Tgl: '01 May 2026' }],
+    })
+    expect(html).toContain('18-Sep-2026')
+    expect(html).toContain('01-Mei-2026')
+  })
+
+  test('sumInTotal: false keeps the cell empty in the totals row', () => {
+    const cols: ReportColumn[] = [
+      { label: 'Jenis', kind: 'label', field: 'Jenis' },
+      { label: 'Masuk', kind: 'number', field: 'Masuk' },
+      { label: 'Tebal', kind: 'number', field: 'Tebal', sumInTotal: false },
+    ]
+    const html = buildReportTable({
+      columns: cols,
+      rows: [{ Jenis: 'A', Masuk: 2, Tebal: 3 }],
+      totals: { values: { Masuk: 2, Tebal: null } },
+    })
+    expect(html).toContain('2.0000')
+    const totalsRow = html.slice(html.indexOf('totals-row'))
+    expect(totalsRow).not.toContain('3.0000')
+  })
+
+  test('snapshot factory: no params, no subtitle', () => {
+    const report = createSnapshotTableReport({
+      type: 'dummy-snapshot',
+      title: 'Laporan Snapshot',
+      spName: 'SP_Snapshot',
+      columns,
+    })
+    expect(report.paramsSchema.safeParse({}).success).toBe(true)
+    // strict: the SP takes no parameters — dates must be rejected loudly.
+    expect(report.paramsSchema.safeParse({ tglAwal: '2026-09-01' }).success).toBe(false)
+    const rendered = report.render([{ Jenis: 'A' }], {
+      requestedBy: 'garda',
+      generatedAt: new Date(),
+      params: {},
+    })
+    expect(rendered.html).toContain('Laporan Snapshot')
+    expect(rendered.html).not.toContain('<p class="report-subtitle"')
+    // no subtitle -> title carries its own bottom gap
+    expect(rendered.html).toContain('margin-bottom: 22px')
+  })
+
+  test('single-date factory validates { tgl } and subtitles "Per Tanggal :"', () => {
+    const report = createSingleDateTableReport({
+      type: 'dummy-single-date',
+      title: 'Laporan Harian',
+      spName: 'SP_Harian',
+      inputName: 'EndDate',
+      columns,
+    })
+    expect(
+      report.paramsSchema.safeParse({ tgl: '2026-09-23' }).success,
+    ).toBe(true)
+    expect(report.paramsSchema.safeParse({}).success).toBe(false)
+    expect(
+      report.paramsSchema.safeParse({ tgl: '23-09-2026' }).success,
+    ).toBe(false)
+    const rendered = report.render(
+      [{ Jenis: 'ST RACIP RAMBUNG' }],
+      { requestedBy: 'garda', generatedAt: new Date(), params: { tgl: '2026-09-23' } },
+    )
+    expect(rendered.html).toContain('Per Tanggal : 23-Sep-2026')
+  })
+
+  test('totals object without values auto-sums (label/colspan overrides kept)', () => {
+    const report = createSingleDateTableReport({
+      type: 'dummy-single-date',
+      title: 'Laporan Harian',
+      spName: 'SP_Harian',
+      inputName: 'EndDate',
+      columns: [
+        { label: 'No', kind: 'no', width: '40px' },
+        { label: 'Jenis', kind: 'label', field: 'Jenis' },
+        { label: 'Tebal', kind: 'number', field: 'Tebal', sumInTotal: false },
+        { label: 'Masuk', kind: 'number', field: 'Masuk' },
+      ],
+      totals: { label: 'Total', colspan: 3 },
+    })
+    const rendered = report.render(
+      [
+        { Jenis: 'A', Tebal: 3, Masuk: 1.5 },
+        { Jenis: 'B', Tebal: 4, Masuk: 2.5 },
+      ],
+      { requestedBy: 'garda', generatedAt: new Date(), params: { tgl: '2026-09-23' } },
+    )
+    const totalsRow = rendered.html.slice(rendered.html.indexOf('totals-row'))
+    expect(totalsRow).toContain('colspan="3"')
+    expect(totalsRow).toContain('4.0000') // Masuk total
+    expect(totalsRow).not.toContain('7.0000') // Tebal tidak dijumlahkan
+  })
+
+  test('transformRows computes derived columns before totals', () => {
+    const report = createSnapshotTableReport({
+      type: 'dummy-snapshot',
+      title: 'Laporan Rasio',
+      spName: 'SP_Snapshot',
+      columns: [
+        { label: 'Group', kind: 'label', field: 'Group' },
+        { label: 'Ton', kind: 'number', field: 'Ton' },
+        { label: 'Rasio (%)', kind: 'number', field: 'Rasio', format: (v) => (v === null || v === undefined ? '' : `${v.toFixed(2)}%`) },
+      ],
+      totals: true,
+      transformRows(rows) {
+        const total = rows.reduce(
+          (sum, r) => sum + (typeof r.Ton === 'number' ? r.Ton : 0),
+          0,
+        )
+        return rows.map((r) => ({
+          ...r,
+          Rasio: typeof r.Ton === 'number' && total > 0 ? (r.Ton / total) * 100 : null,
+        }))
+      },
+    })
+    const rendered = report.render(
+      [
+        { Group: 'A', Ton: 8.185 },
+        { Group: 'B', Ton: 8.185 },
+      ],
+      { requestedBy: 'garda', generatedAt: new Date(), params: {} },
+    )
+    expect(rendered.html).toContain('50.00%')
+    expect(rendered.html).toContain('100.00%') // total rasio
+    expect(rendered.html).toContain('16.3700') // total Ton
+  })
+
+  test('single-table endOnly binding still validates the period schema', () => {
+    const report = createSingleTableReport({
+      type: 'dummy-end-only',
+      title: 'Laporan End Only',
+      spName: 'SP_EndOnly',
+      inputNames: { tglAkhir: 'EndDate' },
+      bindMode: 'endOnly',
+      columns,
+    })
+    expect(
+      report.paramsSchema.safeParse({ tglAwal: '2026-09-01', tglAkhir: '2026-09-23' })
+        .success,
+    ).toBe(true)
+  })
+})
+
 describe('createSingleTableReport', () => {
   const meta: RenderMeta<{ tglAwal: string; tglAkhir: string }> = {
     requestedBy: 'garda',
@@ -124,23 +303,29 @@ describe('createSingleTableReport', () => {
     expect(rendered.landscape).toBeUndefined()
   })
 
-  test('totals: true sums every number column', () => {
+  test('totals: true sums number and int columns, honoring sumInTotal: false', () => {
     const report = createSingleTableReport({
-      type: 'dummy',
-      title: 'Laporan Dummy',
+      type: 'dummy-sum',
+      title: 'Laporan Sum',
       spName: 'SP_Dummy',
-      columns,
+      columns: [
+        { label: 'Jenis', kind: 'label', field: 'Jenis' },
+        { label: 'Masuk', kind: 'number', field: 'Masuk' },
+        { label: 'Tebal', kind: 'number', field: 'Tebal', sumInTotal: false },
+        { label: 'Jlh Btg', kind: 'int', field: 'JlhBtg' },
+      ],
       totals: true,
     })
     const rendered = report.render(
       [
-        { Jenis: 'A', Awal: 1.5, Total: 2 },
-        { Jenis: 'B', Awal: 2.5, Total: 3 },
-        { Jenis: 'C', Awal: null, Total: 1 },
+        { Jenis: 'A', Masuk: 1.5, Tebal: 3, JlhBtg: 10 },
+        { Jenis: 'B', Masuk: 2.5, Tebal: 4, JlhBtg: 20 },
       ],
       meta,
     )
-    expect(rendered.html).toContain('4.0000')
-    expect(rendered.html).toContain('3.0000')
+    expect(rendered.html).toContain('4.0000') // Masuk total
+    expect(rendered.html).toContain('>30</td>') // Jlh Btg int total
+    const totalsRow = rendered.html.slice(rendered.html.indexOf('totals-row'))
+    expect(totalsRow).not.toContain('7.0000') // Tebal tidak dijumlahkan
   })
 })
