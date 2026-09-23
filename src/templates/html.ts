@@ -106,6 +106,23 @@ export function formatPrintedAt(date: Date): string {
 }
 
 /**
+ * number_format(value, decimals, '.', ',') — thousands separators apply to
+ * the integer part ONLY (applying them to the whole string corrupts
+ * decimals, e.g. "31.9,058").
+ */
+export function formatNumber(
+  value: number | null | undefined,
+  decimals: number,
+  options?: { blankWhenZero?: boolean },
+): string {
+  const num = typeof value === "number" && Number.isFinite(value) ? value : 0;
+  if (options?.blankWhenZero && Math.abs(num) < 0.0000001) return "";
+  const [intPart, decPart] = num.toFixed(decimals).split(".");
+  const int = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return decimals > 0 ? `${int}.${decPart}` : int;
+}
+
+/**
  * Formats a number with up to 4 decimals but STRIPS trailing zeros —
  * 10 -> "10", 2.5 -> "2.5", 43.5261 -> "43.5261" (thousands separators
  * kept). Blank for null/near-zero, mirroring the legacy detail format.

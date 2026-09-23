@@ -4,7 +4,7 @@ import {
   renderWpsReportPage,
   type ReportColumn,
 } from "./template";
-import { formatPrintedAt, formatTanggalId } from "../../templates/html";
+import { formatNumber, formatPrintedAt, formatTanggalId } from "../../templates/html";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
 import type { ReportDefinition, RenderResult } from "../types";
 
@@ -94,29 +94,25 @@ const toFloat = (value: unknown): number => {
   return 0;
 };
 
-const withSeparators = (integerText: string): string =>
-  integerText.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-
 /** Always shows the number (0 renders as "0") — legacy $fmtInt. */
-const fmtInt = (value: unknown): string =>
-  withSeparators(String(Math.round(toFloat(value))));
+const fmtInt = (value: unknown): string => formatNumber(Math.round(toFloat(value)), 0);
 
 /** Integer with separators; blank when ~0 — legacy $fmtIntBlankZero. */
 const fmtIntBlankZero = (value: unknown): string => {
   const num = toFloat(value);
   if (Math.abs(num) < 0.000001) return "";
-  return withSeparators(String(Math.round(num)));
+  return formatNumber(num, 0);
 };
 
 /** 2 decimals; blank when ~0 — legacy $fmt2BlankZero. */
 const fmt2BlankZero = (value: unknown): string => {
   const num = toFloat(value);
   if (Math.abs(num) < 0.000001) return "";
-  return withSeparators(num.toFixed(2));
+  return formatNumber(num, 2);
 };
 
 /** 2 decimals; zero renders as "0.00" — legacy $fmt2. */
-const fmt2 = (value: unknown): string => withSeparators(toFloat(value).toFixed(2));
+const fmt2 = (value: unknown): string => formatNumber(toFloat(value), 2);
 
 /** Effective ton per row: TonKG when present, else TonKB — legacy rule. */
 const effectiveTon = (row: PenerimaanRow): number => {

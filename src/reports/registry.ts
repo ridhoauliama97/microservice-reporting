@@ -11,7 +11,10 @@ import { mutasiKayuBulatReport } from './wps/mutasi-kayu-bulat'
 import { mutasiRacipDetailReport } from './wps/mutasi-racip-detail'
 import { penerimaanKayuBulatExtTonReport } from './wps/penerimaan-kayu-bulat-ext-ton'
 import { penerimaanKayuBulatIntTonReport } from './wps/penerimaan-kayu-bulat-int-ton'
+import { penerimaanKayuBulatPerSupplierGrafikReport } from './wps/penerimaan-kayu-bulat-per-supplier-grafik'
+import { penerimaanKayuBulatPerSupplierGroupReport } from './wps/penerimaan-kayu-bulat-per-supplier-group'
 import { penerimaanKayuBulatPerSupplierReport } from './wps/penerimaan-kayu-bulat-per-supplier'
+import { perbandinganKbMasukReport } from './wps/perbandingan-kb-masuk-periode'
 import { saldoKayuBulatReport } from './wps/saldo-kayu-bulat'
 import type { ReportDefinition } from './types'
 
@@ -32,6 +35,9 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'saldo-kayu-bulat': saldoKayuBulatReport,
   'kb-khusus-bangkang': kbKhususBangkangReport,
   'penerimaan-kayu-bulat-per-supplier': penerimaanKayuBulatPerSupplierReport,
+  'penerimaan-kayu-bulat-per-supplier-grafik': penerimaanKayuBulatPerSupplierGrafikReport,
+  'penerimaan-kayu-bulat-per-supplier-group': penerimaanKayuBulatPerSupplierGroupReport,
   'penerimaan-kayu-bulat-int-ton': penerimaanKayuBulatIntTonReport,
   'penerimaan-kayu-bulat-ext-ton': penerimaanKayuBulatExtTonReport,
+  'perbandingan-kb-masuk-periode-1-dan-2': perbandinganKbMasukReport,
 }

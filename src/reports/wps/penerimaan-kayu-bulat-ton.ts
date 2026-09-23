@@ -1,5 +1,10 @@
 import sql from "mssql";
-import { escapeHtml, formatPrintedAt, formatTanggalId } from "../../templates/html";
+import {
+  escapeHtml,
+  formatNumber,
+  formatPrintedAt,
+  formatTanggalId,
+} from "../../templates/html";
 import { z } from "zod";
 import {
   renderWpsReportPage,
@@ -64,14 +69,9 @@ export interface TonReportData {
   };
 }
 
-const withSeparators = (integerText: string): string =>
-  integerText.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+const fmtSize = (value: number): string => formatNumber(value, 2);
 
-const fmtSize = (value: number): string =>
-  withSeparators((Number.isFinite(value) ? value : 0).toFixed(2));
-
-const fmtTon = (value: number): string =>
-  withSeparators((Number.isFinite(value) ? value : 0).toFixed(4));
+const fmtTon = (value: number): string => formatNumber(value, 4);
 
 const buildHeaderData = (
   headerRow: Record<string, unknown>,
