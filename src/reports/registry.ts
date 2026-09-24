@@ -15,7 +15,12 @@ import { penerimaanKayuBulatPerSupplierGrafikReport } from './wps/penerimaan-kay
 import { penerimaanKayuBulatPerSupplierGroupReport } from './wps/penerimaan-kayu-bulat-per-supplier-group'
 import { penerimaanKayuBulatPerSupplierReport } from './wps/penerimaan-kayu-bulat-per-supplier'
 import { perbandinganKbMasukReport } from './wps/perbandingan-kb-masuk-periode'
+import { rekapPembelianKayuBulatReport } from './wps/rekap-pembelian-kayu-bulat'
 import { saldoKayuBulatReport } from './wps/saldo-kayu-bulat'
+import { stockOpnameKbReport } from './wps/stock-opname-kb'
+import { stockRacipKayuLatReport } from './wps/stock-racip-kayu-lat'
+import { targetMasukBBBulananReport } from './wps/target-masuk-bb-bulanan'
+import { targetMasukBBHarianReport } from './wps/target-masuk-bb-harian'
 import type { ReportDefinition } from './types'
 
 // The single allowed `any` in the codebase (AGENTS.md 7.9): each report has
@@ -40,4 +45,9 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'penerimaan-kayu-bulat-int-ton': penerimaanKayuBulatIntTonReport,
   'penerimaan-kayu-bulat-ext-ton': penerimaanKayuBulatExtTonReport,
   'perbandingan-kb-masuk-periode-1-dan-2': perbandinganKbMasukReport,
+  'rekap-pembelian-kayu-bulat': rekapPembelianKayuBulatReport,
+  'stock-racip-kayu-lat': stockRacipKayuLatReport,
+  'target-masuk-bb-bulanan': targetMasukBBBulananReport,
+  'target-masuk-bb-harian': targetMasukBBHarianReport,
+  'stock-opname-kb': stockOpnameKbReport,
 }
