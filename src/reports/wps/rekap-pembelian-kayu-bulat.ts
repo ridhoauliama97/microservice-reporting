@@ -104,6 +104,9 @@ export const rekapPembelianKayuBulatReport: ReportDefinition<
       title: "Laporan Rekap Pembelian Kayu Bulat (Ton)",
       subtitle: `Periode ${startYear} s/d ${endYear}`,
       bodyHtml: buildTableHtml(years),
+      // 14 columns (Tahun + 12 bulan + Total) do not fit the portrait content
+      // width — landscape keeps every tonnage on a single line.
+      landscape: true,
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

@@ -21,8 +21,13 @@ import { penerimaanKayuBulatPerSupplierGrafikReport } from './wps/penerimaan-kay
 import { penerimaanKayuBulatPerSupplierGroupReport } from './wps/penerimaan-kayu-bulat-per-supplier-group'
 import { penerimaanKayuBulatPerSupplierKgReport } from './wps/penerimaan-kayu-bulat-per-supplier-kg'
 import { penerimaanKayuBulatPerSupplierReport } from './wps/penerimaan-kayu-bulat-per-supplier'
+import { perbandinganKbMasukKgReport } from './wps/perbandingan-kb-masuk-periode-kg'
 import { perbandinganKbMasukReport } from './wps/perbandingan-kb-masuk-periode'
+import { rekapPembelianKayuBulatKgReport } from './wps/rekap-pembelian-kayu-bulat-kg'
 import { rekapPembelianKayuBulatReport } from './wps/rekap-pembelian-kayu-bulat'
+import { rekapPenerimaanStDariSawmillKgReport } from './wps/rekap-penerimaan-st-dari-sawmill-kg'
+import { rekapPenerimaanStSawmillCostingRambungReport } from './wps/rekap-penerimaan-st-sawmill-costing-rambung'
+import { rekapRendemenRambungPerSupplierReport } from './wps/rekap-rendemen-rambung-per-supplier'
 import { saldoKayuBulatReport } from './wps/saldo-kayu-bulat'
 import { stockOpnameKbReport } from './wps/stock-opname-kb'
 import { stockRacipKayuLatReport } from './wps/stock-racip-kayu-lat'
@@ -57,7 +62,12 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'penerimaan-kayu-bulat-ext-kg': penerimaanKayuBulatExtKgReport,
   'penerimaan-kayu-bulat-per-supplier-kg': penerimaanKayuBulatPerSupplierKgReport,
   'perbandingan-kb-masuk-periode-1-dan-2': perbandinganKbMasukReport,
+  'perbandingan-kb-masuk-periode-1-dan-2-kg': perbandinganKbMasukKgReport,
   'rekap-pembelian-kayu-bulat': rekapPembelianKayuBulatReport,
+  'rekap-pembelian-kayu-bulat-kg': rekapPembelianKayuBulatKgReport,
+  'rekap-penerimaan-st-dari-sawmill-kg': rekapPenerimaanStDariSawmillKgReport,
+  'rekap-penerimaan-st-sawmill-costing-rambung': rekapPenerimaanStSawmillCostingRambungReport,
+  'rekap-rendemen-rambung-per-supplier': rekapRendemenRambungPerSupplierReport,
   'stock-racip-kayu-lat': stockRacipKayuLatReport,
   'target-masuk-bb-bulanan': targetMasukBBBulananReport,
   'target-masuk-bb-harian': targetMasukBBHarianReport,
