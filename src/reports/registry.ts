@@ -29,13 +29,18 @@ import { rekapPenerimaanStDariSawmillKgReport } from './wps/rekap-penerimaan-st-
 import { rekapPenerimaanStSawmillCostingRambungReport } from './wps/rekap-penerimaan-st-sawmill-costing-rambung'
 import { rekapRendemenRambungPerSupplierReport } from './wps/rekap-rendemen-rambung-per-supplier'
 import { saldoKayuBulatReport } from './wps/saldo-kayu-bulat'
+import { saldoHidupKayuBulatKgReport } from './wps/saldo-hidup-kayu-bulat-kg'
+import { supplierIntelReport } from './wps/supplier-intel'
 import { stockOpnameKbReport } from './wps/stock-opname-kb'
 import { stockRacipKayuLatReport } from './wps/stock-racip-kayu-lat'
 import { targetMasukBBBulananReport } from './wps/target-masuk-bb-bulanan'
 import { targetMasukBBHarianReport } from './wps/target-masuk-bb-harian'
 import { timelineKbBulananReport } from './wps/timeline-kayu-bulat-bulanan'
 import { timelineKbHarianReport } from './wps/timeline-kayu-bulat-harian'
+import { timelineKbBulananKgReport } from './wps/timeline-kb-bulanan-rambung-kg'
+import { timelineKbHarianKgReport } from './wps/timeline-kb-harian-rambung-kg'
 import { umurKayuBulatReport } from './wps/umur-kayu-bulat-non-rambung'
+import { umurKayuBulatRambungReport } from './wps/umur-kayu-bulat-rambung'
 import type { ReportDefinition } from './types'
 
 // The single allowed `any` in the codebase (AGENTS.md 7.9): each report has
@@ -55,6 +60,8 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'hidup-kb-per-group': hidupKbPerGroupReport,
   'kayu-bulat-hidup': kayuBulatHidupReport,
   'saldo-kayu-bulat': saldoKayuBulatReport,
+  'saldo-hidup-kayu-bulat-kg': saldoHidupKayuBulatKgReport,
+  'supplier-intel': supplierIntelReport,
   'kb-khusus-bangkang': kbKhususBangkangReport,
   'penerimaan-kayu-bulat-int-ton': penerimaanKayuBulatIntTonReport,
   'penerimaan-kayu-bulat-ext-ton': penerimaanKayuBulatExtTonReport,
@@ -74,5 +81,8 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'stock-opname-kb': stockOpnameKbReport,
   'timeline-kayu-bulat-bulanan': timelineKbBulananReport,
   'timeline-kayu-bulat-harian': timelineKbHarianReport,
+  'timeline-kb-bulanan-rambung-kg': timelineKbBulananKgReport,
+  'timeline-kb-harian-rambung-kg': timelineKbHarianKgReport,
   'umur-kayu-bulat-non-rambung': umurKayuBulatReport,
+  'umur-kayu-bulat-rambung': umurKayuBulatRambungReport,
 }
