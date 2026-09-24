@@ -21,6 +21,9 @@ import { stockOpnameKbReport } from './wps/stock-opname-kb'
 import { stockRacipKayuLatReport } from './wps/stock-racip-kayu-lat'
 import { targetMasukBBBulananReport } from './wps/target-masuk-bb-bulanan'
 import { targetMasukBBHarianReport } from './wps/target-masuk-bb-harian'
+import { timelineKbBulananReport } from './wps/timeline-kayu-bulat-bulanan'
+import { timelineKbHarianReport } from './wps/timeline-kayu-bulat-harian'
+import { umurKayuBulatReport } from './wps/umur-kayu-bulat-non-rambung'
 import type { ReportDefinition } from './types'
 
 // The single allowed `any` in the codebase (AGENTS.md 7.9): each report has
@@ -39,9 +42,6 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'kayu-bulat-hidup': kayuBulatHidupReport,
   'saldo-kayu-bulat': saldoKayuBulatReport,
   'kb-khusus-bangkang': kbKhususBangkangReport,
-  'penerimaan-kayu-bulat-per-supplier': penerimaanKayuBulatPerSupplierReport,
-  'penerimaan-kayu-bulat-per-supplier-grafik': penerimaanKayuBulatPerSupplierGrafikReport,
-  'penerimaan-kayu-bulat-per-supplier-group': penerimaanKayuBulatPerSupplierGroupReport,
   'penerimaan-kayu-bulat-int-ton': penerimaanKayuBulatIntTonReport,
   'penerimaan-kayu-bulat-ext-ton': penerimaanKayuBulatExtTonReport,
   'perbandingan-kb-masuk-periode-1-dan-2': perbandinganKbMasukReport,
@@ -50,4 +50,7 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'target-masuk-bb-bulanan': targetMasukBBBulananReport,
   'target-masuk-bb-harian': targetMasukBBHarianReport,
   'stock-opname-kb': stockOpnameKbReport,
+  'timeline-kayu-bulat-bulanan': timelineKbBulananReport,
+  'timeline-kayu-bulat-harian': timelineKbHarianReport,
+  'umur-kayu-bulat-non-rambung': umurKayuBulatReport,
 }
