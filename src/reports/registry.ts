@@ -6,13 +6,20 @@ import { kayuBulatHidupReport } from './wps/kayu-bulat-hidup'
 import { kbKhususBangkangReport } from './wps/kb-khusus-bangkang'
 import { mutasiHasilRacipReport } from './wps/mutasi-hasil-racip'
 import { mutasiKayuBulatGantungReport } from './wps/mutasi-kayu-bulat-gantung'
+import { mutasiKayuBulatKgReport } from './wps/mutasi-kayu-bulat-kg'
+import { mutasiKayuBulatKgGantungReport } from './wps/mutasi-kayu-bulat-kg-gantung'
 import { mutasiBarangJadiReport } from './wps/mutasi-barang-jadi'
 import { mutasiKayuBulatReport } from './wps/mutasi-kayu-bulat'
 import { mutasiRacipDetailReport } from './wps/mutasi-racip-detail'
 import { penerimaanKayuBulatExtTonReport } from './wps/penerimaan-kayu-bulat-ext-ton'
 import { penerimaanKayuBulatIntTonReport } from './wps/penerimaan-kayu-bulat-int-ton'
+import {
+  penerimaanKayuBulatExtKgReport,
+  penerimaanKayuBulatKgReport,
+} from './wps/penerimaan-kayu-bulat-kg'
 import { penerimaanKayuBulatPerSupplierGrafikReport } from './wps/penerimaan-kayu-bulat-per-supplier-grafik'
 import { penerimaanKayuBulatPerSupplierGroupReport } from './wps/penerimaan-kayu-bulat-per-supplier-group'
+import { penerimaanKayuBulatPerSupplierKgReport } from './wps/penerimaan-kayu-bulat-per-supplier-kg'
 import { penerimaanKayuBulatPerSupplierReport } from './wps/penerimaan-kayu-bulat-per-supplier'
 import { perbandinganKbMasukReport } from './wps/perbandingan-kb-masuk-periode'
 import { rekapPembelianKayuBulatReport } from './wps/rekap-pembelian-kayu-bulat'
@@ -33,6 +40,8 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   example: exampleReport,
   'mutasi-kayu-bulat': mutasiKayuBulatReport,
   'mutasi-kayu-bulat-gantung': mutasiKayuBulatGantungReport,
+  'mutasi-kayu-bulat-kg': mutasiKayuBulatKgReport,
+  'mutasi-kayu-bulat-kg-gantung': mutasiKayuBulatKgGantungReport,
   'mutasi-barang-jadi': mutasiBarangJadiReport,
   'mutasi-hasil-racip': mutasiHasilRacipReport,
   'mutasi-racip-detail': mutasiRacipDetailReport,
@@ -44,6 +53,9 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'kb-khusus-bangkang': kbKhususBangkangReport,
   'penerimaan-kayu-bulat-int-ton': penerimaanKayuBulatIntTonReport,
   'penerimaan-kayu-bulat-ext-ton': penerimaanKayuBulatExtTonReport,
+  'penerimaan-kayu-bulat-kg': penerimaanKayuBulatKgReport,
+  'penerimaan-kayu-bulat-ext-kg': penerimaanKayuBulatExtKgReport,
+  'penerimaan-kayu-bulat-per-supplier-kg': penerimaanKayuBulatPerSupplierKgReport,
   'perbandingan-kb-masuk-periode-1-dan-2': perbandinganKbMasukReport,
   'rekap-pembelian-kayu-bulat': rekapPembelianKayuBulatReport,
   'stock-racip-kayu-lat': stockRacipKayuLatReport,
