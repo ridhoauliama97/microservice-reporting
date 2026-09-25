@@ -4,11 +4,14 @@ import { hasilOutputRacipHarianReport } from './wps/hasil-output-racip-harian'
 import { hidupKbPerGroupReport } from './wps/hidup-kb-per-group'
 import { kayuBulatHidupReport } from './wps/kayu-bulat-hidup'
 import { kbKhususBangkangReport } from './wps/kb-khusus-bangkang'
+import { barangJadiHidupDetailReport } from './wps/barang-jadi-hidup-detail'
+import { dashboardBarangJadiReport } from './wps/dashboard-barang-jadi'
 import { mutasiHasilRacipReport } from './wps/mutasi-hasil-racip'
 import { mutasiKayuBulatGantungReport } from './wps/mutasi-kayu-bulat-gantung'
 import { mutasiKayuBulatKgReport } from './wps/mutasi-kayu-bulat-kg'
 import { mutasiKayuBulatKgGantungReport } from './wps/mutasi-kayu-bulat-kg-gantung'
 import { mutasiBarangJadiReport } from './wps/mutasi-barang-jadi'
+import { mutasiBarangJadiPerJenisPerUkuranReport } from './wps/mutasi-barang-jadi-per-jenis-per-ukuran'
 import { mutasiKayuBulatReport } from './wps/mutasi-kayu-bulat'
 import { mutasiRacipDetailReport } from './wps/mutasi-racip-detail'
 import { penerimaanKayuBulatExtTonReport } from './wps/penerimaan-kayu-bulat-ext-ton'
@@ -25,6 +28,10 @@ import { perbandinganKbMasukKgReport } from './wps/perbandingan-kb-masuk-periode
 import { perbandinganKbMasukReport } from './wps/perbandingan-kb-masuk-periode'
 import { rekapPembelianKayuBulatKgReport } from './wps/rekap-pembelian-kayu-bulat-kg'
 import { rekapPembelianKayuBulatReport } from './wps/rekap-pembelian-kayu-bulat'
+import { rekapProduksiPackingPerJenisPerGradeReport } from './wps/rekap-produksi-packing-per-jenis-per-grade'
+import { rekapProduksiBarangJadiConsolidatedReport } from './wps/rekap-produksi-barang-jadi-consolidated'
+import { saldoBarangJadiHidupPerJenisPerProdukReport } from './wps/saldo-barang-jadi-hidup-per-jenis-per-produk'
+import { umurBarangJadiDetailReport } from './wps/umur-barang-jadi-detail'
 import { rekapPenerimaanStDariSawmillKgReport } from './wps/rekap-penerimaan-st-dari-sawmill-kg'
 import { rekapPenerimaanStSawmillCostingRambungReport } from './wps/rekap-penerimaan-st-sawmill-costing-rambung'
 import { rekapRendemenRambungPerSupplierReport } from './wps/rekap-rendemen-rambung-per-supplier'
@@ -53,6 +60,9 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'mutasi-kayu-bulat-kg': mutasiKayuBulatKgReport,
   'mutasi-kayu-bulat-kg-gantung': mutasiKayuBulatKgGantungReport,
   'mutasi-barang-jadi': mutasiBarangJadiReport,
+  'barang-jadi-hidup-detail': barangJadiHidupDetailReport,
+  'dashboard-barang-jadi': dashboardBarangJadiReport,
+  'mutasi-barang-jadi-per-jenis-per-ukuran': mutasiBarangJadiPerJenisPerUkuranReport,
   'mutasi-hasil-racip': mutasiHasilRacipReport,
   'mutasi-racip-detail': mutasiRacipDetailReport,
   'balok-sudah-semprot': balokSudahSemprotReport,
@@ -72,6 +82,10 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'perbandingan-kb-masuk-periode-1-dan-2-kg': perbandinganKbMasukKgReport,
   'rekap-pembelian-kayu-bulat': rekapPembelianKayuBulatReport,
   'rekap-pembelian-kayu-bulat-kg': rekapPembelianKayuBulatKgReport,
+  'rekap-produksi-packing-per-jenis-per-grade': rekapProduksiPackingPerJenisPerGradeReport,
+  'rekap-produksi-barang-jadi-consolidated': rekapProduksiBarangJadiConsolidatedReport,
+  'saldo-barang-jadi-hidup-per-jenis-per-produk': saldoBarangJadiHidupPerJenisPerProdukReport,
+  'umur-barang-jadi-detail': umurBarangJadiDetailReport,
   'rekap-penerimaan-st-dari-sawmill-kg': rekapPenerimaanStDariSawmillKgReport,
   'rekap-penerimaan-st-sawmill-costing-rambung': rekapPenerimaanStSawmillCostingRambungReport,
   'rekap-rendemen-rambung-per-supplier': rekapRendemenRambungPerSupplierReport,
