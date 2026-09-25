@@ -1,5 +1,4 @@
-import sql from "mssql";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import { escapeHtml, formatNumber, formatPrintedAt, MONTHS_SHORT_ID } from "../../templates/html";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
 import type { ReportDefinition } from "../types";
@@ -43,7 +42,7 @@ function buildPivot(rows: Array<Record<string, unknown>>): {
   }
 
   return {
-    years: [...years.values()].sort((a, b) => a.tahun - b.tahun),
+    years: rows.length > 0 ? [...years.values()].sort((a, b) => a.tahun - b.tahun) : [],
     startYear,
     endYear,
   };
@@ -75,7 +74,7 @@ const buildTableHtml = (years: YearPivotRow[]): string => {
   </thead>
   <tbody>
     ${bodyRows}
-    ${years.length === 0 ? `<tr><td class="center" colspan="${2 + MONTH_LABELS.length}">Tidak ada data.</td></tr>` : ""}
+    ${years.length === 0 ? buildEmptyTableRow(2 + MONTH_LABELS.length) : ""}
   </tbody>
 </table>`;
 }

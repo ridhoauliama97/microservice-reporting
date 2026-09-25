@@ -7,7 +7,7 @@ import {
 } from "../../templates/html";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
 import type { ReportDefinition } from "../types";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTable, buildEmptyTableRow, renderWpsReportPage } from "./template";
 
 /**
  * SPWps_LapDashboardCCAkhir — "Laporan Dashboard Cross Cut Akhir".
@@ -139,18 +139,6 @@ const normalizeDisplayToken = (value: unknown): string =>
 const buildDisplayKey = (jenis: unknown, grade: unknown): string =>
   `${normalizeDisplayToken(jenis)} ${normalizeDisplayToken(grade)}`.trim();
 
-const buildDateRange = (startDate: string, endDate: string): string[] => {
-  const start = Date.parse(`${startDate}T00:00:00.000Z`);
-  const end = Date.parse(`${endDate}T00:00:00.000Z`);
-  if (Number.isNaN(start) || Number.isNaN(end) || end < start) return [];
-
-  const dates: string[] = [];
-  for (let timestamp = start; timestamp <= end; timestamp += 86_400_000) {
-    dates.push(new Date(timestamp).toISOString().slice(0, 10));
-  }
-  return dates;
-};
-
 const applyColumnOrder = (keys: string[]): string[] => {
   const sorted = [...new Set(keys)].sort(compareText);
   const ordered = COLUMN_ORDER.filter((key) => sorted.includes(key));
@@ -202,9 +190,9 @@ export function buildViewModel(
     }
   }
 
-  const dates = dateMap.size > 0
+  const dates = allKeys.size > 0 && dateMap.size > 0
     ? [...dateMap].sort(compareText)
-    : buildDateRange(startDate, endDate);
+    : [];
   const columns = applyColumnOrder([...allKeys]);
 
   const gridRows: DashboardGridRow[] = dates.map((date) => {
@@ -257,31 +245,6 @@ const formatBalance = (value: number): string => formatNumber(value, 1);
 const formatCtr = (value: number): string => formatNumber(value, 2);
 const formatPercent = (value: number): string => `${formatNumber(value, 1)}%`;
 
-const DASHBOARD_CC_CSS = `
-  .report-table { table-layout: auto; }
-  .report-table tfoot { display: table-row-group; }
-  .report-table tbody tr.data-row td.data-cell {
-    border-top: 0 !important;
-    border-bottom: 0 !important;
-    border-left: 0 !important;
-    border-right: 1px solid #000 !important;
-  }
-  .report-table tfoot .totals-row td {
-    font-weight: bold;
-    font-size: 11px;
-    border-top: 1px solid #000;
-    border-right: 1px solid #000;
-    border-bottom: 0;
-    border-left: 0;
-  }
-  td.number {
-    font-family: Calibri, "DejaVu Sans", sans-serif;
-    white-space: nowrap;
-  }
-  td.label { white-space: nowrap; }
-  .summary-table { width: 230px; }
-  .summary-table .totals-row td { border: 1px solid #000 !important; }
-`;
 
 const buildMainTable = (data: DashboardData): string => {
   const groupHeaders = data.columns
@@ -293,7 +256,7 @@ const buildMainTable = (data: DashboardData): string => {
         .join("\n      ")}</tr>`
     : "";
 
-  const bodyRows = data.rows.length
+  const bodyRows = data.columns.length > 0 && data.rows.length > 0
     ? data.rows
         .map((row, index) => `<tr class="data-row ${index % 2 === 0 ? "row-odd" : "row-even"}">
                             <td class="data-cell label" style="text-align: center;">${escapeHtml(formatTanggalPendek(row.date))}</td>
@@ -304,7 +267,7 @@ const buildMainTable = (data: DashboardData): string => {
                             }).join("\n                            ")}
                           </tr>`)
         .join("\n")
-    : `<tr class="data-row row-odd"><td colspan="${1 + data.columns.length * 2}" style="text-align: center;">Data tidak tersedia.</td></tr>`;
+    : buildEmptyTableRow(1 + data.columns.length * 2);
 
   const sAkhirCells = data.columns
     .map((column) => `<td class="number">${escapeHtml(formatBalance(data.sAkhirByColumn[column] ?? 0))}</td>
@@ -379,11 +342,15 @@ export const dashboardCrossCutAkhirReport: ReportDefinition<
 
   render(data, meta) {
     const subtitle = `Dari ${formatTanggalPendek(meta.params.tglAwal)} s/d ${formatTanggalPendek(meta.params.tglAkhir)}`;
+    const hasData = data.columns.length > 0 && data.rows.length > 0;
+    const bodyHtml = hasData
+      ? `${buildMainTable(data)}\n${buildSummaryTable(data)}`
+      : buildEmptyTable(1 + data.columns.length * 2);
     return renderWpsReportPage({
       title: REPORT_TITLE,
       subtitle,
-      bodyHtml: `${buildMainTable(data)}\n${buildSummaryTable(data)}`,
-      extraCss: DASHBOARD_CC_CSS,
+      bodyHtml,
+      style: "dashboard_cross_cut_akhir",
       printedBy: meta.requestedBy || "sistem",
       printedAt: formatPrintedAt(meta.generatedAt),
     });

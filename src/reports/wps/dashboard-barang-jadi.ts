@@ -7,7 +7,7 @@ import {
 } from "../../templates/html";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
 import type { ReportDefinition } from "../types";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTable, buildEmptyTableRow, renderWpsReportPage } from "./template";
 
 export interface DashboardBarangJadiRow extends Record<string, unknown> {
   DATE: Date | string | null;
@@ -131,21 +131,6 @@ const normalizeDisplayToken = (value: unknown): string =>
 const buildDisplayKey = (jenis: unknown, barangJadi: unknown): string =>
   `${normalizeDisplayToken(jenis)} ${normalizeDisplayToken(barangJadi)}`.trim();
 
-const buildDateRange = (startDate: string, endDate: string): string[] => {
-  const start = Date.parse(`${startDate}T00:00:00.000Z`);
-  const end = Date.parse(`${endDate}T00:00:00.000Z`);
-  if (Number.isNaN(start) || Number.isNaN(end) || end < start) {
-    return [];
-  }
-
-  const dates: string[] = [];
-  const oneDay = 86_400_000;
-  for (let timestamp = start; timestamp <= end; timestamp += oneDay) {
-    dates.push(new Date(timestamp).toISOString().slice(0, 10));
-  }
-  return dates;
-};
-
 /**
  * Converts the first result set from SPWps_LapDashboardBJ into the pivot
  * consumed by the Blade layout.
@@ -210,7 +195,9 @@ export function buildViewModel(
   }
 
   const dates =
-    dateMap.size > 0 ? [...dateMap].sort(compareText) : buildDateRange(startDate, endDate);
+    allKeys.size > 0 && dateMap.size > 0
+      ? [...dateMap].sort(compareText)
+      : [];
   const columns = [...allKeys].sort(compareText);
   const gridRows: DashboardBarangJadiGridRow[] = dates.map((date) => {
     const cells: Record<string, DashboardBarangJadiCell> = {};
@@ -266,32 +253,6 @@ const formatBalance = (value: number): string => formatNumber(value, 2);
 
 const formatPercent = (value: number): string => `${formatNumber(value, 2)}%`;
 
-const DASHBOARD_BARANG_JADI_CSS = `
-  .report-table { table-layout: auto; }
-  .section-title { margin: 20px 0 4px; }
-  .report-table tfoot { display: table-row-group; }
-  .report-table tbody tr.data-row td.data-cell {
-    border-top: 0 !important;
-    border-bottom: 0 !important;
-    border-left: 0 !important;
-    border-right: 1px solid #000 !important;
-  }
-  .report-table tfoot .totals-row td {
-    font-weight: bold;
-    font-size: 11px;
-    border-top: 1px solid #000;
-    border-right: 1px solid #000;
-    border-bottom: 0;
-    border-left: 0;
-  }
-  td.number {
-    font-family: Calibri, "DejaVu Sans", sans-serif;
-    white-space: nowrap;
-  }
-  td.label { white-space: nowrap; }
-  .summary-table { width: 230px; }
-  .summary-table .totals-row td { border: 1px solid #000 !important; }
-`;
 
 const buildMainTable = (data: DashboardBarangJadiData): string => {
   const groupHeaders = data.columns
@@ -305,7 +266,7 @@ const buildMainTable = (data: DashboardBarangJadiData): string => {
     </tr>`
     : "";
 
-  const bodyRows = data.rows.length
+  const bodyRows = data.columns.length > 0 && data.rows.length > 0
     ? data.rows
         .map(
           (row, index) => `<tr class="data-row ${index % 2 === 0 ? "row-odd" : "row-even"}">
@@ -320,7 +281,7 @@ const buildMainTable = (data: DashboardBarangJadiData): string => {
                           </tr>`,
         )
         .join("\n")
-    : `<tr class="data-row row-odd"><td colspan="${1 + data.columns.length * 2}" style="text-align: center;">Data tidak tersedia.</td></tr>`;
+    : buildEmptyTableRow(1 + data.columns.length * 2);
 
   const sAkhirCells = data.columns
     .map(
@@ -399,13 +360,16 @@ export const dashboardBarangJadiReport: ReportDefinition<
 
   render(data, meta) {
     const subtitle = `Dari ${formatTanggalId(meta.params.tglAwal)} s/d ${formatTanggalId(meta.params.tglAkhir)}`;
-    const bodyHtml = `${buildMainTable(data)}\n${buildSummaryTable(data)}`;
+    const hasData = data.columns.length > 0 && data.rows.length > 0;
+    const bodyHtml = hasData
+      ? `${buildMainTable(data)}\n${buildSummaryTable(data)}`
+      : buildEmptyTable(1 + data.columns.length * 2);
 
     return renderWpsReportPage({
       title: REPORT_TITLE,
       subtitle,
       bodyHtml,
-      extraCss: DASHBOARD_BARANG_JADI_CSS,
+      style: "dashboard_barang_jadi",
       printedBy: meta.requestedBy || "sistem",
       printedAt: formatPrintedAt(meta.generatedAt),
     });

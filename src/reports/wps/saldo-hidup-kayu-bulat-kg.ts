@@ -1,4 +1,3 @@
-import sql from "mssql";
 import { z } from "zod";
 import {
   escapeHtml,
@@ -6,7 +5,7 @@ import {
   formatPrintedAt,
   formatTanggalId,
 } from "../../templates/html";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import type { ReportDefinition, RenderResult } from "../types";
 
 /**
@@ -87,17 +86,6 @@ const truckSortKey = (truck: unknown): [number, number, string] => {
   return [1, Number.MAX_SAFE_INTEGER, raw];
 };
 
-const SALDO_CSS = `
-  .kb-block { margin-bottom: 10px; }
-  .kb-meta { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
-  .kb-meta td { padding: 1px 2px; vertical-align: top; border: 0 !important; background: #fff !important; font-size: 10px; }
-  .kb-meta .meta-label { width: 78px; white-space: nowrap; }
-  .kb-meta .meta-sep { width: 10px; text-align: center; }
-  .report-table tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
-  .report-table tbody tr.totals-row td { background: #fff !important; font-weight: bold; font-size: 11px; border-top: 1px solid #000; border-right: 1px solid #000; border-bottom: 0; border-left: 0; }
-  .summary-page { margin-top: 14px; }
-  .summary-wrap { width: 48%; }
-`;
 
 /** Consecutive same-supplier runs get a rowspan on the Supplier cell. */
 function supplierRowspans(rows: SaldoRow[]): number[] {
@@ -203,7 +191,7 @@ const buildSummaryHtml = (data: SaldoData): string => {
       <tbody>
         ${
           bodyRows ||
-          `<tr><td colspan="4" class="center">Tidak ada data.</td></tr>`
+          buildEmptyTableRow(4)
         }
         ${
           data.subRows.length > 0
@@ -220,9 +208,22 @@ const buildSummaryHtml = (data: SaldoData): string => {
 </section>`;
 };
 
+const buildEmptyKbTable = (): string => `<table class="report-table">
+  <thead>
+    <tr class="headers-row">
+      <th>Supplier</th>
+      <th>Bruto</th>
+      <th>Tara</th>
+      <th>Grade</th>
+      <th>Berat (Ton)</th>
+    </tr>
+  </thead>
+  <tbody>${buildEmptyTableRow(5)}</tbody>
+</table>`;
+
 const buildBodyHtml = (data: SaldoData): string => {
   if (data.rows.length === 0) {
-    return `<table class="report-table"><tbody><tr><td class="center">Tidak ada data.</td></tr></tbody></table>
+    return `${buildEmptyKbTable()}
 ${buildSummaryHtml(data)}`;
   }
 
@@ -281,7 +282,7 @@ export const saldoHidupKayuBulatKgReport: ReportDefinition<
       title: "Laporan Saldo Hidup Kayu Bulat - Timbang KG",
       subtitle: "",
       bodyHtml: buildBodyHtml(data),
-      extraCss: SALDO_CSS,
+      style: "saldo_hidup_kayu_bulat_kg",
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

@@ -7,7 +7,7 @@ import {
 } from "../../templates/html";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
 import type { ReportDefinition } from "../types";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 
 /**
  * SP_LapRekapProduksiCCAkhirPerJenisPerGrade — "Laporan Rekap Produksi CCAkhir
@@ -100,21 +100,33 @@ const buildGroupTable = (jenis: string, rows: ProduksiGradeRow[]): string => {
       </tr>
     </thead>
     <tbody>
-      ${bodyRows || `<tr><td colspan="8" class="center">Tidak ada data.</td></tr>`}
-      <tr class="totals-row">
+      ${bodyRows || buildEmptyTableRow(8)}
+      ${rows.length > 0
+        ? `<tr class="totals-row">
         <td colspan="3" class="center">Total</td>
         ${totalCells}
-      </tr>
+      </tr>`
+        : ""}
     </tbody>
   </table>`;
 };
 
-const GRADE_CSS = `
-  .group-title { margin: 10px 0 4px 0; font-size: 12px; font-weight: bold; }
-  .grade-table { margin-bottom: 12px; }
-  .grade-table tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
-  .grade-table tbody tr.totals-row td { background: #fff !important; font-weight: bold; font-size: 11px; border-top: 1px solid #000; border-bottom: 1px solid #000; }
-`;
+const buildEmptyGradeTable = (): string => `<table class="report-table">
+  <thead>
+    <tr class="headers-row">
+      <th>No</th>
+      <th>Jenis Kayu</th>
+      <th>Nama Grade</th>
+      <th>In FJ</th>
+      <th>In Laminating</th>
+      <th>In WIP</th>
+      <th>In Reproses</th>
+      <th>Output</th>
+    </tr>
+  </thead>
+  <tbody>${buildEmptyTableRow(8)}</tbody>
+</table>`;
+
 
 export const rekapProduksiCrossCutAkhirPerJenisPerGradeReport: ReportDefinition<
   PeriodParams,
@@ -150,13 +162,13 @@ export const rekapProduksiCrossCutAkhirPerJenisPerGradeReport: ReportDefinition<
     }
     const bodyHtml = rows.length > 0
       ? [...grouped.entries()].map(([jenis, groupRows]) => buildGroupTable(jenis, groupRows)).join("\n  ")
-      : `<table class="report-table"><tbody><tr><td colspan="8" class="center">Tidak ada data.</td></tr></tbody></table>`;
+      : buildEmptyGradeTable();
 
     return renderWpsReportPage({
       title: "Laporan Rekap Produksi CCAkhir Per-Jenis & Per-Grade (m3)",
       subtitle: `Periode ${formatTanggalPendek(meta.params.tglAwal)} s/d ${formatTanggalPendek(meta.params.tglAkhir)}`,
       bodyHtml,
-      extraCss: GRADE_CSS,
+      style: "rekap_produksi_cross_cut_akhir_per_jenis_per_grade",
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

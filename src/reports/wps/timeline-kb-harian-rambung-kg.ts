@@ -1,5 +1,5 @@
 import sql from "mssql";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import {
   escapeHtml,
   formatNumber,
@@ -96,11 +96,6 @@ function buildPivot(rows: TimelineKgRow[]): PivotData | null {
   return { dateKeys: sortedKeys, dateLabels, suppliers, grandByDate, grandTotal };
 }
 
-const TIMELINE_HARIAN_KG_CSS = `
-  .report-table th { white-space: nowrap; }
-  .report-table thead th:nth-child(2), .report-table tbody td:nth-child(2) { width: 20%; }
-  .report-table tbody td:nth-child(2) { white-space: nowrap; }
-`;
 
 export const timelineKbHarianKgReport: ReportDefinition<
   PeriodParams,
@@ -127,7 +122,16 @@ export const timelineKbHarianKgReport: ReportDefinition<
 
     let bodyHtml: string;
     if (!pivot || pivot.suppliers.length === 0) {
-      bodyHtml = `<table class="report-table"><tbody><tr><td class="center">Tidak ada data.</td></tr></tbody></table>`;
+      bodyHtml = `<table class="report-table">
+  <thead>
+    <tr class="headers-row">
+      <th>No</th>
+      <th>Nama Supplier</th>
+      <th>Total</th>
+    </tr>
+  </thead>
+  <tbody>${buildEmptyTableRow(3)}</tbody>
+</table>`;
     } else {
       const headers = pivot.dateKeys
         .map((key) => `<th>${escapeHtml(pivot.dateLabels[key] ?? key)}</th>`)
@@ -172,7 +176,7 @@ export const timelineKbHarianKgReport: ReportDefinition<
       title: "Laporan Timeline KB - Harian (Rambung)",
       subtitle: `Periode : ${start} s/d ${end}`,
       bodyHtml,
-      extraCss: TIMELINE_HARIAN_KG_CSS,
+      style: "timeline_kb_harian_rambung_kg",
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

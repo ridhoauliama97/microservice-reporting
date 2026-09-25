@@ -16,5 +16,4 @@ export const kbKhususBangkangReport = createSnapshotTableReport({
     { label: "Ton", kind: "number", field: "Ton" },
   ],
   totals: true,
-  emptyMessage: "Tidak ada data",
 });

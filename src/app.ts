@@ -9,7 +9,6 @@ import {
   payloadTooLargeError,
   validationError,
 } from './lib/errors'
-import { authMiddleware } from './middleware/auth'
 import { registerReportsRoutes } from './routes/reports'
 import { registerWsRoutes } from './routes/ws'
 import type { AppEnv } from './types'

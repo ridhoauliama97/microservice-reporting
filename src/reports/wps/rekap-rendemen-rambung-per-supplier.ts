@@ -5,7 +5,7 @@ import {
   formatPrintedAt,
   formatTanggalId,
 } from "../../templates/html";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
 import type { ReportDefinition, RenderResult } from "../types";
 
@@ -78,10 +78,6 @@ const fmtPercent = (percent: number, base: number, dash: boolean): string => {
   return `${formatNumber(percent, 2)}%`;
 };
 
-const RENDEMEN_CSS = `
-  .report-table tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
-  .report-table tfoot td { font-weight: bold; font-size: 11px; background: #fff; border-top: 1px solid #000; border-right: 1px solid #000; border-bottom: 0; border-left: 0; }
-`;
 
 function buildDetailHtml(rows: RendemenDetailRow[]): string {
   const sorted = [...rows].sort(
@@ -120,14 +116,12 @@ function buildDetailHtml(rows: RendemenDetailRow[]): string {
     </tr>
   </thead>
   <tbody>
-    ${bodyRows || `<tr class="data-row row-odd"><td class="center" colspan="7">Tidak ada data.</td></tr>`}
+    ${bodyRows || buildEmptyTableRow(7)}
   </tbody>
 </table>`;
 }
 
 function buildSummaryHtml(rows: RendemenSummaryRow[]): string {
-  if (rows.length === 0) return "";
-
   const sorted = [...rows].sort((left, right) => {
     const leftKb = toFloat(left.SLPKBton) + toFloat(left.BansawKBton);
     const leftSt = toFloat(left.SLPstton) + toFloat(left.Bansawstton);
@@ -206,10 +200,10 @@ function buildSummaryHtml(rows: RendemenSummaryRow[]): string {
     </tr>
   </thead>
   <tbody>
-    ${bodyRows}
+    ${bodyRows || buildEmptyTableRow(10)}
   </tbody>
   <tfoot>
-    ${footRow}
+    ${rows.length > 0 ? footRow : ""}
   </tfoot>
 </table>`;
 }
@@ -264,7 +258,7 @@ export const rekapRendemenRambungPerSupplierReport: ReportDefinition<
       title: "Laporan Rekap Rendemen Rambung Per Supplier",
       subtitle: `Periode: ${formatTanggalId(meta.params.tglAwal)} s/d ${formatTanggalId(meta.params.tglAkhir)}`,
       bodyHtml: buildBodyHtml(data),
-      extraCss: RENDEMEN_CSS,
+      style: "rekap_rendemen_rambung_per_supplier",
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

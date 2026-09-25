@@ -7,7 +7,7 @@ import {
 } from "../../templates/html";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
 import type { ReportDefinition } from "../types";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 
 /**
  * SP_Mutasi_CCAkhir + SP_SubMutasi_CCAkhir — "Laporan Mutasi Cross Cut Akhir
@@ -295,11 +295,13 @@ const buildMainTable = (
     </tr>
   </thead>
   <tbody>
-    ${bodyRows || `<tr><td colspan="20" class="center">Tidak ada data.</td></tr>`}
-    <tr class="totals-row">
+    ${bodyRows || buildEmptyTableRow(20)}
+    ${rows.length > 0
+      ? `<tr class="totals-row">
       <td colspan="2" class="blank">Total</td>
       ${totalsHtml}
-    </tr>
+    </tr>`
+      : ""}
   </tbody>
 </table>`,
     totals,
@@ -363,11 +365,13 @@ const buildSubTable = (rows: SubMutasiRow[]): string => {
       </tr>
     </thead>
     <tbody>
-      ${bodyRows}
-      <tr class="totals-row">
+      ${bodyRows || buildEmptyTableRow(10)}
+      ${rows.length > 0
+        ? `<tr class="totals-row">
         <td colspan="2" class="blank">Total</td>
         ${totalCells}
-      </tr>
+      </tr>`
+        : ""}
     </tbody>
   </table>`;
 };
@@ -375,12 +379,6 @@ const buildSubTable = (rows: SubMutasiRow[]): string => {
 const formatTanggalPendek = (iso: string): string =>
   formatTanggalId(iso).replace(/\d{4}$/, (year) => year.slice(-2));
 
-const MUTASI_CC_CSS = `
-  .report-table th, .report-table td.number { white-space: nowrap; }
-  .report-table tbody tr.data-row td.data-cell { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
-  .report-table tbody tr.totals-row td { background: #fff !important; font-weight: bold; font-size: 11px; border-top: 1px solid #000; border-right: 1px solid #000; border-bottom: 0; border-left: 0; }
-  .sub-report-table { width: 92%; }
-`;
 
 export const mutasiCrossCutAkhirReport: ReportDefinition<
   PeriodParams,
@@ -412,12 +410,12 @@ export const mutasiCrossCutAkhirReport: ReportDefinition<
 
   render(data, meta) {
     const main = buildMainTable(data.rows);
-    const bodyHtml = `${main.html}${data.subRows.length > 0 ? `\n  ${buildSubTable(data.subRows)}` : ""}`;
+    const bodyHtml = `${main.html}\n  ${buildSubTable(data.subRows)}`;
     return renderWpsReportPage({
       title: "Laporan Mutasi Cross Cut Akhir (m3)",
       subtitle: `Dari ${formatTanggalPendek(meta.params.tglAwal)} s/d ${formatTanggalPendek(meta.params.tglAkhir)}`,
       bodyHtml,
-      extraCss: MUTASI_CC_CSS,
+      style: "mutasi_cross_cut_akhir",
       landscape: true,
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),

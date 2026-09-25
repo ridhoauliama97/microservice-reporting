@@ -5,7 +5,7 @@ import {
   formatPrintedAt,
   formatTanggalId,
 } from "../../templates/html";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
 import type { ReportDefinition } from "../types";
 
@@ -91,14 +91,6 @@ const fmtM3Dash = (value: unknown): string => fmtM3(value) || "-";
 const fmtTanggalPendek = (iso: string): string =>
   formatTanggalId(iso).replace(/\d{4}$/, (year) => year.slice(-2));
 
-const MUTASI_CSS = `
-  .report-table tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
-  .report-table tbody tr.totals-row td { background: #fff !important; font-weight: bold; font-size: 11px; border-top: 1px solid #000; border-right: 1px solid #000; border-bottom: 0; border-left: 0; }
-  .summary-block { margin-top: 14px; }
-  .summary-list { margin: 4px 0 0 18px; padding: 0; font-size: 10px; }
-  .summary-list li { margin: 0 0 2px 0; }
-  .section-title { margin: 10px 0 6px 0; font-size: 12px; font-weight: bold; }
-`;
 
 const buildGroupTable = (jenis: string, rows: MutasiUkuranRow[]): string => {
   // Legacy sorts the whole payload by [Jenis, Tebal, Lebar, Panjang] before
@@ -176,14 +168,40 @@ const buildGroupTable = (jenis: string, rows: MutasiUkuranRow[]): string => {
     </tr>
   </thead>
   <tbody>
-    ${bodyRows}
-    <tr class="totals-row">
+    ${bodyRows || buildEmptyTableRow(14)}
+    ${sortedRows.length > 0
+      ? `<tr class="totals-row">
       <td colspan="4" class="center">Total ${escapeHtml(jenis)}</td>
       ${totalCells}
-    </tr>
+    </tr>`
+      : ""}
   </tbody>
 </table>`;
 };
+
+const buildEmptyUkuranTable = (): string => `<table class="report-table">
+  <thead>
+    <tr class="headers-row">
+      <th rowspan="2">No</th>
+      <th rowspan="2">Tebal</th>
+      <th rowspan="2">Lebar</th>
+      <th rowspan="2">Panjang</th>
+      <th colspan="2">Awal</th>
+      <th colspan="2">Masuk</th>
+      <th colspan="2">Minus</th>
+      <th colspan="2">Jual</th>
+      <th colspan="2">Akhir</th>
+    </tr>
+    <tr class="headers-row">
+      <th>Pcs</th><th>m3</th>
+      <th>Pcs</th><th>m3</th>
+      <th>Pcs</th><th>m3</th>
+      <th>Pcs</th><th>m3</th>
+      <th>Pcs</th><th>m3</th>
+    </tr>
+  </thead>
+  <tbody>${buildEmptyTableRow(14)}</tbody>
+</table>`;
 
 export const mutasiBarangJadiPerJenisPerUkuranReport: ReportDefinition<
   PeriodParams,
@@ -247,14 +265,14 @@ export const mutasiBarangJadiPerJenisPerUkuranReport: ReportDefinition<
             .map(([jenis, groupRows]) => buildGroupTable(jenis, groupRows))
             .join("\n  ")}
   ${summaryHtml}`
-        : `<table class="report-table"><tbody><tr><td class="center">Tidak ada data.</td></tr></tbody></table>`;
+        : buildEmptyUkuranTable();
 
     return renderWpsReportPage({
       title: "Laporan Mutasi Barang Jadi Per-Jenis Per-Ukuran (m3)",
       // Legacy subtitle uses d-M-y (2-digit year).
       subtitle: `Periode ${fmtTanggalPendek(meta.params.tglAwal)} s/d ${fmtTanggalPendek(meta.params.tglAkhir)}`,
       bodyHtml,
-      extraCss: MUTASI_CSS,
+      style: "mutasi_barang_jadi_per_jenis_per_ukuran",
       // 14 columns of Pcs/m3 pairs need the landscape width.
       landscape: true,
       printedBy: meta.requestedBy,

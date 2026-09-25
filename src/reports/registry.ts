@@ -8,8 +8,11 @@ import { barangJadiHidupDetailReport } from './wps/barang-jadi-hidup-detail'
 import { crossCutAkhirHidupDetailReport } from './wps/cross-cut-akhir-hidup-detail'
 import { dashboardBarangJadiReport } from './wps/dashboard-barang-jadi'
 import { dashboardCrossCutAkhirReport } from './wps/dashboard-cross-cut-akhir'
+import { dashboardReprosesReport } from './wps/dashboard-reproses'
 import { ketahananBarangCcAkhirReport } from './wps/ketahanan-barang-cc-akhir'
+import { ketahananBarangReprosesReport } from './wps/ketahanan-barang-reproses'
 import { mutasiCrossCutAkhirReport } from './wps/mutasi-cross-cut-akhir'
+import { mutasiReprosesReport } from './wps/mutasi-reproses'
 import { mutasiHasilRacipReport } from './wps/mutasi-hasil-racip'
 import { mutasiKayuBulatGantungReport } from './wps/mutasi-kayu-bulat-gantung'
 import { mutasiKayuBulatKgReport } from './wps/mutasi-kayu-bulat-kg'
@@ -39,6 +42,8 @@ import { rekapProduksiCrossCutAkhirPerJenisPerGradeReport } from './wps/rekap-pr
 import { saldoBarangJadiHidupPerJenisPerProdukReport } from './wps/saldo-barang-jadi-hidup-per-jenis-per-produk'
 import { umurBarangJadiDetailReport } from './wps/umur-barang-jadi-detail'
 import { umurCrossCutAkhirDetailReport } from './wps/umur-cross-cut-akhir-detail'
+import { umurReprosesDetailReport } from './wps/umur-reproses-detail'
+import { reprosesHidupDetailReport } from './wps/reproses-hidup-detail'
 import { rekapPenerimaanStDariSawmillKgReport } from './wps/rekap-penerimaan-st-dari-sawmill-kg'
 import { rekapPenerimaanStSawmillCostingRambungReport } from './wps/rekap-penerimaan-st-sawmill-costing-rambung'
 import { rekapRendemenRambungPerSupplierReport } from './wps/rekap-rendemen-rambung-per-supplier'
@@ -71,8 +76,12 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'cross-cut-akhir-hidup-detail': crossCutAkhirHidupDetailReport,
   'dashboard-barang-jadi': dashboardBarangJadiReport,
   'dashboard-cross-cut-akhir': dashboardCrossCutAkhirReport,
+  'dashboard-reproses': dashboardReprosesReport,
   'ketahanan-barang-cc-akhir': ketahananBarangCcAkhirReport,
+  'ketahanan-barang-reproses': ketahananBarangReprosesReport,
   'mutasi-cross-cut-akhir': mutasiCrossCutAkhirReport,
+  'mutasi-reproses': mutasiReprosesReport,
+  'reproses-hidup-detail': reprosesHidupDetailReport,
   'mutasi-barang-jadi-per-jenis-per-ukuran': mutasiBarangJadiPerJenisPerUkuranReport,
   'mutasi-hasil-racip': mutasiHasilRacipReport,
   'mutasi-racip-detail': mutasiRacipDetailReport,
@@ -89,6 +98,9 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'penerimaan-kayu-bulat-kg': penerimaanKayuBulatKgReport,
   'penerimaan-kayu-bulat-ext-kg': penerimaanKayuBulatExtKgReport,
   'penerimaan-kayu-bulat-per-supplier-kg': penerimaanKayuBulatPerSupplierKgReport,
+  'penerimaan-kayu-bulat-per-supplier': penerimaanKayuBulatPerSupplierReport,
+  'penerimaan-kayu-bulat-per-supplier-grafik': penerimaanKayuBulatPerSupplierGrafikReport,
+  'penerimaan-kayu-bulat-per-supplier-group': penerimaanKayuBulatPerSupplierGroupReport,
   'perbandingan-kb-masuk-periode-1-dan-2': perbandinganKbMasukReport,
   'perbandingan-kb-masuk-periode-1-dan-2-kg': perbandinganKbMasukKgReport,
   'rekap-pembelian-kayu-bulat': rekapPembelianKayuBulatReport,
@@ -100,6 +112,7 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'saldo-barang-jadi-hidup-per-jenis-per-produk': saldoBarangJadiHidupPerJenisPerProdukReport,
   'umur-barang-jadi-detail': umurBarangJadiDetailReport,
   'umur-cross-cut-akhir-detail': umurCrossCutAkhirDetailReport,
+  'umur-reproses-detail': umurReprosesDetailReport,
   'rekap-penerimaan-st-dari-sawmill-kg': rekapPenerimaanStDariSawmillKgReport,
   'rekap-penerimaan-st-sawmill-costing-rambung': rekapPenerimaanStSawmillCostingRambungReport,
   'rekap-rendemen-rambung-per-supplier': rekapRendemenRambungPerSupplierReport,

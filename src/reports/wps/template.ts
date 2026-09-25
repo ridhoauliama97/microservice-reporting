@@ -9,6 +9,7 @@ import {
   pageFooterHtml,
   renderPage,
 } from "../../templates/html";
+import { getWpsReportStyle, type WpsReportStyle } from "./styles";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
 import type { ReportDefinition, RenderResult } from "../types";
 
@@ -38,6 +39,20 @@ export const WPS_REPORT_CSS = `
   td.center { text-align: center; overflow-wrap: anywhere; }
   td.label { overflow-wrap: anywhere; }
   td.number { text-align: right; overflow-wrap: anywhere; }
+  .empty-row td.empty-cell {
+    border: 1px solid #000 !important;
+    padding: 4px 6px !important;
+    text-align: center !important;
+    vertical-align: middle;
+    font-weight: normal !important;
+    font-style: normal;
+    font-size: 10px;
+    line-height: 1.2;
+    color: #000 !important;
+    background: #fff !important;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
   .row-odd td { background: #c9d1df; }
   .row-even td { background: #eef2f8; }
   .totals-row td { font-weight: bold; font-size: 11px; border-top: 1px solid #000; border-right: 1px solid #000; border-bottom: 0; border-left: 0; }
@@ -98,11 +113,25 @@ export interface ReportTotals {
   values?: Record<string, number | null | undefined>;
 }
 
+export const EMPTY_DATA_MESSAGE = "Tidak ada data";
+
+/** Shared empty row used by every WPS table so empty states look identical. */
+export function buildEmptyTableRow(columnCount: number): string {
+  const colspan = Number.isFinite(columnCount)
+    ? Math.max(1, Math.floor(columnCount))
+    : 1;
+  return `<tr class="empty-row"><td colspan="${colspan}" class="empty-cell">${EMPTY_DATA_MESSAGE}</td></tr>`;
+}
+
+/** Standalone empty table for custom layouts that do not use ReportColumn[]. */
+export function buildEmptyTable(columnCount: number, tableClass = "report-table"): string {
+  return `<table class="${escapeHtml(tableClass)}"><tbody>${buildEmptyTableRow(columnCount)}</tbody></table>`;
+}
+
 export interface ReportTableSpec {
   columns: ReportColumn[];
   rows: Array<Record<string, unknown>>;
   totals?: ReportTotals;
-  emptyMessage?: string;
 }
 
 const labelToHtml = (label: string): string =>
@@ -252,8 +281,6 @@ function buildTotalsRow(columns: ReportColumn[], totals: ReportTotals): string {
 
 /** Builds a standard `<table class="report-table">` from declarative columns. */
 export function buildReportTable(spec: ReportTableSpec): string {
-  const emptyMessage = spec.emptyMessage ?? "Tidak ada data untuk periode ini";
-
   const bodyRows = spec.rows.length
     ? spec.rows
         .map(
@@ -265,7 +292,7 @@ export function buildReportTable(spec: ReportTableSpec): string {
                           </tr>`,
         )
         .join("\n")
-    : `<tr class="data-row row-odd"><td colspan="${spec.columns.length}" class="center">${escapeHtml(emptyMessage)}</td></tr>`;
+    : buildEmptyTableRow(spec.columns.length);
 
   return `<table class="report-table">
   <thead>
@@ -273,7 +300,7 @@ export function buildReportTable(spec: ReportTableSpec): string {
   </thead>
   <tbody>
     ${bodyRows}
-    ${spec.totals ? buildTotalsRow(spec.columns, spec.totals) : ""}
+    ${spec.rows.length > 0 && spec.totals ? buildTotalsRow(spec.columns, spec.totals) : ""}
   </tbody>
 </table>`;
 }
@@ -286,9 +313,11 @@ export interface WpsReportPageOptions {
   /** Tables/sections; the title and subtitle are added by the shell. */
   bodyHtml: string;
   landscape?: boolean;
+  /** Named shared layout preset; prefer this over report-local CSS. */
+  style?: WpsReportStyle;
   /**
-   * Extra CSS appended after the standard WPS CSS — for special-case form
-   * layouts (e.g. the penerimaan kayu bulat Ton form).
+   * Extra CSS appended after the standard WPS CSS. Kept for exceptional
+   * dynamic layouts; normal reports should use `style` instead.
    */
   extraCss?: string;
   printedBy?: string;
@@ -307,12 +336,15 @@ export function renderWpsReportPage(
   const body = `<h1 class="report-title"${titleGap}>${escapeHtml(options.title)}</h1>
 ${subtitle}${options.bodyHtml}`;
 
+  const styleCss = options.style
+    ? getWpsReportStyle(options.style)
+    : options.extraCss;
   return {
     html: renderPage({
       title: options.title,
       bodyHtml: body,
-      extraCss: options.extraCss
-        ? `${WPS_REPORT_CSS}\n${options.extraCss}`
+      extraCss: styleCss
+        ? `${WPS_REPORT_CSS}\n${styleCss}`
         : WPS_REPORT_CSS,
     }),
     footerHtml: pageFooterHtml({
@@ -342,8 +374,6 @@ export interface SingleTableReportSpec {
   columns: ReportColumn[];
   /** Omit for no totals row; `true` sums every numeric column. */
   totals?: ReportTotals | true | false;
-  /** Overrides the default "Tidak ada data untuk periode ini" empty-cell text. */
-  emptyMessage?: string;
   /** Row transformer applied before rendering (e.g. computed columns). */
   transformRows?: (
     rows: Array<Record<string, unknown>>,
@@ -396,7 +426,6 @@ export interface SnapshotTableReportSpec {
   spName: string;
   columns: ReportColumn[];
   totals?: ReportTotals | true | false;
-  emptyMessage?: string;
   /** Row transformer applied before rendering (e.g. computed columns). */
   transformRows?: (
     rows: Array<Record<string, unknown>>,
@@ -412,7 +441,6 @@ export interface SnapshotTableReportSpec {
 export function createSnapshotTableReport(
   spec: SnapshotTableReportSpec,
 ): ReportDefinition<Record<never, never>, Array<Record<string, unknown>>> {
-  const emptyMessage = spec.emptyMessage ?? "Tidak ada data";
   return {
     type: spec.type,
     title: spec.title,
@@ -427,12 +455,7 @@ export function createSnapshotTableReport(
     },
 
     render(rows, meta) {
-      return renderStandardTable(
-        { ...spec, emptyMessage },
-        rows,
-        "",
-        meta,
-      );
+      return renderStandardTable(spec, rows, "", meta);
     },
   };
 }
@@ -451,7 +474,6 @@ export interface SingleDateTableReportSpec {
   inputName?: string;
   columns: ReportColumn[];
   totals?: ReportTotals | true | false;
-  emptyMessage?: string;
   /** Row transformer applied before rendering (e.g. computed columns). */
   transformRows?: (
     rows: Array<Record<string, unknown>>,
@@ -504,7 +526,6 @@ export interface NoKayuBulatLookupTableReportSpec {
   inputName?: string;
   columns: ReportColumn[];
   totals?: ReportTotals | true | false;
-  emptyMessage?: string;
   /** Row transformer applied before rendering (e.g. computed columns). */
   transformRows?: (
     rows: Array<Record<string, unknown>>,
@@ -552,7 +573,6 @@ function renderStandardTable(
     title: string;
     columns: ReportColumn[];
     totals?: ReportTotals | true | false;
-    emptyMessage?: string;
     transformRows?: (
       rows: Array<Record<string, unknown>>,
     ) => Array<Record<string, unknown>>;
@@ -580,7 +600,6 @@ function renderStandardTable(
       columns: spec.columns,
       rows,
       totals,
-      emptyMessage: spec.emptyMessage,
     }),
     landscape: spec.landscape,
     printedBy: meta.requestedBy,

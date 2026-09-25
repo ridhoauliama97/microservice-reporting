@@ -7,7 +7,7 @@ import {
   MONTHS_SHORT_ID,
 } from "../../templates/html";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import type { ReportDefinition } from "../types";
 
 /**
@@ -125,14 +125,6 @@ function buildPivot(rows: Array<Record<string, unknown>>): PivotGroup[] {
   });
 }
 
-const GRAFIK_CSS = `
-  .group-title { margin: 8px 0 4px 0; font-size: 12px; font-weight: bold; }
-  .section-break { page-break-before: always; height: 0; }
-  .summary-note { margin: 4px 0 6px 0; font-size: 10px; }
-  .summary-note .label { font-weight: bold; text-decoration: underline; }
-  .chart-wrap { text-align: center; margin-top: 16px; page-break-inside: avoid; }
-  .chart-title { margin: 4px 0 6px 0; font-size: 11px; font-weight: bold; text-align: center; }
-`;
 
 function buildTableHtml(group: PivotGroup): string {
   const monthKeys = group.monthKeys;
@@ -144,9 +136,11 @@ function buildTableHtml(group: PivotGroup): string {
     )
     .join("");
 
-  const bodyRows = group.suppliers
-    .map(
-      (supplier, index) => `<tr class="data-row ${index % 2 === 0 ? "row-odd" : "row-even"}">
+  const hasSuppliers = group.suppliers.length > 0;
+  const bodyRows = hasSuppliers
+    ? group.suppliers
+        .map(
+          (supplier, index) => `<tr class="data-row ${index % 2 === 0 ? "row-odd" : "row-even"}">
         <td class="label">${escapeHtml(supplier.supplier)}</td>
         <td class="number">${fmt4BlankZero(supplier.total)}</td>
         ${monthKeys
@@ -155,8 +149,9 @@ function buildTableHtml(group: PivotGroup): string {
           )
           .join("\n        ")}
       </tr>`,
-    )
-    .join("\n    ");
+        )
+        .join("\n    ")
+    : buildEmptyTableRow(2 + monthKeys.length);
 
   const monthTotalCells = monthKeys
     .map((monthKey) => `<td class="number">${fmt4BlankZero(supplier0(group, monthKey))}</td>`)
@@ -172,11 +167,13 @@ function buildTableHtml(group: PivotGroup): string {
   </thead>
   <tbody>
     ${bodyRows}
-    <tr class="totals-row">
+    ${hasSuppliers
+      ? `<tr class="totals-row">
       <td style="text-align: center;">Total</td>
       <td class="number">${fmt4BlankZero(group.summary.total)}</td>
       ${monthTotalCells}
-    </tr>
+    </tr>`
+      : ""}
   </tbody>
 </table>`;
 }
@@ -291,13 +288,21 @@ ${buildSvgChartHtml(group)}`;
     const bodyHtml =
       blocks.length > 0
         ? blocks.join("\n")
-        : `<table class="report-table"><tbody><tr><td class="center">Tidak ada data untuk periode ini.</td></tr></tbody></table>`;
+        : `<table class="report-table">
+  <thead>
+    <tr class="headers-row">
+      <th>Supplier</th>
+      <th>Total</th>
+    </tr>
+  </thead>
+  <tbody>${buildEmptyTableRow(2)}</tbody>
+</table>`;
 
     return renderWpsReportPage({
       title: "Laporan Penerimaan Kayu Bulat Per Supplier Bulanan (Grafik)",
       subtitle: `Periode ${start} s/d ${end}`,
       bodyHtml,
-      extraCss: GRAFIK_CSS,
+      style: "penerimaan_kayu_bulat_per_supplier_grafik",
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

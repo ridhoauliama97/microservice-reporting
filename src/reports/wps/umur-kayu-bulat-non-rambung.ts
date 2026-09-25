@@ -1,5 +1,5 @@
 import sql from "mssql";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import { escapeHtml, formatNumber, formatPrintedAt, formatTanggalId } from "../../templates/html";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
 import type { ReportDefinition } from "../types";
@@ -38,17 +38,6 @@ interface NormalizedRow extends Record<string, unknown> {
   lamaRacip: number | null;
   lamaTunggu: number | null;
 }
-
-const isoOf = (value: Date | null): string | null =>
-  value instanceof Date ? value.toISOString().slice(0, 10) : null;
-
-const diffDays = (from: string | null, to: string | null): number | null => {
-  if (from === null || to === null) return null;
-  const diff = Math.floor((Date.parse(to) - Date.parse(from)) / 86400000);
-  return Number.isFinite(diff) ? diff : null;
-};
-
-const fmtDuration = (days: number | null): string => (days === null ? "" : `${days} hari`);
 
 function buildUmurRows(rows: UmurRow[], periodeEndIso: string): NormalizedRow[] {
   return rows.map((raw) => {
@@ -115,6 +104,21 @@ const STATUS_LABELS: Record<string, string> = {
   "1": "Sudah Mati",
 };
 
+const AGE_HEAD_HTML = `<thead>
+  <tr class="headers-row">
+    <th style="width: 4%;">No</th>
+    <th style="width: 8%;">No KB</th>
+    <th style="width: 8%;">Tanggal</th>
+    <th style="width: 14%;">Nama Supplier</th>
+    <th style="width: 5%;">No Truk</th>
+    <th style="width: 11%;">Jenis Kayu</th>
+    <th colspan="2" style="width: 16.5%;">Tanggal Racip</th>
+    <th colspan="2" style="width: 16.5%;">Lama Racip</th>
+    <th style="width: 7.5%;">Lama Tunggu</th>
+    <th style="width: 7.5%;">Berat Muatan (Ton)</th>
+  </tr>
+</thead>`;
+
 export const umurKayuBulatReport: ReportDefinition<
   PeriodParams,
   UmurRow[]
@@ -159,20 +163,7 @@ export const umurKayuBulatReport: ReportDefinition<
       .map((groupName) => {
         const groupRows = grouped.get(groupName)!;
 
-        const headRow = `<thead>
-  <tr class="headers-row">
-        <th style="width: 4%;">No</th>
-        <th style="width: 8%;">No KB</th>
-        <th style="width: 8%;">Tanggal</th>
-        <th style="width: 14%;">Nama Supplier</th>
-        <th style="width: 5%;">No Truk</th>
-        <th style="width: 11%;">Jenis Kayu</th>
-        <th colspan="2" style="width: 16.5%;">Tanggal Racip</th>
-        <th colspan="2" style="width: 16.5%;">Lama Racip</th>
-        <th style="width: 7.5%;">Lama Tunggu</th>
-        <th style="width: 7.5%;">Berat Muatan (Ton)</th>
-      </tr>
-  </thead>`;
+        const headRow = AGE_HEAD_HTML;
 
         const body = groupRows
           .map(
@@ -204,26 +195,28 @@ export const umurKayuBulatReport: ReportDefinition<
   <table class="report-table">
   ${headRow}
   <tbody>
-    ${body}
-    <tr class="totals-row">
+    ${body || buildEmptyTableRow(12)}
+    ${groupRows.length > 0
+      ? `<tr class="totals-row">
       <td class="center data-cell" colspan="4">Total :</td>
       <td class="center data-cell">${countTruk} Truk</td>
       <td class="center data-cell" colspan="6"></td>
       <td class="number data-cell">${formatNumber(sumTon, 4)}</td>
-    </tr>
+    </tr>`
+      : ""}
   </tbody>
 </table>`;
       })
       .join('\n<div class="section-break"></div>\n');
 
     const bodyHtml =
-      sections || `<table class="report-table"><tbody><tr><td class="center">Tidak ada data.</td></tr></tbody></table>`;
+      sections || `<table class="report-table">${AGE_HEAD_HTML}<tbody>${buildEmptyTableRow(12)}</tbody></table>`;
 
     return renderWpsReportPage({
       title: "Laporan Umur Kayu Bulat (NON RAMBUNG)",
       subtitle: `Periode ${formatTanggalId(meta.params.tglAwal)} s/d ${formatTanggalId(meta.params.tglAkhir)}`,
       bodyHtml,
-      extraCss: UMUR_CSS,
+      style: "umur_kayu_bulat_non_rambung",
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });
@@ -236,37 +229,3 @@ const fmtTon = (value: number | null | undefined): string =>
 // Legacy umur renders dates as dd-Mon-yy (2-digit year) so every date fits
 // its column on a single line. formatTanggalId gives dd-Mon-yyyy.
 const fmtTanggalKompak = (iso: string): string => formatTanggalId(iso).replace(/\d{4}$/, (year) => year.slice(-2));
-
-const UMUR_CSS = `
-  .duration-bold { font-weight: bold; }
-  .section-break { height: 10px; }
-  .section-title { margin: 8px 0 4px 0; font-size: 12px; font-weight: bold; }
-
-  /* Compact cell sizing so every column fits on one line inside one page. */
-  .report-table thead th { font-size: 10px; padding: 2px 3px; }
-  .report-table tbody td { font-size: 9px; padding: 1px 3px; }
-
-  /* The shared CSS drops the bottom border of colspan headers (meant for
-     two-tier headers). Umur uses a single header row, so the "Tanggal Racip"
-     and "Lama Racip" groups would otherwise have no closing line. */
-  .report-table thead tr.headers-row:first-child th[colspan] {
-    border-bottom: 1px solid #000 !important;
-  }
-
-  /* Legacy umur border model: header band with top+bottom lines, data rows
-     show vertical separators only, totals row on a white band, and the table
-     frame closes with border-left + border-bottom (.report-table). */
-  .report-table tbody tr.data-row td.data-cell {
-    border-top: 0 !important;
-    border-bottom: 0 !important;
-    border-left: 0 !important;
-    border-right: 1px solid #000 !important;
-  }
-  .report-table tbody tr.totals-row td {
-    background: #fff !important;
-    border-top: 1px solid #000 !important;
-    border-right: 1px solid #000 !important;
-    border-bottom: 0 !important;
-    border-left: 0 !important;
-  }
-`;

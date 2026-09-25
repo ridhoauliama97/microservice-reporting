@@ -4,11 +4,10 @@ import {
   formatNumber4,
   formatPrintedAt,
   formatTanggalId,
-  pageFooterHtml,
-  renderPage,
 } from "../../templates/html";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
-import type { ReportDefinition, RenderResult } from "../types";
+import type { ReportDefinition } from "../types";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 
 // --- Raw rows straight from the stored procedures ---
 
@@ -274,7 +273,7 @@ export const mutasiBarangJadiReport: ReportDefinition<
     );
   },
 
-  render(vm, meta): RenderResult {
+  render(vm, meta) {
     const subtitle = `Dari ${formatTanggalId(meta.params.tglAwal)} s/d ${formatTanggalId(meta.params.tglAkhir)}`;
 
     const mainBodyRows = vm.main
@@ -352,9 +351,6 @@ export const mutasiBarangJadiReport: ReportDefinition<
                           </tr>`;
 
     const body = `
-<h1 class="report-title">Laporan Mutasi Barang Jadi (m3)</h1>
-<p class="report-subtitle">${escapeHtml(subtitle)}</p>
-
 <table class="report-table">
   <thead>
     <tr class="headers-row">
@@ -382,8 +378,8 @@ export const mutasiBarangJadiReport: ReportDefinition<
     </tr>
   </thead>
   <tbody>
-    ${mainBodyRows || '<tr class="data-row row-odd"><td colspan="17" class="center">Tidak ada data untuk periode ini</td></tr>'}
-    ${mainTotalsRow}
+    ${mainBodyRows || buildEmptyTableRow(17)}
+    ${vm.main.length > 0 ? mainTotalsRow : ""}
   </tbody>
 </table>
 
@@ -402,52 +398,19 @@ export const mutasiBarangJadiReport: ReportDefinition<
     </tr>
   </thead>
   <tbody>
-    ${subBodyRows || '<tr class="data-row row-odd"><td colspan="8" class="center">Tidak ada data untuk periode ini</td></tr>'}
-    ${subTotalsRow}
+    ${subBodyRows || buildEmptyTableRow(8)}
+    ${vm.sub.length > 0 ? subTotalsRow : ""}
   </tbody>
 </table>`;
 
-    // CSS ported from the legacy Blade template (without the wkhtmltopdf
-    // @page footer directive and without remote Google Fonts — Chromium
-    // falls back to the system serif font).
-    const css = `
-  * { box-sizing: border-box; }
-  body { margin: 0; font-family: 'Noto Serif', serif; font-size: 10px; line-height: 1.2; color: #000; }
-  .report-title { text-align: center; margin: 0; font-size: 16px; font-weight: bold; }
-  .report-subtitle { text-align: center; margin: 2px 0 20px 0; font-size: 12px; color: #636466; }
-  .section-title { margin: 14px 0 6px 0; font-size: 12px; font-weight: bold; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 6px; page-break-inside: auto; table-layout: fixed; }
-  .report-table { border-spacing: 0; border-top: 0; border-right: 0; border-bottom: 1px solid #000; border-left: 1px solid #000; }
-  thead { display: table-header-group; }
-  tr { page-break-inside: avoid; page-break-after: auto; }
-  th, td { border: 1px solid #000; padding: 2px 4px; vertical-align: middle; }
-  th { text-align: center; font-weight: bold; background: #ffffff; color: #000; }
-  td.center { text-align: center; overflow-wrap: anywhere; }
-  td.label { overflow-wrap: anywhere; }
-  td.number { text-align: right; overflow-wrap: anywhere; }
-  .row-odd td { background: #c9d1df; }
-  .row-even td { background: #eef2f8; }
-  .totals-row td { font-weight: bold; font-size: 11px; border-top: 1px solid #000; border-right: 1px solid #000; border-bottom: 0; border-left: 0; }
-  .totals-row td.blank { background: transparent; }
-  .headers-row th { font-weight: bold; font-size: 11px; border-top: 0; border-right: 1px solid #000; border-bottom: 1px solid #000; border-left: 0; }
-  .report-table thead tr.headers-row:first-child th { border-top: 1px solid #000; }
-  .report-table thead tr.headers-row:first-child th[rowspan] { border-bottom: 1px solid #000; }
-  .report-table thead tr.headers-row:first-child th[colspan] { border-bottom: 0; }
-  .report-table thead tr.headers-row:last-child th { border-top: 1px solid #000; }
-  table.sub-table { width: 70%; }
-`;
-
-    return {
-      html: renderPage({
-        title: "Mutasi Barang Jadi",
-        bodyHtml: body,
-        extraCss: css,
-      }),
-      footerHtml: pageFooterHtml({
-        printedBy: meta.requestedBy,
-        printedAt: formatPrintedAt(meta.generatedAt),
-      }),
+    return renderWpsReportPage({
+      title: "Laporan Mutasi Barang Jadi (m3)",
+      subtitle,
+      bodyHtml: body,
+      style: "mutasi_barang_jadi",
       landscape: true,
-    };
+      printedBy: meta.requestedBy,
+      printedAt: formatPrintedAt(meta.generatedAt),
+    });
   },
 };

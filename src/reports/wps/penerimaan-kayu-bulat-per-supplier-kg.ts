@@ -1,7 +1,7 @@
 import sql from "mssql";
 import { escapeHtml, formatNumber, formatPrintedAt, formatTanggalId } from "../../templates/html";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import type { ReportDefinition, RenderResult } from "../types";
 
 /**
@@ -103,16 +103,6 @@ const fmtRatio = (ratio: number): string => `${formatNumber(ratio, 0, { blankWhe
 /** 2-decimal percent — legacy $fmtRatio2. */
 const fmtRatio2 = (ratio: number): string => `${formatNumber(ratio, 2, { blankWhenZero: false })}%`;
 
-const PER_SUPPLIER_CSS = `
-  .report-table { width: 100%; }
-  .report-table tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 1px solid #000; border-right: 1px solid #000; }
-  .summary-page { margin-top: 14px; page-break-before: auto; }
-  .summary-title { margin: 0 0 10px; font-size: 11px; font-weight: bold; }
-  .summary-list, .notes-list { margin: 0; padding-left: 18px; font-size: 10px; line-height: 1.2; }
-  .summary-list li, .notes-list li { margin: 0 0 2px; }
-  .notes { margin-top: 10px; }
-  .notes-line { margin: 0 0 2px; font-size: 10px; }
-`;
 
 function buildData(rows: PerSupplierRow[], params: PeriodParams): PerSupplierData {
   const supplierMap = new Map<string, { trucks: number; groups: Map<string, number>; totalTon: number }>();
@@ -207,7 +197,18 @@ function buildBodyHtml(data: PerSupplierData, params: PeriodParams): string {
   const end = formatTanggalId(params.tglAkhir);
 
   if (suppliers.length === 0) {
-    return `<table class="report-table"><tbody><tr><td class="center">Tidak ada data.</td></tr></tbody></table>`;
+    return `<table class="report-table">
+    <thead>
+      <tr class="headers-row">
+        <th>No</th>
+        <th>Nama Supplier</th>
+        <th>Jmlh Truk</th>
+        <th>Total (Kg)</th>
+        <th>Rasio</th>
+      </tr>
+    </thead>
+    <tbody>${buildEmptyTableRow(5)}</tbody>
+  </table>`;
   }
 
   // Header row 1: rowspan dims + one colspan=2 per grade + Total Kg + Rasio.
@@ -330,7 +331,7 @@ export const penerimaanKayuBulatPerSupplierKgReport: ReportDefinition<
       title: "Penerimaan Kayu Bulat Per-Supplier - Timbang KG",
       subtitle: `Periode ${start} s/d ${end}`,
       bodyHtml: buildBodyHtml(data, meta.params),
-      extraCss: PER_SUPPLIER_CSS,
+      style: "penerimaan_kayu_bulat_per_supplier_kg",
       landscape: true,
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),

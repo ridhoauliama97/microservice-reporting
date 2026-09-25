@@ -9,15 +9,12 @@ import type { ReportDefinition } from "../types";
 import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 
 /**
- * SP_LapUmurCrossCutAkhir — "Laporan Umur CCAkhir Detail". Ported from
- * UmurCrossCutAkhirDetailReportService and umur-cc-akhir-detail-pdf.blade.php.
- *
- * The SP accepts four integer age cut-offs and returns five period columns.
- * Rows are grouped by displayed Jenis + dimensions, zero-total rows are
- * removed, and the result is sorted by Jenis then dimensions ascending.
+ * SP_LapUmurReproses — "Laporan Umur Reproses Detail". Rows are grouped by
+ * displayed product + dimensions, zero-total rows are removed, and the four
+ * cut-offs are validated in non-decreasing order like the legacy request.
  */
 
-interface UmurCcRow extends Record<string, unknown> {
+interface UmurReprosesRow extends Record<string, unknown> {
   Jenis: string | null;
   NamaGrade: string | null;
   Tebal: number | string | null;
@@ -39,33 +36,21 @@ const paramsSchema = z
   })
   .superRefine((values, ctx) => {
     if (values.umur2 < values.umur1) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["umur2"],
-        message: "Umur2 harus lebih besar atau sama dengan umur1.",
-      });
+      ctx.addIssue({ code: "custom", path: ["umur2"], message: "Umur2 harus lebih besar atau sama dengan umur1." });
     }
     if (values.umur3 < values.umur2) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["umur3"],
-        message: "Umur3 harus lebih besar atau sama dengan umur2.",
-      });
+      ctx.addIssue({ code: "custom", path: ["umur3"], message: "Umur3 harus lebih besar atau sama dengan umur2." });
     }
     if (values.umur4 < values.umur3) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["umur4"],
-        message: "Umur4 harus lebih besar atau sama dengan umur3.",
-      });
+      ctx.addIssue({ code: "custom", path: ["umur4"], message: "Umur4 harus lebih besar atau sama dengan umur3." });
     }
   });
-type UmurCcParams = z.infer<typeof paramsSchema>;
+type UmurReprosesParams = z.infer<typeof paramsSchema>;
 
 const AGE_KEYS = ["Period1", "Period2", "Period3", "Period4", "Period5"] as const;
 type AgeKey = (typeof AGE_KEYS)[number];
 
-interface UmurCcNormalized {
+interface UmurReprosesNormalized {
   Jenis: string;
   Tebal: number | null;
   Lebar: number | null;
@@ -107,7 +92,7 @@ const compareDimension = (left: number | null, right: number | null): number => 
   return left - right;
 };
 
-const normalizeRows = (rows: UmurCcRow[]): UmurCcNormalized[] => {
+const normalizeRows = (rows: UmurReprosesRow[]): UmurReprosesNormalized[] => {
   const prepared = rows.map((row) => {
     const jenis = String(row.Jenis ?? "").trim();
     const grade = String(row.NamaGrade ?? "").trim();
@@ -115,6 +100,7 @@ const normalizeRows = (rows: UmurCcRow[]): UmurCcNormalized[] => {
     const periods = AGE_KEYS.map((key) => toFloat(row[key]));
     return {
       Jenis: display,
+      keep: jenis !== "",
       Tebal: nullableFloat(row.Tebal),
       Lebar: nullableFloat(row.Lebar),
       Panjang: nullableFloat(row.Panjang),
@@ -124,11 +110,10 @@ const normalizeRows = (rows: UmurCcRow[]): UmurCcNormalized[] => {
       Period4: periods[3],
       Period5: periods[4],
       Total: periods.reduce((sum, value) => sum + value, 0),
-      keep: display !== "",
     };
   });
 
-  const grouped = new Map<string, UmurCcNormalized>();
+  const grouped = new Map<string, UmurReprosesNormalized>();
   for (const row of prepared) {
     const key = [
       row.Jenis.toUpperCase(),
@@ -142,7 +127,7 @@ const normalizeRows = (rows: UmurCcRow[]): UmurCcNormalized[] => {
       continue;
     }
     for (const ageKey of AGE_KEYS) existing[ageKey] += row[ageKey];
-    existing.Total = AGE_KEYS.reduce((sum, ageKey) => sum + existing[ageKey], 0);
+    existing.Total = AGE_KEYS.reduce((sum, key2) => sum + existing[key2], 0);
   }
 
   const filtered = [...grouped.values()].filter(
@@ -158,30 +143,27 @@ const normalizeRows = (rows: UmurCcRow[]): UmurCcNormalized[] => {
   return filtered;
 };
 
-export const umurCrossCutAkhirDetailReport: ReportDefinition<
-  UmurCcParams,
-  UmurCcNormalized[]
+export const umurReprosesDetailReport: ReportDefinition<
+  UmurReprosesParams,
+  UmurReprosesNormalized[]
 > = {
-  type: "umur-cross-cut-akhir-detail",
-  title: "Laporan Umur CCAkhir Detail",
+  type: "umur-reproses-detail",
+  title: "Laporan Umur Reproses Detail",
   paramsSchema,
 
   async fetchData(params, { pool }) {
     const conn = await pool;
-    const result = await conn
-      .request()
+    const result = await conn.request()
       .input("Umur1", sql.Int, params.umur1)
       .input("Umur2", sql.Int, params.umur2)
       .input("Umur3", sql.Int, params.umur3)
       .input("Umur4", sql.Int, params.umur4)
-      .execute("SP_LapUmurCrossCutAkhir");
-    return normalizeRows((result.recordset ?? []) as UmurCcRow[]);
+      .execute("SP_LapUmurReproses");
+    return normalizeRows((result.recordset ?? []) as UmurReprosesRow[]);
   },
 
   render(rows, meta) {
     const { umur1, umur2, umur3, umur4 } = meta.params;
-    // The legacy labels use the first day after each lower cut-off as the
-    // beginning of the next bucket.
     const ageLabels = [
       `0 - ${umur1}`,
       `${umur1 + 1} - ${umur2}`,
@@ -209,19 +191,19 @@ export const umurCrossCutAkhirDetailReport: ReportDefinition<
         <td class="center">${escapeHtml(fmtDimension(row.Lebar))}</td>
         <td class="center">${escapeHtml(fmtDimension(row.Panjang))}</td>
         ${AGE_KEYS.map((key) => `<td class="number">${escapeHtml(fmt(row[key]))}</td>`).join("\n        ")}
-        <td class="number" style="font-weight: bold;">${escapeHtml(fmt(row.Total))}</td>
+        <td class="number total-cell">${escapeHtml(fmt(row.Total))}</td>
       </tr>`).join("\n      ");
 
     const bodyHtml = `<table class="report-table">
     <thead>
       <tr class="headers-row">
-        <th style="width: 4%;">No</th>
-        <th style="width: 20%;">Jenis</th>
-        <th style="width: 8%;">Tebal</th>
-        <th style="width: 8%;">Lebar</th>
-        <th style="width: 8%;">Panjang</th>
-        ${ageLabels.map((label) => `<th style="width: 10%;">${escapeHtml(label)}</th>`).join("\n        ")}
-        <th style="width: 10%;">Total</th>
+        <th>No</th>
+        <th>Jenis</th>
+        <th>Tebal</th>
+        <th>Lebar</th>
+        <th>Panjang</th>
+        ${ageLabels.map((label) => `<th>${escapeHtml(label)}</th>`).join("\n        ")}
+        <th>Total</th>
       </tr>
     </thead>
     <tbody>
@@ -235,9 +217,10 @@ export const umurCrossCutAkhirDetailReport: ReportDefinition<
   </table>`;
 
     return renderWpsReportPage({
-      title: "Laporan Umur CCAkhir Detail",
+      title: "Laporan Umur Reproses Detail",
       subtitle: "",
       bodyHtml,
+      style: "umur_reproses_detail",
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

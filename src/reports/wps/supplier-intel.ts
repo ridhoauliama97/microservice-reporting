@@ -5,7 +5,7 @@ import {
   formatPrintedAt,
   formatTanggalId,
 } from "../../templates/html";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
 import type { ReportDefinition } from "../types";
 
@@ -101,7 +101,7 @@ export const supplierIntelReport: ReportDefinition<
     </tr>
   </thead>
   <tbody>
-    ${bodyRows || `<tr><td class="center" colspan="${1 + COLUMNS.length}">Tidak ada data.</td></tr>`}
+    ${bodyRows || buildEmptyTableRow(1 + COLUMNS.length)}
   </tbody>
 </table>`;
 

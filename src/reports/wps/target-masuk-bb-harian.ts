@@ -1,5 +1,5 @@
 import sql from "mssql";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import { escapeHtml, formatNumber, formatPrintedAt, formatTanggalId } from "../../templates/html";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
 import type { ReportDefinition } from "../types";
@@ -168,21 +168,6 @@ function buildUnderTargetFlags(
   return flags;
 }
 
-function buildUnderTargetFlagsAdapter(
-  values: number[],
-  dayColumns: DayColumn[],
-  targetHarian: number,
-): boolean[] {
-  return buildUnderTargetFlags(values, dayColumns, targetHarian);
-}
-
-const HARIAN_CSS = `
-  .lb-head { background: #e9d8fd !important; }
-  .under-target-cell { color: #b02a37; font-weight: bold; }
-  .row-label { font-weight: normal; }
-  .chart-wrap { margin-top: 35px; text-align: center; }
-`;
-
 function buildLineChartSvg(
   labels: string[],
   chartSeries: Record<string, number[]>,
@@ -339,7 +324,7 @@ export const targetMasukBBHarianReport: ReportDefinition<
       ? bulanIndonesia(new Date(meta.params.tglAwal).getMonth() + 1)
       : "";
 
-    const bodyHtml = `<table class="report-table">
+    const mainTable = `<table class="report-table">
   <thead>
     <tr class="headers-row">
       <th rowspan="2" style="width: 90px;">Jenis</th>
@@ -353,10 +338,10 @@ export const targetMasukBBHarianReport: ReportDefinition<
     </tr>
   </thead>
   <tbody>
-    ${mainRows || `<tr class="data-row"><td colspan="${dayColumns.length + 4}">Tidak ada data.</td></tr>`}
+    ${mainRows || buildEmptyTableRow(dayColumns.length + 4)}
   </tbody>
-</table>
-<table class="report-table summary-table">
+</table>`;
+    const summaryTable = `<table class="report-table summary-table">
   <thead>
     <tr class="headers-row">
       <th>Jenis</th>
@@ -366,23 +351,26 @@ export const targetMasukBBHarianReport: ReportDefinition<
     </tr>
   </thead>
   <tbody>
-    ${summaryHtml || `<tr class="data-row"><td colspan="4">Tidak ada data.</td></tr>`}
+    ${summaryHtml || buildEmptyTableRow(4)}
   </tbody>
-</table>
-<div class="chart-wrap">
+</table>`;
+    const chartHtml = tableRows.length > 0
+      ? `<div class="chart-wrap">
   ${buildLineChartSvg(
-    dayColumns.map((d) => d.label),
+    chartLabels,
     chartSeries,
     { svgWidth: 980, svgHeight: 330, padLeft: 36, padRight: 10, padTop: 8, padBottom: 40 },
   )}
-</div>`;
+</div>`
+      : "";
+    const bodyHtml = `${mainTable}${summaryRows.length > 0 ? summaryTable : ""}${chartHtml}`;
 
     return renderWpsReportPage({
       title: "Laporan Target Masuk Bahan Baku Harian",
       subtitle: `Periode ${start} s/d ${end}`,
       bodyHtml,
       landscape: true,
-      extraCss: HARIAN_CSS,
+      style: "target_masuk_bb_harian",
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

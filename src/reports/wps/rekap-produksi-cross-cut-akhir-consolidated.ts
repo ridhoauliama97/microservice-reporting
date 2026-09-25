@@ -6,7 +6,7 @@ import {
 } from "../../templates/html";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
 import type { ReportDefinition } from "../types";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 
 /**
  * SP_LapRekapProduksiCrossCutAkhirConsolidated — "Laporan Rekap Produksi
@@ -325,14 +325,18 @@ const totalsCells = (totals: ProductionTotals, ratioWithTwo = false): string => 
       <td class="number" style="font-weight: bold;">${escapeHtml(fmtOne(totals.rend))}</td>`;
 
 const buildMachineTable = (machine: MachineSection, grand: ProductionTotals, last: boolean): string => {
-  const detailRows = machine.rows.map((row, index) => `<tr class="data-row bounded-row ${index % 2 === 0 ? "row-odd" : "row-even"}">
+  const hasRows = machine.rows.length > 0;
+  const detailRows = hasRows
+    ? machine.rows.map((row, index) => `<tr class="data-row bounded-row ${index % 2 === 0 ? "row-odd" : "row-even"}">
         <td class="center">${escapeHtml(formatDate(row.tanggal))}</td>
         <td class="center">${escapeHtml(String(row.shift))}</td>
         ${rowCells(row)}
-      </tr>`).join("\n      ");
+      </tr>`).join("\n      ")
+    : buildEmptyTableRow(14);
 
   const averages = machine.averages;
-  const averageRow = `<tr class="data-row totals-row bounded-row">
+  const averageRow = hasRows
+    ? `<tr class="data-row totals-row bounded-row">
         <td colspan="2" class="center">Jmlh/HK</td>
         <td class="number">${escapeHtml(fmtOne(averages.bj))}</td>
         <td class="number">${escapeHtml(fmtOne(averages.fj))}</td>
@@ -342,9 +346,10 @@ const buildMachineTable = (machine: MachineSection, grand: ProductionTotals, las
         <td class="number">${escapeHtml(fmtOne(averages.totalInput))}</td>
         <td class="number">${escapeHtml(fmtOne(averages.output))}</td>
         <td class="number"></td><td class="number"></td><td class="number"></td><td class="number"></td><td class="number"></td>
-      </tr>`;
+      </tr>`
+    : "";
 
-  const grandRow = last ? `<tr class="grand-total-row">
+  const grandRow = last && hasRows ? `<tr class="grand-total-row">
         <td colspan="2" class="center">Grand Total</td>
         ${totalsCells(grand, true)}
       </tr>` : "";
@@ -374,30 +379,18 @@ const buildMachineTable = (machine: MachineSection, grand: ProductionTotals, las
     </thead>
     <tbody>
       ${detailRows}
-      <tr class="totals-row bounded-row">
+      ${hasRows
+        ? `<tr class="totals-row bounded-row">
         <td colspan="2" class="center">HK : ${machine.hk > 0 ? machine.hk : "-"}</td>
         ${totalsCells(machine.totals)}
-      </tr>
+      </tr>`
+        : ""}
       ${averageRow}
       ${grandRow}
     </tbody>
   </table>`;
 };
 
-const REPORT_CSS = `
-  body { font-size: 10px; line-height: 1.15; }
-  .production-section-title { margin: 10px 0 4px 0; font-size: 11px; font-weight: bold; }
-  table.production-table { width: 100%; margin-bottom: 0; border-collapse: collapse; table-layout: fixed; page-break-inside: auto; border-top: 1px solid #000; border-bottom: 1px solid #000; }
-  .production-table th, .production-table td { border: 0; border-left: 1px solid #000; border-right: 1px solid #000; padding: 2px 3px; vertical-align: middle; }
-  .production-table th { text-align: center; font-weight: bold; font-size: 11px; border-bottom: 1px solid #000; background: #fff; }
-  .production-table tbody td { border-top: 0; border-bottom: 0; }
-  .production-table td, .production-table th { white-space: nowrap; }
-  .production-table td.number { text-align: right; font-family: Calibri, "DejaVu Sans", sans-serif; }
-  .production-table tbody tr.row-odd td { background: #c9d1df; }
-  .production-table tbody tr.row-even td { background: #eef2f8; }
-  .production-table .totals-row td { font-weight: bold; font-size: 11px; border-top: 1px solid #000; border-bottom: 1px solid #000; background: #fff; }
-  .production-table .grand-total-row td { font-weight: bold; font-size: 12px; border-top: 1px solid #000; border-right: 0 !important; border-bottom: 2px solid #000; border-left: 0 !important; background: #fff; }
-`;
 
 export const rekapProduksiCrossCutAkhirConsolidatedReport: ReportDefinition<
   PeriodParams,
@@ -426,14 +419,37 @@ export const rekapProduksiCrossCutAkhirConsolidatedReport: ReportDefinition<
       ? data.machines.map((machine, index) =>
           buildMachineTable(machine, data.grandTotals, index === data.machines.length - 1),
         ).join("\n  ")
-      : `<table class="production-table"><tbody><tr><td class="center">Tidak ada data.</td></tr></tbody></table>`;
+      : `<table class="production-table">
+  <thead>
+    <tr class="headers-row">
+      <th rowspan="2" style="width: 9%;">Tanggal</th>
+      <th rowspan="2" style="width: 4.5%;">Shift</th>
+      <th colspan="6">Input</th>
+      <th rowspan="2" style="width: 9%;">Output<br>CCAkhir</th>
+      <th rowspan="2" style="width: 5%;">Jam</th>
+      <th rowspan="2" style="width: 5%;">Org</th>
+      <th rowspan="2" style="width: 8%;">M3/Jam</th>
+      <th rowspan="2" style="width: 10%;">M3/jam/<br>Org</th>
+      <th rowspan="2" style="width: 6.9%;">Rend<br>(%)</th>
+    </tr>
+    <tr class="headers-row">
+      <th style="width: 7.1%;">BJ</th>
+      <th style="width: 7.1%;">FJ</th>
+      <th style="width: 7.1%;">Laminating</th>
+      <th style="width: 7.1%;">Moulding</th>
+      <th style="width: 7.1%;">Reproses</th>
+      <th style="width: 7.1%;">TOTAL</th>
+    </tr>
+  </thead>
+  <tbody>${buildEmptyTableRow(14)}</tbody>
+</table>`;
 
     return renderWpsReportPage({
       title: "Laporan Rekap Produksi CCAkhir Consolidated",
       subtitle,
       bodyHtml,
       landscape: true,
-      extraCss: REPORT_CSS,
+      style: "rekap_produksi_cross_cut_akhir_consolidated",
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

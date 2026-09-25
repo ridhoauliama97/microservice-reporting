@@ -22,6 +22,9 @@ async function shutdown(signal: string): Promise<void> {
   shuttingDown = true
   logger.info({ signal }, 'API shutting down')
   try {
+    // Order matters: stop the QueueEvents broker first so no progress event
+    // reaches a socket while the queue is closing (AGENTS.md 7.11).
+    await reportQueueEvents.close()
     await reportQueue.close()
     await closePool()
   } finally {

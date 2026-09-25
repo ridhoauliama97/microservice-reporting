@@ -6,7 +6,7 @@ import {
   formatPrintedAt,
   formatTanggalId,
 } from "../../templates/html";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import type { ReportDefinition, RenderResult } from "../types";
 
 const EPSILON = 0.0000001;
@@ -813,13 +813,10 @@ const renderPieChartSvg = (items: ChartItem[]): string => {
         `<text x="${x.toFixed(1)}" y="${(y - 9).toFixed(1)}" font-size="13" font-weight="bold" text-anchor="middle" fill="#000000">${escapeHtml(item.grade)}</text>`,
         `<text x="${x.toFixed(1)}" y="${(y + 9).toFixed(1)}" font-size="13" font-weight="bold" text-anchor="middle" fill="#000000">${percentText}</text>`,
       );
-    } else if (sweep >= 8) {
-      const [x, y] = pieChartPoint(centerX, centerY, radius * 0.74, midAngle);
-      parts.push(
-        `<text x="${x.toFixed(1)}" y="${(y - 7).toFixed(1)}" font-size="11" font-weight="bold" text-anchor="middle" fill="#000000">${escapeHtml(item.grade)}</text>`,
-        `<text x="${x.toFixed(1)}" y="${(y + 7).toFixed(1)}" font-size="11" font-weight="bold" text-anchor="middle" fill="#000000">${percentText}</text>`,
-      );
     } else if (sweep >= 3) {
+      // Narrow slices cannot hold the grade name without the text spilling
+      // past the slice edge and reading as clipped. The legend table beside
+      // the chart already maps grade to percentage, so label the value only.
       const [x, y] = pieChartPoint(centerX, centerY, radius * 0.84, midAngle);
       parts.push(
         `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" font-size="10" font-weight="bold" text-anchor="middle" fill="#000000">${percentText}</text>`,
@@ -895,7 +892,7 @@ const buildDetailTable = (
       <td class="number">${formatTotal(totals.st, 4)}</td>
       <td class="number">${formatPercentTotal(totals.rendemen, 1)}</td>
     </tr>`
-        : `<tr class="data-row row-odd"><td class="data-cell center" colspan="6">Tidak ada data.</td></tr>`
+        : buildEmptyTableRow(6)
     }
   </tbody>
 </table>`;
@@ -974,7 +971,7 @@ const buildBalokTable = (rows: DetailLine[]): string => {
           <thead>
             <tr><th style="width: 105px;"></th><th style="width: 45px;">KBTon</th><th style="width: 45px;">STTon</th><th style="width: 35px;">%</th></tr>
           </thead>
-          <tbody>${bodyRows || (rows.length === 0 ? `<tr><td class="label center" colspan="4"></td></tr>` : "")}</tbody>
+          <tbody>${bodyRows || buildEmptyTableRow(4)}</tbody>
         </table>
       </td>
     </tr>
@@ -1050,7 +1047,7 @@ const buildDiagram = (receipt: ReceiptData): string => {
               <table class="diagram-kategori-table">
                 <thead><tr><th>KATEGORI</th><th>ST (TON)</th><th>%</th><th>RENDEMEN</th></tr></thead>
                 <tbody>
-                  ${outputRows || `<tr><td colspan="4" class="center"></td></tr>`}
+                  ${outputRows || buildEmptyTableRow(4)}
                   <tr>
                     <td class="left total-row">TOTAL</td>
                     <td class="num total-row">${formatTotal(receipt.totals.st, 4)}</td>
@@ -1181,10 +1178,7 @@ const buildSummarySection = (data: ReportData): string => {
 };
 
 const buildBodyHtml = (data: ReportData): string => {
-  const noData = `<table class="report-table">
-  <thead><tr class="headers-row"><th>Tidak ada data.</th></tr></thead>
-  <tbody><tr class="data-row row-odd"><td class="data-cell">Tidak ada data.</td></tr></tbody>
-</table>`;
+  const noData = buildDetailTable(data.grand.rows, data.grand.totals, "Grand Total");
 
   const groups = data.dateGroups
     .map((group, groupIndex) => {
@@ -1198,102 +1192,11 @@ const buildBodyHtml = (data: ReportData): string => {
     })
     .join("\n");
 
-  return `${groups || noData}\n${buildSummarySection(data)}`;
+  return `${groups || noData}${
+    data.dateGroups.length > 0 ? `\n${buildSummarySection(data)}` : ""
+  }`;
 };
 
-const REPORT_CSS = `
-  .group-title { margin: 8px 0 4px 0; font-size: 12px; font-weight: bold; }
-  .date-separator { border-top: 1px solid #000; margin: 10px 0 8px 0; }
-  .receipt-separator { border-top: 1px solid #000; margin: 8px 0 10px 0; }
-  .receipt-block { margin: 0 0 12px 0; }
-  .report-table tbody tr.data-row td.data-cell { border-top: 0; border-bottom: 0; border-left: 1px solid #000; border-right: 1px solid #000; }
-  .report-table tbody tr.totals-row td { font-weight: bold; font-size: 11px; border: 1px solid #000; }
-  .section-separator td { padding: 0; height: 0; line-height: 0; border-top: 1px solid #000; border-right: 1px solid #000; border-bottom: 0; border-left: 1px solid #000; background: #fff; }
-  .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 4px; table-layout: fixed; }
-  .meta-table td { border: 0; padding: 0 4px 1px 0; vertical-align: top; text-align: left; background: transparent; word-break: normal; }
-  .meta-line { white-space: nowrap; }
-  .meta-line.right { text-align: right; }
-  .meta-attachment-label { font-weight: bold; }
-  .rendemen-attachment { margin: 2px 0 10px 0; text-align: right; font-size: 11px; }
-  .bottom-section { width: 100%; margin: 6px 0 0 0; }
-  .bottom-layout { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0; }
-  .bottom-layout td { border: 0; padding: 0; vertical-align: top; background: transparent; word-break: normal; }
-  .money-box { width: 100%; font-size: 11px; padding-left: 40px; }
-  .money-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0; }
-  .money-table td { border: 0; padding: 0 0 2px 0; vertical-align: top; background: transparent; }
-  .money-divider-row td { padding: 1px 0 2px 0; }
-  .money-divider-line { border-top: 1px solid #000; height: 0; margin-left: 82px; }
-  .money-label { width: 68px; font-weight: bold; text-align: left; white-space: nowrap; }
-  .money-value { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; width: 150px; font-weight: bold; }
-  .money-flag-attachment { font-weight: bold; white-space: nowrap; padding-left: 10px; text-align: left; width: 60px; }
-  .btul-box { width: 100%; font-size: 11px; padding-left: 26px; }
-  .btul-title { font-weight: normal; text-align: left; margin: 0; line-height: 1.15; width: 96px; white-space: normal; word-break: normal; overflow-wrap: normal; }
-  .btul-wrap { width: 100%; margin-left: 0; }
-  .btul-layout { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0; }
-  .btul-layout td { border: 0; padding: 0; vertical-align: top; background: transparent; word-break: normal; }
-  .btul-text-cell { width: 108px; padding-right: 12px; padding-top: 4px; }
-  .mini-table { border-collapse: collapse; width: 100%; table-layout: fixed; }
-  .mini-table th, .mini-table td { border: 1px solid #000; padding: 2px 4px; font-size: 10px; }
-  .mini-table th { text-align: center; font-weight: bold; }
-  .mini-table td.label { text-align: left; }
-  .mini-table td.label-total { text-align: right; font-weight: bold; }
-  .mini-table td.num { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; }
-  .diagram-section { margin-top: 10px; }
-  .diagram-frame { width: 100%; border: 0; border-collapse: collapse; table-layout: fixed; margin: 0; }
-  .diagram-frame td { border: 0; padding: 6px 10px; vertical-align: top; background: #fff; font-size: 10px; }
-  .diagram-frame td.frame-banner { background: #1a3a5c; color: #fff; font-size: 22px; font-weight: bold; text-align: center; padding: 10px 0; letter-spacing: 1px; }
-  .diagram-layout { width: 100%; border-collapse: collapse; table-layout: fixed; }
-  .diagram-layout > tbody > tr > td { padding: 0; vertical-align: top; }
-  .diagram-chart-cell { width: 42%; vertical-align: middle; text-align: center; padding: 10px 6px 10px 8px; }
-  .diagram-side-cell { width: 58%; vertical-align: top; padding: 8px 8px 8px 8px; }
-  .diagram-chart-wrap { text-align: center; margin: 0 auto; max-width: 100%; }
-  .diagram-chart-wrap svg { max-width: 100%; height: auto; }
-  .rendemen-total-table { width: auto; border-collapse: collapse; border: 0; margin: 0 auto; table-layout: auto; }
-  .rendemen-total-table td { border: 0; padding: 0; text-align: center; background: transparent; }
-  .rendemen-total-label-cell { font-weight: bold; font-size: 12px; text-transform: uppercase; padding-bottom: 4px; }
-  .rendemen-total-label-cell h2 { margin: 0; font-size: 18px; }
-  .rendemen-total-value-cell { font-size: 24px; font-weight: bold; font-family: Calibri, "DejaVu Sans", sans-serif; border: 2px solid #000; padding: 4px 30px; background: #fff; }
-  .rendemen-total-value-cell h1 { margin: 0; font-size: 24px; }
-  .diagram-kategori-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 10px; margin: 0; }
-  .diagram-kategori-table th, .diagram-kategori-table td { border: 1px solid #000; padding: 4px 6px; }
-  .diagram-kategori-table th { background: #1a3a5c; color: #fff; font-weight: bold; text-align: center; font-size: 11px; }
-  .diagram-kategori-table td.num { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; }
-  .diagram-kategori-table td.left { text-align: left; }
-  .diagram-kategori-table td.total-row { font-weight: bold; border-top: 1px solid #1a3a5c; background: #eef2f8; }
-  .category-swatch { border-radius: 50%; width: 4px; height: 4px; vertical-align: middle; }
-  .ringkasan-table { width: 100%; border: 1px solid #000; border-collapse: collapse; table-layout: fixed; margin: 0; font-size: 10px; }
-  .ringkasan-table td { border: 0; padding: 3px 10px; background: transparent; vertical-align: top; }
-  .ringkasan-table td.ringkasan-head { text-align: center; font-weight: bold; font-size: 12px; padding: 5px 8px; background: #1a3a5c; color: #fff; border-bottom: 1px solid #000; }
-  .ringkasan-table td.ringkasan-formula { padding: 4px 10px; border-top: 1px solid #000; font-style: italic; }
-  .ringkasan-rendemen-highlight { color: #c0392b; font-weight: bold; }
-  .keterangan-box { font-size: 10px; padding: 6px 0 0 0; text-align: left; }
-  .keterangan-title { font-weight: bold; font-style: normal; margin: 0 0 4px 0; text-align: left; }
-  .keterangan-line { margin: 1px 0; }
-  .keterangan-label { font-weight: bold; font-style: normal; }
-  .summary-section { page-break-before: always; }
-  .summary-frame-table { width: 100%; height: 252mm; border-collapse: collapse; table-layout: fixed; margin: 0; }
-  .summary-frame-cell { border: 1px solid #000; padding: 4mm; height: 252mm; vertical-align: top; text-align: left; background: #fff; }
-  .summary-section-heading-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 25px 0 14px 0; }
-  .summary-section-heading-table td { border: 0; padding: 0; text-align: center; font-size: 12px; font-weight: bold; background: transparent; }
-  .summary-rendemen-table { width: 100%; border-collapse: collapse; margin: 0; table-layout: fixed; }
-  .summary-rendemen-table td { border: 0; padding: 0 0 2px 0; text-align: right; font-size: 11px; background: transparent; }
-  .summary-money-box { width: 92mm; font-size: 11px; text-align: left; }
-  .summary-money-box .money-table { width: 92mm; }
-  .summary-money-box .money-label { width: 12mm; font-size: 11px; }
-  .summary-money-box .money-value { width: 35mm; font-size: 11px; }
-  .summary-money-box .money-flag-attachment { width: 45mm; font-size: 11px; line-height: 1.2; padding-left: 12px; white-space: normal; }
-  .summary-pair-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0 0 10px 0; }
-  .summary-pair-table td { border: 0; padding: 0; vertical-align: top; background: transparent; }
-  .summary-pair-left { width: 50%; padding-right: 14px; }
-  .summary-pair-right { width: 50%; }
-  .group-summary-wrap { width: 295px; margin: 0 0 10px auto; }
-  .group-summary-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 10px; }
-  .group-summary-table th, .group-summary-table td { border: 1px solid #000; padding: 3px 5px; }
-  .group-summary-table th { text-align: center; font-weight: bold; }
-  .group-summary-table td:first-child { text-align: left; }
-  .group-summary-table td.num { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; }
-  .group-summary-total td { font-weight: bold; }
-`;
 
 export const rekapPenerimaanStSawmillCostingRambungReport: ReportDefinition<
   RekapPenerimaanStSawmillCostingRambungParams,
@@ -1351,7 +1254,7 @@ export const rekapPenerimaanStSawmillCostingRambungReport: ReportDefinition<
       title: "Laporan Rekap Penerimaan ST Dari Sawmill + Costing (Rambung)",
       subtitle,
       bodyHtml: buildBodyHtml(reportData),
-      extraCss: REPORT_CSS,
+      style: "rekap_penerimaan_st_sawmill_costing_rambung",
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

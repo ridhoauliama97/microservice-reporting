@@ -1,5 +1,5 @@
 import sql from "mssql";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import {
   escapeHtml,
   formatNumber,
@@ -64,15 +64,6 @@ function resolvePeriodMonths(startIso: string, endIso: string): Array<{ key: str
   return months;
 }
 
-interface MonthlyGroup {
-  jenis: string;
-  targets: number[];
-  values: number[];
-  rawTotal: number;
-  bulanCapai: number;
-  totalBulanTarget: number;
-  persenCapaiGroup: number;
-}
 
 const toFloat = (value: unknown): number => {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -163,12 +154,6 @@ function buildPivot(
   return { tableRows, summaryRows, chartSeries };
 }
 
-const BULANAN_CSS = `
-  .metric-label { font-weight: bold; }
-  .under-target { font-weight: bold; }
-  .chart-wrap { margin-top: 35px; text-align: center; }
-  .chart-title { margin: 0 0 6px 0; text-align: center; font-size: 11px; font-weight: bold; }
-`;
 
 function buildLineChartSvg(
   labels: string[],
@@ -254,6 +239,49 @@ function buildLineChartSvg(
 </svg>`;
 }
 
+/**
+ * A line chart needs at least two x categories. When the period covers a
+ * single month the line collapses into a vertical stroke at the left edge and
+ * carries no information, so fall back to horizontal bars: one bar per jenis
+ * for that month, which is the comparison the reader actually wants.
+ */
+function buildSingleLabelBarChartSvg(
+  label: string,
+  chartSeries: Record<string, number[]>,
+  options: { svgWidth: number; barHeight: number; gap: number; padLeft: number; padRight: number; padTop: number },
+): string {
+  const { svgWidth, barHeight, gap, padLeft, padRight, padTop } = options;
+  const entries = Object.entries(chartSeries);
+  const svgHeight = padTop * 2 + entries.length * (barHeight + gap) - gap;
+  const plotWidth = svgWidth - padLeft - padRight;
+
+  const maxValue = Math.max(
+    1,
+    ...entries.map(([, values]) => Math.round(toFloat(values[0]))),
+  );
+  const labelWidth = 4.2 * Math.max(...entries.map(([name]) => name.length), 4);
+
+  const parts: string[] = [
+    `<text x="${padLeft - labelWidth - 6}" y="${padTop - 3}" font-size="8" text-anchor="end" fill="#111827">${escapeHtml(label)}</text>`,
+  ];
+
+  entries.forEach(([seriesName, values], index) => {
+    const value = Math.round(toFloat(values[0]));
+    const y = padTop + index * (barHeight + gap);
+    const width = maxValue > 0 ? (value / maxValue) * plotWidth : 0;
+    const color = seriesColor(seriesName);
+    parts.push(
+      `<text x="${padLeft - 6}" y="${y + barHeight / 2 + 3}" font-size="8" text-anchor="end" fill="#111827">${escapeHtml(seriesName)}</text>`,
+      `<rect x="${padLeft}" y="${y}" width="${Math.max(width, value > 0 ? 1 : 0)}" height="${barHeight}" fill="${color}" />`,
+      `<text x="${padLeft + width + 5}" y="${y + barHeight / 2 + 3}" font-size="8" fill="#111827">${formatNumber(value, 0)}</text>`,
+    );
+  });
+
+  return `<svg width="${svgWidth}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg">
+  ${parts.join("\n  ")}
+</svg>`;
+}
+
 export const targetMasukBBBulananReport: ReportDefinition<
   PeriodParams,
   Array<Record<string, unknown>>
@@ -321,7 +349,7 @@ export const targetMasukBBBulananReport: ReportDefinition<
       )
       .join("\n");
 
-    const bodyHtml = `<table class="report-table" style="margin-bottom: 20px">
+    const mainTable = `<table class="report-table" style="margin-bottom: 20px">
   <thead>
     <tr class="headers-row">
       <th rowspan="2" style="width: 90px;">Jenis</th>
@@ -331,10 +359,10 @@ export const targetMasukBBBulananReport: ReportDefinition<
     </tr>
   </thead>
   <tbody>
-    ${mainRows || `<tr><td class="center" colspan="${monthColumns.length + 3}">Tidak ada data.</td></tr>`}
+    ${mainRows || buildEmptyTableRow(monthColumns.length + 3)}
   </tbody>
-</table>
-<table class="report-table summary-table" style="margin-bottom: 20px">
+</table>`;
+    const summaryTable = `<table class="report-table summary-table" style="margin-bottom: 20px">
   <thead>
     <tr class="headers-row">
       <th>Jenis</th>
@@ -346,23 +374,35 @@ export const targetMasukBBBulananReport: ReportDefinition<
     </tr>
   </thead>
   <tbody>
-    ${summaryHtml || `<tr><td class="center" colspan="6">-</td></tr>`}
+    ${summaryHtml || buildEmptyTableRow(6)}
   </tbody>
-</table>
-<div class="chart-wrap">
+</table>`;
+    const chartHtml = tableRows.length > 0
+      ? `<div class="chart-wrap">
   <p class="chart-title">Grafik Target Masuk Bahan Baku Bulanan</p>
-  ${buildLineChartSvg(
-    monthColumns.map((m) => m.label),
-    chartSeries,
-    { svgWidth: 1000, svgHeight: 250, padLeft: 34, padRight: 10, padTop: 8, padBottom: 34, yStep: 100 },
-  )}
-</div>`;
+  ${chartLabels.length < 2
+    ? buildSingleLabelBarChartSvg(chartLabels[0] ?? "", chartSeries, {
+        svgWidth: 1000,
+        barHeight: 18,
+        gap: 8,
+        padLeft: 120,
+        padRight: 40,
+        padTop: 18,
+      })
+    : buildLineChartSvg(
+        chartLabels,
+        chartSeries,
+        { svgWidth: 1000, svgHeight: 250, padLeft: 34, padRight: 10, padTop: 8, padBottom: 34, yStep: 100 },
+      )}
+</div>`
+      : "";
+    const bodyHtml = `${mainTable}${summaryRows.length > 0 ? summaryTable : ""}${chartHtml}`;
 
     return renderWpsReportPage({
       title: "Laporan Target Masuk Bahan Baku Bulanan",
       subtitle: `Periode ${start} s/d ${end}`,
       bodyHtml,
-      extraCss: BULANAN_CSS,
+      style: "target_masuk_bb_bulanan",
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

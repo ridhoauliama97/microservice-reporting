@@ -5,7 +5,7 @@ import {
   formatPrintedAt,
   formatTanggalId,
 } from "../../templates/html";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
 import type { ReportDefinition, RenderResult } from "../types";
 
@@ -288,16 +288,6 @@ function buildData(rows: SawmillRow[]): SawmillData {
   };
 }
 
-const REKAP_SAWMILL_CSS = `
-  .date-separator { height: 14px; }
-  .receipt-separator { height: 6px; }
-  .section-separator td { padding: 0; height: 0; line-height: 0; border: 0 !important; background: #fff !important; }
-  .report-table tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
-  .report-table tbody tr.totals-row td { background: #fff !important; font-weight: bold; font-size: 11px; border-top: 1px solid #000; border-right: 1px solid #000; border-bottom: 0; border-left: 0; }
-  .meta-line { margin: 2px 0; font-size: 10px; }
-  .rendemen-line { margin: 0 0 10px 0; text-align: right; font-size: 11px; font-weight: bold; }
-  .group-title { margin: 10px 0; text-align: center; font-size: 12px; font-weight: bold; }
-`;
 
 const buildDetailTable = (
   rows: Record<Kategori, DetailLine[]>,
@@ -363,7 +353,7 @@ const buildDetailTable = (
       <td class="number">${fmtTotal(totals.stTotal, 4)}</td>
       <td class="number">${fmtPercentTotal(totals.rendemen, 1)}</td>
     </tr>`
-        : `<tr class="data-row row-odd"><td class="center" colspan="6">Tidak ada data.</td></tr>`
+        : buildEmptyTableRow(6)
     }
   </tbody>
 </table>
@@ -376,10 +366,7 @@ ${
 
 const buildBodyHtml = (data: SawmillData): string => {
   if (data.dateGroups.length === 0) {
-    return `<table class="report-table">
-  <thead><tr class="headers-row"><th>Tidak ada data.</th></tr></thead>
-  <tbody><tr class="data-row row-odd"><td>Tidak ada data.</td></tr></tbody>
-</table>`;
+    return buildDetailTable(data.grand.rows, data.grand.totals, "Grand Total", true);
   }
 
   const blocks = data.dateGroups
@@ -447,7 +434,7 @@ export const rekapPenerimaanStDariSawmillKgReport: ReportDefinition<
       title: "Laporan Rekap Penerimaan ST Dari Sawmill - Timbang KG",
       subtitle: `Periode ${formatTanggalId(meta.params.tglAwal)} s/d ${formatTanggalId(meta.params.tglAkhir)}`,
       bodyHtml: buildBodyHtml(data),
-      extraCss: REKAP_SAWMILL_CSS,
+      style: "rekap_penerimaan_st_dari_sawmill_kg",
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

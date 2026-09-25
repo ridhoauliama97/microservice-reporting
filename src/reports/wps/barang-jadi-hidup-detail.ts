@@ -1,4 +1,3 @@
-import sql from "mssql";
 import { z } from "zod";
 import {
   escapeHtml,
@@ -6,7 +5,7 @@ import {
   formatPrintedAt,
   formatTanggalId,
 } from "../../templates/html";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import type { ReportDefinition } from "../types";
 
 /**
@@ -161,7 +160,7 @@ export const barangJadiHidupDetailReport: ReportDefinition<
     </tr>
   </thead>
   <tbody>
-    ${bodyRows || `<tr><td class="center" colspan="11">Tidak ada data.</td></tr>`}
+    ${bodyRows || buildEmptyTableRow(11)}
     ${
       rows.length > 0
         ? `<tr class="totals-row">

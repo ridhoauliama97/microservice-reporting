@@ -5,7 +5,7 @@ import {
   formatNumber,
   formatPrintedAt,
 } from "../../templates/html";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import type { ReportDefinition } from "../types";
 
 /**
@@ -235,7 +235,7 @@ export const umurBarangJadiDetailReport: ReportDefinition<
     </tr>
   </thead>
   <tbody>
-    ${bodyRows || `<tr><td class="center" colspan="11">Tidak ada data.</td></tr>`}
+    ${bodyRows || buildEmptyTableRow(11)}
     ${
       rows.length > 0
         ? `<tr class="totals-row">

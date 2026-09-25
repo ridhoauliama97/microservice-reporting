@@ -5,32 +5,26 @@ import {
   formatPrintedAt,
   formatTanggalId,
 } from "../../templates/html";
-import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import type { ReportDefinition } from "../types";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 
 /**
- * SP_LapCCAkhirHidupDetail — "Laporan Cross Cut Akhir (Hidup) Detail". Ported
- * from open-api-report's CrossCutAkhirHidupDetailReportService +
- * cc-akhir-hidup-detail-pdf.blade.php.
- *
- * Live snapshot (the SP takes no parameters). The legacy service:
- *  - aliases DateCreate -> Tanggal, IdLokasi -> Lokasi, Kubik -> M3;
- *  - renders "Jenis - NamaGrade" in the Jenis column ($jenisDisplay);
- *  - sorts Tanggal DESC, then NoCCAkhir ASC.
- * Column order follows the legacy blade (M3 comes before Lokasi here).
+ * SP_LapReprosesHidupDetail — "Laporan Reproses (Hidup) Detail".
+ * Ported from ReprosesHidupDetailReportService and
+ * reproses-hidup-detail-pdf.blade.php. The legacy detail uses three decimals
+ * for M3 and has no subtitle.
  */
 
-interface CcHidupRow extends Record<string, unknown> {
-  NoCCAkhir: string | null;
+interface ReprosesHidupRow extends Record<string, unknown> {
+  NoReproses: string | null;
   Tanggal: Date | string | null;
   NoSPK: string | null;
-  /** "Jenis - NamaGrade" (legacy $jenisDisplay). */
   Jenis: string | null;
-  Tebal: number | null;
-  Lebar: number | null;
-  Panjang: number | null;
-  JmlhBatang: number | null;
-  M3: number | null;
+  Tebal: number | string | null;
+  Lebar: number | string | null;
+  Panjang: number | string | null;
+  JmlhBatang: number | string | null;
+  M3: number | string | null;
   Lokasi: string | null;
 }
 
@@ -43,7 +37,6 @@ const toText = (value: unknown): string => {
 const toNumber = (value: unknown): number => {
   if (typeof value === "number") return Number.isFinite(value) ? value : 0;
   if (typeof value !== "string") return 0;
-
   let normalized = value.trim().replaceAll(" ", "");
   if (normalized === "") return 0;
   if (normalized.includes(",") && normalized.includes(".")) {
@@ -59,78 +52,63 @@ const toNumber = (value: unknown): number => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
-/** Legacy $fmtDate: d-M-y (2-digit year). */
 const fmtDate = (value: unknown): string => {
   const raw = toText(value);
   if (raw === "") return "";
-  const iso = /^(\d{4}-\d{2}-\d{2})/.exec(raw);
-  if (!iso) return raw;
-  return formatTanggalId(iso[1]).replace(/\d{4}$/, (year) => year.slice(-2));
+  const match = /^(\d{4}-\d{2}-\d{2})/.exec(raw);
+  if (!match) return raw;
+  return formatTanggalId(match[1]).replace(/\d{4}$/, (year) => year.slice(-2));
 };
 
-/** Legacy $fmtInt / $fmtDim: whole numbers with separators. */
 const fmtWhole = (value: unknown): string => {
   if (value === null || value === "") return "";
   return formatNumber(Math.round(toNumber(value)), 0);
 };
 
-/** Legacy $fmtM3: 4 decimals. */
 const fmtM3 = (value: unknown): string => {
   if (value === null || value === "") return "";
-  return formatNumber(toNumber(value), 4);
+  return formatNumber(toNumber(value), 3);
 };
 
-export const crossCutAkhirHidupDetailReport: ReportDefinition<
+export const reprosesHidupDetailReport: ReportDefinition<
   Record<never, never>,
-  CcHidupRow[]
+  ReprosesHidupRow[]
 > = {
-  type: "cross-cut-akhir-hidup-detail",
-  title: "Laporan Cross Cut Akhir (Hidup) Detail",
-  // The SP takes no parameters — reject any params loudly.
+  type: "reproses-hidup-detail",
+  title: "Laporan Reproses (Hidup) Detail",
   paramsSchema: z.strictObject({}),
 
   async fetchData(_params, { pool }) {
     const conn = await pool;
-    const result = await conn.request().execute("SP_LapCCAkhirHidupDetail");
+    const result = await conn.request().execute("SP_LapReprosesHidupDetail");
     const raw = (result.recordset ?? []) as Array<Record<string, unknown>>;
-
     const rows = raw.map((row) => {
       const jenis = toText(row.Jenis);
       const grade = toText(row.NamaGrade);
       return {
         ...row,
-        NoCCAkhir: toText(row.NoCCAkhir) || null,
-        // Legacy blade key aliases.
+        NoReproses: toText(row.NoReproses) || null,
         Tanggal: row.DateCreate ?? null,
+        NoSPK: toText(row.NoSPK) || null,
         Lokasi: toText(row.IdLokasi) || null,
         M3: row.Kubik ?? null,
-        Jenis:
-          jenis !== ""
-            ? `${jenis}${grade !== "" ? ` - ${grade}` : ""}`
-            : grade !== ""
-              ? grade
-              : null,
-      } as CcHidupRow;
+        Jenis: jenis !== "" ? `${jenis}${grade !== "" ? ` - ${grade}` : ""}` : grade || null,
+      } as ReprosesHidupRow;
     });
-
-    // Legacy usort: Tanggal DESC, then NoCCAkhir ASC.
     rows.sort((left, right) => {
       const byDate = toText(right.Tanggal).localeCompare(toText(left.Tanggal));
       if (byDate !== 0) return byDate;
-      return toText(left.NoCCAkhir).localeCompare(toText(right.NoCCAkhir));
+      return toText(left.NoReproses).localeCompare(toText(right.NoReproses));
     });
-
     return rows;
   },
 
   render(rows, meta) {
     const totalM3 = rows.reduce((sum, row) => sum + toNumber(row.M3), 0);
-
     const bodyRows = rows
-      .map(
-        (row, index) => `<tr class="data-row ${index % 2 === 0 ? "row-odd" : "row-even"}">
+      .map((row, index) => `<tr class="data-row ${index % 2 === 0 ? "row-odd" : "row-even"}">
         <td class="center">${index + 1}</td>
-        <td class="center">${escapeHtml(toText(row.NoCCAkhir))}</td>
+        <td class="center">${escapeHtml(toText(row.NoReproses))}</td>
         <td class="center">${escapeHtml(fmtDate(row.Tanggal))}</td>
         <td class="center">${escapeHtml(toText(row.NoSPK))}</td>
         <td class="label">${escapeHtml(toText(row.Jenis))}</td>
@@ -138,46 +116,42 @@ export const crossCutAkhirHidupDetailReport: ReportDefinition<
         <td class="center">${escapeHtml(fmtWhole(row.Lebar))}</td>
         <td class="center">${escapeHtml(fmtWhole(row.Panjang))}</td>
         <td class="center">${escapeHtml(fmtWhole(row.JmlhBatang))}</td>
-        <td class="number" style="font-weight: bold;">${escapeHtml(fmtM3(row.M3))}</td>
+        <td class="number m3-total">${escapeHtml(fmtM3(row.M3))}</td>
         <td class="center">${escapeHtml(toText(row.Lokasi))}</td>
-      </tr>`,
-      )
+      </tr>`)
       .join("\n    ");
 
     const bodyHtml = `<table class="report-table">
   <thead>
     <tr class="headers-row">
-      <th style="width: 32px;">No</th>
-      <th style="width: 84px;">No CCAkhir</th>
-      <th style="width: 76px;">Tanggal</th>
-      <th style="width: 74px;">No SPK</th>
+      <th>No</th>
+      <th>No Reproses</th>
+      <th>Tanggal</th>
+      <th>No SPK</th>
       <th>Jenis</th>
-      <th style="width: 44px;">Tebal</th>
-      <th style="width: 50px;">Lebar</th>
-      <th style="width: 56px;">Panjang</th>
-      <th style="width: 66px;">Jumlah Batang</th>
-      <th style="width: 56px;">M3</th>
-      <th style="width: 54px;">Lokasi</th>
+      <th>Tebal</th>
+      <th>Lebar</th>
+      <th>Panjang</th>
+      <th>Jumlah Batang</th>
+      <th>M3</th>
+      <th>Lokasi</th>
     </tr>
   </thead>
   <tbody>
     ${bodyRows || buildEmptyTableRow(11)}
-    ${
-      rows.length > 0
-        ? `<tr class="totals-row">
+    ${rows.length > 0 ? `<tr class="totals-row">
       <td colspan="9" class="center">Total</td>
       <td class="number">${fmtM3(totalM3)}</td>
       <td></td>
-    </tr>`
-        : ""
-    }
+    </tr>` : ""}
   </tbody>
 </table>`;
 
     return renderWpsReportPage({
-      title: "Laporan Cross Cut Akhir (Hidup) Detail",
+      title: "Laporan Reproses (Hidup) Detail",
       subtitle: "",
       bodyHtml,
+      style: "reproses_hidup_detail",
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

@@ -1,11 +1,6 @@
 import sql from "mssql";
-import {
-  escapeHtml,
-  formatNumber,
-  formatPrintedAt,
-  formatTanggalId,
-} from "../../templates/html";
-import { renderWpsReportPage } from "./template";
+import { escapeHtml, formatPrintedAt, formatTanggalId } from "../../templates/html";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
 import type { ReportDefinition } from "../types";
 
@@ -63,11 +58,6 @@ const fmt = (value: unknown): string => {
 const fmtTanggalPendek = (iso: string): string =>
   formatTanggalId(iso).replace(/\d{4}$/, (year) => year.slice(-2));
 
-const CSS = `
-  .group-title { margin: 12px 0 4px 0; font-size: 12px; font-weight: bold; }
-  .report-table tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
-  .report-table tbody tr.totals-row td { background: #fff !important; font-weight: bold; font-size: 11px; border-top: 1px solid #000; border-right: 1px solid #000; border-bottom: 0; border-left: 0; }
-`;
 
 const buildGroupTable = (jenis: string, rows: ProduksiGradeRow[]): string => {
   const totals = rows.reduce(
@@ -114,14 +104,33 @@ const buildGroupTable = (jenis: string, rows: ProduksiGradeRow[]): string => {
     </tr>
   </thead>
   <tbody>
-    ${bodyRows}
-    <tr class="totals-row">
+    ${bodyRows || buildEmptyTableRow(9)}
+    ${rows.length > 0
+      ? `<tr class="totals-row">
       <td colspan="3" class="center">Total</td>
       ${totalCells}
-    </tr>
+    </tr>`
+      : ""}
   </tbody>
 </table>`;
 };
+
+const buildEmptyGradeTable = (): string => `<table class="report-table">
+  <thead>
+    <tr class="headers-row">
+      <th>No</th>
+      <th>Jenis Kayu</th>
+      <th>Nama Grade</th>
+      <th>In Moulding</th>
+      <th>In Sanding</th>
+      <th>In WIP</th>
+      <th>In Barang Jadi</th>
+      <th>Output</th>
+      <th>Out Reproses</th>
+    </tr>
+  </thead>
+  <tbody>${buildEmptyTableRow(9)}</tbody>
+</table>`;
 
 export const rekapProduksiPackingPerJenisPerGradeReport: ReportDefinition<
   PeriodParams,
@@ -164,14 +173,14 @@ export const rekapProduksiPackingPerJenisPerGradeReport: ReportDefinition<
         ? [...grouped.entries()]
             .map(([jenis, groupRows]) => buildGroupTable(jenis, groupRows))
             .join("\n  ")
-        : `<table class="report-table"><tbody><tr><td class="center">Tidak ada data.</td></tr></tbody></table>`;
+        : buildEmptyGradeTable();
 
     return renderWpsReportPage({
       title: "Laporan Rekap Produksi Packing Per-Jenis & Per-Grade (m3)",
       // Legacy subtitle uses d-M-y (2-digit year).
       subtitle: `Periode ${fmtTanggalPendek(meta.params.tglAwal)} s/d ${fmtTanggalPendek(meta.params.tglAkhir)}`,
       bodyHtml,
-      extraCss: CSS,
+      style: "rekap_produksi_packing_per_jenis_per_grade",
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

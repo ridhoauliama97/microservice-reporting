@@ -7,6 +7,7 @@ import {
 } from "../../templates/html";
 import { z } from "zod";
 import {
+  buildEmptyTableRow,
   renderWpsReportPage,
   type NoKayuBulatLookupParams,
 } from "./template";
@@ -17,8 +18,8 @@ import type { ReportDefinition } from "../types";
  * from the legacy open-api-report blades + services: a meta header block
  * (Nomor / Jenis Kayu / Tanggal / No.Plat / Supplier / No.Suket), the detail
  * rows split into two side-by-side column halves, a per-Keterangan summary
- * and the standard signature block. Styling is form-specific CSS appended
- * via the shell's extraCss (special-case layout, allowed per AGENTS.md).
+ * and the standard signature block. Styling is selected through the shared
+ * form-layout preset.
  */
 
 const HEADER_SQL = `
@@ -127,35 +128,6 @@ const buildSummary = (rows: TonRow[]): TonReportData["summary"] => {
 /** Form-specific CSS (meta header, split table, summary, signatures).
  *  The meta/summary/signature blocks are border-free — the standard WPS
  *  table borders only apply to the detail table. */
-const TON_FORM_CSS = `
-  .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
-  .meta-table td { padding: 1px 2px; vertical-align: top; border: 0 !important; background: #fff !important; }
-  .meta-label { width: 68px; white-space: nowrap; }
-  .meta-colon { width: 10px; text-align: center; }
-  .spacer-cell { width: 24px; }
-
-  .report-table tbody td { border-top: 0; border-bottom: 0; }
-  .report-table tbody tr:last-child td { border-bottom: 1px solid #000; }
-  .report-table tbody tr.totals-row td { border-top: 1px solid #000; border-bottom: 0; }
-
-  .separator-cell { width: 4%; min-width: 16px; border: 0 !important; background: #fff !important; padding: 0; }
-
-  .summary-block { width: 100%; margin: 4px 0 10px 0; }
-  .summary-table { width: 45%; border-collapse: collapse; font-size: 10px; margin-top: 10px; margin-left: auto; }
-  .summary-table td { padding: 0 2px 2px 2px; vertical-align: top; border: 0 !important; background: #fff !important; }
-  .summary-label { text-align: right; white-space: nowrap; width: 70%; }
-  .summary-value { text-align: right; white-space: nowrap; width: 30%; font-weight: bold; }
-
-  .signature-table { margin-top: 14px; table-layout: fixed; width: 100%; border-collapse: collapse; }
-  .signature-table td { width: 14.28%; text-align: center; vertical-align: top; padding: 0 2px; border: 0 !important; background: #fff !important; }
-  .signature-label-row td { padding-bottom: 18px; }
-  .signature-label { margin: 0; }
-  .signature-placeholder-row td { padding-top: 50px; }
-  .signature-placeholder-table { width: 100%; border-collapse: collapse; }
-  .signature-placeholder-table td { padding: 0; font-size: 11px; font-weight: normal; text-align: center; border: 0 !important; background: #fff !important; }
-  .signature-bracket { width: 100px; }
-  .signature-space { width: 100px; }
-`;
 
 const buildSplitTableHtml = (rows: TonRow[]): string => {
   const leftCount = Math.ceil(rows.length / 2);
@@ -203,7 +175,7 @@ const buildSplitTableHtml = (rows: TonRow[]): string => {
     </tr>
   </thead>
   <tbody>
-    ${bodyRows.join("\n    ")}
+    ${bodyRows.length > 0 ? bodyRows.join("\n    ") : buildEmptyTableRow(13)}
   </tbody>
 </table>`;
 };
@@ -324,7 +296,7 @@ export function createPenerimaanTonReport(
         title: spec.title,
         subtitle: "",
         bodyHtml: buildBodyHtml(data),
-        extraCss: TON_FORM_CSS,
+        style: "penerimaan_kayu_bulat_ton",
         printedBy: meta.requestedBy,
         printedAt: formatPrintedAt(meta.generatedAt),
       });

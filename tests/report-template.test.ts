@@ -1,10 +1,12 @@
 import { describe, expect, test } from 'bun:test'
 import {
+  buildEmptyTable,
   buildReportTable,
   createSingleDateTableReport,
   createSingleTableReport,
   createSnapshotTableReport,
   formatInt,
+  renderWpsReportPage,
   type ReportColumn,
 } from '../src/reports/wps/template'
 import type { RenderMeta } from '../src/reports/types'
@@ -77,17 +79,37 @@ describe('buildReportTable', () => {
   })
 
   test('totals row spans the leading columns and formats values', () => {
-    const html = buildReportTable({ columns, rows: [], totals: { values: { Awal: 12 } } })
+    const html = buildReportTable({ columns, rows: [{ Jenis: 'A' }], totals: { values: { Awal: 12 } } })
     expect(html).toContain(
       '<td colspan="2" class="blank" style="text-align:center">Total</td>',
     )
     expect(html).toContain('12.0000')
   })
 
-  test('empty rows render the empty message with full colspan', () => {
+  test('empty rows render the shared empty state with full colspan', () => {
     const html = buildReportTable({ columns, rows: [] })
     expect(html).toContain('colspan="4"')
-    expect(html).toContain('Tidak ada data untuk periode ini')
+    expect(html).toContain('class="empty-cell"')
+    expect(html).toContain('Tidak ada data')
+    expect(html).not.toContain('Tidak ada data untuk periode ini')
+  })
+
+  test('standalone empty tables use the shared empty state', () => {
+    const html = buildEmptyTable(7, 'production-table')
+    expect(html).toContain('class="production-table"')
+    expect(html).toContain('colspan="7"')
+    expect(html).toContain('class="empty-cell"')
+    expect(html).toContain('Tidak ada data')
+  })
+
+  test('empty rows do not render a totals row', () => {
+    const html = buildReportTable({
+      columns,
+      rows: [],
+      totals: { values: { Awal: 10, Total: 10 } },
+    })
+    expect(html).toContain('class="empty-cell"')
+    expect(html).not.toContain('class="totals-row"')
   })
 })
 
@@ -328,5 +350,15 @@ describe('createSingleTableReport', () => {
     expect(rendered.html).toContain('>30</td>') // Jlh Btg int total
     const totalsRow = rendered.html.slice(rendered.html.indexOf('totals-row'))
     expect(totalsRow).not.toContain('7.0000') // Tebal tidak dijumlahkan
+  })
+
+  test('named style preset is applied by the shared shell', () => {
+    const rendered = renderWpsReportPage({
+      title: 'Laporan Styling',
+      bodyHtml: '<p>Isi</p>',
+      style: 'dashboard_reproses',
+    })
+    expect(rendered.html).toContain('.dashboard-reproses-table')
+    expect(rendered.html).toContain('border: 0.6px solid #000')
   })
 })

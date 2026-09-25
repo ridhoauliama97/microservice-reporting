@@ -1,11 +1,6 @@
 import sql from "mssql";
-import {
-  escapeHtml,
-  formatNumber,
-  formatPrintedAt,
-  formatTanggalId,
-} from "../../templates/html";
-import { renderWpsReportPage } from "./template";
+import { escapeHtml, formatPrintedAt, formatTanggalId } from "../../templates/html";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
 import type { ReportDefinition } from "../types";
 
@@ -129,7 +124,7 @@ export const ketahananBarangCcAkhirReport: ReportDefinition<
     </tr>
   </thead>
   <tbody>
-    ${bodyRows || `<tr><td class="center" colspan="6">Tidak ada data.</td></tr>`}
+    ${bodyRows || buildEmptyTableRow(6)}
   </tbody>
 </table>`;
 

@@ -7,7 +7,7 @@ import {
 } from "../../templates/html";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
 import type { ReportDefinition } from "../types";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 
 const EPSILON = 0.0000001;
 const STORED_PROCEDURE = "SP_LapRekapProduksiBarangJadiConsolidated";
@@ -393,9 +393,11 @@ const buildMachineTable = (
   grandTotals: ProductionTotals,
   includeGrandTotals: boolean,
 ): string => {
-  const detailRows = machine.rows
-    .map(
-      (row, index) => `<tr class="data-row bounded-row ${index % 2 === 0 ? "row-odd" : "row-even"}">
+  const hasRows = machine.rows.length > 0;
+  const detailRows = hasRows
+    ? machine.rows
+        .map(
+          (row, index) => `<tr class="data-row bounded-row ${index % 2 === 0 ? "row-odd" : "row-even"}">
         <td class="center">${escapeHtml(formatLegacyDate(row.tanggal))}</td>
         <td class="center">${escapeHtml(String(row.shift))}</td>
         <td class="number">${formatDecimal(row.bj)}</td>
@@ -411,11 +413,13 @@ const buildMachineTable = (
         <td class="number">${formatDecimal(row.m3JamOrg)}</td>
         <td class="number" style="font-weight: bold;">${formatDecimal(row.rend)}</td>
       </tr>`,
-    )
-    .join("\n");
+        )
+        .join("\n")
+    : buildEmptyTableRow(14);
 
   const totals = machine.totals;
-  const totalsRow = `<tr class="bounded-row totals-row">
+  const totalsRow = hasRows
+    ? `<tr class="bounded-row totals-row">
     <td colspan="2" class="center">${escapeHtml(machine.hk > 0 ? `HK : ${machine.hk}` : "HK : -")}</td>
     <td class="number">${formatDecimal(totals.bj)}</td>
     <td class="number">${formatDecimal(totals.moulding)}</td>
@@ -429,10 +433,12 @@ const buildMachineTable = (
     <td class="number">${formatDecimal(totals.m3Jam)}</td>
     <td class="number">${formatDecimal(totals.m3JamOrg)}</td>
     <td class="number" style="font-weight: bold;">${formatDecimal(totals.rend)}</td>
-  </tr>`;
+  </tr>`
+    : "";
 
   const averages = machine.averages;
-  const averageRow = `<tr class="bounded-row totals-row">
+  const averageRow = hasRows
+    ? `<tr class="bounded-row totals-row">
     <td colspan="2" class="center">Jmlh/HK</td>
     <td class="number">${formatDecimal(averages.bj)}</td>
     <td class="number">${formatDecimal(averages.moulding)}</td>
@@ -446,9 +452,10 @@ const buildMachineTable = (
     <td class="number"></td>
     <td class="number"></td>
     <td class="number"></td>
-  </tr>`;
+  </tr>`
+    : "";
 
-  const grandTotalRow = includeGrandTotals
+  const grandTotalRow = includeGrandTotals && hasRows
     ? `<tr class="grand-total-row">
         <td colspan="2" class="center">Grand Total</td>
         <td class="number">${formatDecimal(grandTotals.bj)}</td>
@@ -499,65 +506,6 @@ const buildMachineTable = (
   </table>`;
 };
 
-const REPORT_CSS = `
-  body { font-size: 10px; line-height: 1.15; }
-  .production-section-title { margin: 10px 0 4px 0; font-size: 11px; font-weight: bold; }
-  table.production-table {
-    width: 100%;
-    margin-bottom: 0;
-    border-collapse: collapse;
-    table-layout: fixed;
-    page-break-inside: auto;
-    border-top: 1px solid #000;
-    border-bottom: 1px solid #000;
-  }
-  .production-table th,
-  .production-table td {
-    border: 0;
-    border-left: 1px solid #000;
-    border-right: 1px solid #000;
-    padding: 2px 3px;
-    vertical-align: middle;
-  }
-  .production-table th {
-    text-align: center;
-    font-weight: bold;
-    font-size: 11px;
-    border-bottom: 1px solid #000;
-    background: #ffffff;
-    color: #000;
-  }
-  .production-table tbody td {
-    border-top: 0;
-    border-bottom: 0;
-  }
-  /* Keep dates ("1-Sep-26") and figures on a single line in the narrow columns. */
-  .production-table td,
-  .production-table th { white-space: nowrap; }
-  .production-table td.number {
-    text-align: right;
-    white-space: nowrap;
-    font-family: Calibri, "DejaVu Sans", sans-serif;
-  }
-  .production-table .row-odd td { background: #c9d1df; }
-  .production-table .row-even td { background: #eef2f8; }
-  .production-table .totals-row td {
-    font-weight: bold;
-    font-size: 11px;
-    border-top: 1px solid #000;
-    border-bottom: 1px solid #000;
-    background: #ffffff;
-  }
-  .production-table .grand-total-row td {
-    font-weight: bold;
-    font-size: 12px;
-    border-top: 1px solid #000;
-    border-right: 0;
-    border-bottom: 2px solid #000;
-    border-left: 0;
-    background: #ffffff;
-  }
-`;
 
 export const rekapProduksiBarangJadiConsolidatedReport: ReportDefinition<
   PeriodParams,
@@ -581,22 +529,48 @@ export const rekapProduksiBarangJadiConsolidatedReport: ReportDefinition<
 
   render(data, meta) {
     const subtitle = `Periode ${formatLegacyDate(meta.params.tglAwal)} s/d ${formatLegacyDate(meta.params.tglAkhir)}`;
-    const bodyHtml = data.machines
-      .map((machine, index) =>
-        buildMachineTable(
-          machine,
-          data.grandTotals,
-          index === data.machines.length - 1,
-        ),
-      )
-      .join("\n");
+    const bodyHtml = data.machines.length > 0
+      ? data.machines
+          .map((machine, index) =>
+            buildMachineTable(
+              machine,
+              data.grandTotals,
+              index === data.machines.length - 1,
+            ),
+          )
+          .join("\n")
+      : `<table class="production-table">
+  <thead>
+    <tr class="headers-row">
+      <th rowspan="2" style="width: 62px;">Tanggal</th>
+      <th rowspan="2" style="width: 40px;">Shift</th>
+      <th colspan="4">Input</th>
+      <th colspan="3">Output</th>
+      <th rowspan="2" style="width: 40px;">Jam</th>
+      <th rowspan="2" style="width: 38px;">Org</th>
+      <th rowspan="2" style="width: 55px;">M3/Jam</th>
+      <th rowspan="2" style="width: 60px;">M3/jam/<br>Org</th>
+      <th rowspan="2" style="width: 55px;">Rend<br>(%)</th>
+    </tr>
+    <tr class="headers-row">
+      <th style="width: 55px;">BJ</th>
+      <th style="width: 55px;">Moulding</th>
+      <th style="width: 55px;">Sanding</th>
+      <th style="width: 58px;">TOTAL</th>
+      <th style="width: 55px;">Packing</th>
+      <th style="width: 55px;">Reproses</th>
+      <th style="width: 58px;">TOTAL</th>
+    </tr>
+  </thead>
+  <tbody>${buildEmptyTableRow(14)}</tbody>
+</table>`;
 
     return renderWpsReportPage({
       title: "Laporan Rekap Produksi Packing Consolidated",
       subtitle,
       bodyHtml,
       landscape: true,
-      extraCss: REPORT_CSS,
+      style: "rekap_produksi_barang_jadi_consolidated",
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

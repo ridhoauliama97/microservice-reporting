@@ -6,7 +6,7 @@ import {
   formatTanggalId,
 } from "../../templates/html";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import type { ReportDefinition } from "../types";
 
 /**
@@ -152,12 +152,6 @@ function buildPivot(
   };
 }
 
-const PIVOT_CSS = `
-  .ratio-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-  .ratio-table td { padding: 0; border: 0 !important; background: #fff !important; }
-  .notes-title { margin: 10px 0 2px; font-size: 12px; font-weight: bold; text-decoration: underline; }
-  .notes-line { margin: 0; font-size: 10px; }
-`;
 
 export const penerimaanKayuBulatPerSupplierGroupReport: ReportDefinition<
   PeriodParams,
@@ -259,7 +253,7 @@ export const penerimaanKayuBulatPerSupplierGroupReport: ReportDefinition<
       <td class="number">${fmtTon(totalTon)}</td>
       <td class="number">100.0%</td>
     </tr>`
-      : `<tr><td class="center" colspan="${5 + groupNames.length * 2}">Tidak ada data.</td></tr>`}
+      : buildEmptyTableRow(5 + groupNames.length * 2)}
   </tbody>
 </table>
 ${suppliers.length > 0
@@ -281,7 +275,7 @@ ${suppliers.length > 0
       subtitle: `Periode ${start} s/d ${end}`,
       bodyHtml,
       landscape: true,
-      extraCss: PIVOT_CSS,
+      style: "penerimaan_kayu_bulat_per_supplier_group",
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

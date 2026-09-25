@@ -1,4 +1,3 @@
-import sql from "mssql";
 import { z } from "zod";
 import {
   escapeHtml,
@@ -6,7 +5,7 @@ import {
   formatPrintedAt,
   formatTanggalId,
 } from "../../templates/html";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import type { ReportDefinition } from "../types";
 
 /**
@@ -64,22 +63,6 @@ const fmtPcs = (value: unknown): string => {
 const fmtM3 = (value: unknown): string =>
   formatNumber(toFloat(value), 4, { blankWhenZero: true });
 
-const CSS = `
-  .section-title { margin: 12px 0 4px 0; font-size: 12px; font-weight: bold; }
-  .product-title { font-weight: bold; margin: 6px 0 2px 20px; }
-  .report-table { margin-left: 20px; width: calc(100% - 20px); table-layout: fixed; }
-  .report-table thead th { padding: 2px 3px; }
-  .report-table tbody td { padding: 1px 3px; overflow-wrap: normal; }
-  .report-table tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
-  .report-table tbody tr.totals-row td { background: #fff !important; font-weight: bold; font-size: 11px; border-top: 1px solid #000; border-right: 1px solid #000; border-bottom: 0; border-left: 0; }
-  .report-table tbody tr.totals-row td.blank { text-align: center; }
-  /* Summary "Total (M3) Per-Jenis" sits flush left, aligned with the
-     "JABON" section title (only the product tables are indented) and has no
-     border. */
-  .report-table-summary { margin-left: 0; margin-top: 4px; border-collapse: collapse; border-spacing: 0; border: 0; }
-  .report-table-summary td { padding: 1px 4px; border: 0 !important; }
-  .report-table-summary tbody tr.totals-row td { background: #fff !important; font-weight: bold; font-size: 11px; border: 0 !important; }
-`;
 
 function groupRows(rows: SaldoProdukRow[]): JenisGroup[] {
   const jenisMap = new Map<string, Map<string, ProductGroup>>();
@@ -171,9 +154,23 @@ const buildProductTable = (group: ProductGroup): string => {
 </table>`;
 };
 
+const buildEmptyProductTable = (): string => `<table class="report-table">
+  <thead>
+    <tr class="headers-row">
+      <th>No</th>
+      <th>Tebal</th>
+      <th>Lebar</th>
+      <th>Panjang</th>
+      <th>Pcs</th>
+      <th>M3</th>
+    </tr>
+  </thead>
+  <tbody>${buildEmptyTableRow(6)}</tbody>
+</table>`;
+
 const buildBodyHtml = (rows: SaldoProdukRow[], generatedAt: Date): string => {
   if (rows.length === 0) {
-    return `<table class="report-table"><tbody><tr><td class="center">Tidak ada data.</td></tr></tbody></table>`;
+    return buildEmptyProductTable();
   }
 
   return groupRows(rows)
@@ -215,7 +212,7 @@ export const saldoBarangJadiHidupPerJenisPerProdukReport: ReportDefinition<
       title: "Laporan Saldo Barang Jadi Hidup Per-Jenis Per-Produk",
       subtitle: `Per ${generatedDate}`,
       bodyHtml: buildBodyHtml(rows, meta.generatedAt),
-      extraCss: CSS,
+      style: "saldo_barang_jadi_hidup_per_jenis_per_produk",
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

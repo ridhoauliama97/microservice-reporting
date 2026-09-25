@@ -5,7 +5,7 @@ import {
   formatPrintedAt,
   formatTanggalId,
 } from "../../templates/html";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import {
   dualPeriodParamsSchema,
   type DualPeriodParams,
@@ -75,12 +75,6 @@ const trendClass = (percent: number): string =>
 const trendArrow = (percent: number): string =>
   percent > 0 ? "↑" : percent < 0 ? "↓" : "=";
 
-const PERBANDINGAN_KG_CSS = `
-  .report-table tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
-  .trend-up { color: #0b8f3c; font-weight: bold; }
-  .trend-down { color: #d11a2a; font-weight: bold; }
-  .trend-flat { color: #636466; font-weight: bold; }
-`;
 
 function buildGroups(rows: KgComparisonRow[]): {
   groups: SupplierGroup[];
@@ -205,13 +199,15 @@ const buildBodyHtml = (
     </tr>
   </thead>
   <tbody>
-    ${bodyRows || `<tr><td class="center" colspan="7">Tidak ada data.</td></tr>`}
-    <tr class="totals-row">
+    ${bodyRows || buildEmptyTableRow(7)}
+    ${groups.length > 0
+      ? `<tr class="totals-row">
       <td colspan="4" class="center">Total</td>
       <td class="number">${fmtNumber(grandTon1)}</td>
       <td class="number">${fmtNumber(grandTon2)}</td>
       ${grandPercentCell}
-    </tr>
+    </tr>`
+      : ""}
   </tbody>
 </table>`;
 };
@@ -250,7 +246,7 @@ export const perbandinganKbMasukKgReport: ReportDefinition<
       subtitle: "",
       bodyHtml: `${subtitleHtml}
 ${buildBodyHtml(groups, grandTon1, grandTon2)}`,
-      extraCss: PERBANDINGAN_KG_CSS,
+      style: "perbandingan_kb_masuk_periode_kg",
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

@@ -6,7 +6,7 @@ import {
   formatTanggalId,
 } from "../../templates/html";
 import { z } from "zod";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import type { ReportDefinition, RenderResult } from "../types";
 
 /**
@@ -39,13 +39,6 @@ const calculatePercent = (ton1: number, ton2: number): number => {
   return ((ton2 - ton1) / ton1) * 100;
 };
 
-const PERBANDINGAN_CSS = `
-  .trend-up { color: #0b8f3c; font-weight: bold; }
-  .trend-down { color: #d11a2a; font-weight: bold; }
-  .trend-flat { color: #636466; font-weight: bold; }
-  .grand-total-row td { font-weight: bold; font-size: 12px; }
-  td.number, th.number-cell { text-align: center; }
-`;
 
 export const perbandinganKbMasukReport: ReportDefinition<
   DualPeriodParams,
@@ -112,13 +105,15 @@ export const perbandinganKbMasukReport: ReportDefinition<
     </tr>
   </thead>
   <tbody>
-    ${bodyRows || `<tr><td class="center" colspan="6">Tidak ada data.</td></tr>`}
-    <tr class="totals-row">
+    ${bodyRows || buildEmptyTableRow(6)}
+    ${rows.length > 0
+      ? `<tr class="totals-row">
       <td colspan="3" class="center">Grand Total</td>
       <td class="number">${fmtTon(totalTon1)}</td>
       <td class="number">${fmtTon(totalTon2)}</td>
       <td class="number ${totalTrendClass}">${totalPercentText !== "" ? `${totalPercentText}% <span style="margin-left: 3px; font-weight: bold;">${totalTrendIcon}</span>` : ""}</td>
-    </tr>
+    </tr>`
+      : ""}
   </tbody>
 </table>`;
 
@@ -148,7 +143,7 @@ function renderTwoSubtitlePage(
     bodyHtml: `<p class="report-subtitle" style="margin: 0 0 2px 0;">${escapeHtml(subtitle1)}</p>
 <p class="report-subtitle" style="margin: 0 0 20px 0;">${escapeHtml(subtitle2)}</p>
 ${bodyHtml}`,
-    extraCss: PERBANDINGAN_CSS,
+    style: "perbandingan_kb_masuk_periode",
     printedBy: meta.requestedBy,
     printedAt: formatPrintedAt(meta.generatedAt),
   });

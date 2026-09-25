@@ -1,7 +1,7 @@
 import sql from "mssql";
 import { z } from "zod";
 import { escapeHtml, formatPrintedAt, formatTanggalId } from "../../templates/html";
-import { renderWpsReportPage, type NoKayuBulatLookupParams } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage, type NoKayuBulatLookupParams } from "./template";
 import type { ReportDefinition, RenderResult } from "../types";
 
 /**
@@ -10,7 +10,7 @@ import type { ReportDefinition, RenderResult } from "../types";
  *   - SP_PenKBInTon_KG  -> penerimaan-kayu-bulat-kg   (supplier: Asal (Utama))
  *   - SP_PenKBOutTon_KG -> penerimaan-kayu-bulat-ext-kg (supplier: Utama only)
  *
- * Layout (special-case form, styling via extraCss per AGENTS.md): a meta
+ * Layout (special-case form, styling via a named shared preset): a meta
  * header block (Nomor / Jenis Kayu / Tanggal / No.Plat / Supplier / No.Suket),
  * a Bruto + Tara summary line, then one small per-grade table (No / Pcs /
  * Berat) with a "Jumlah" sub total, a grand total, and the signature block.
@@ -155,48 +155,18 @@ const buildGroups = (rows: Array<Record<string, unknown>>): {
   return { groups, summary: { totalPcs, totalBerat } };
 };
 
+const buildEmptyGradeTable = (): string => `<table class="report-table">
+  <thead>
+    <tr>
+      <th style="width: 28px;">No</th>
+      <th style="width: 70px;">Pcs</th>
+      <th style="width: 72px;">Berat</th>
+    </tr>
+  </thead>
+  <tbody>${buildEmptyTableRow(3)}</tbody>
+</table>`;
+
 /** Form-specific CSS (meta header, grade tables, summary, signatures). */
-const KG_FORM_CSS = `
-  .meta-table, .report-table, .signature-table { width: 100%; border-collapse: collapse; }
-  .meta-table { margin-bottom: 8px; }
-  .meta-table td { padding: 1px 2px; vertical-align: top; border: 0 !important; background: #fff !important; }
-  .meta-label { width: 68px; white-space: nowrap; }
-  .meta-colon { width: 10px; text-align: center; }
-  .spacer-cell { width: 24px; border: 0 !important; background: #fff !important; }
-
-  .summary-row { margin: 12px 0 4px; font-size: 11px; }
-  .summary-row span { margin-right: 12px; }
-
-  .grade-title { margin: 12px 0 3px; font-size: 11px; }
-
-  .report-table { width: 180px; margin-bottom: 2px; table-layout: auto; }
-  /* The shared template lets labels break anywhere (min-content = 1 char),
-     which would wrap the "Jumlah" label letter by letter in the narrow No
-     column. The legacy form keeps words intact — restore that here. */
-  .report-table td, .report-table th { overflow-wrap: normal; }
-  .report-table th, .report-table td { border: 1px solid #000; padding: 3px 5px; }
-  .report-table th { text-align: center; font-weight: bold; background: #ffffff; }
-  .report-table td { vertical-align: middle; }
-  .report-table td.center { text-align: center; }
-  .report-table td.number { text-align: right; white-space: nowrap; font-family: "Calibri", "DejaVu Sans", sans-serif; }
-  .report-table tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
-  .report-table tbody tr.totals-row td { background: #fff !important; font-weight: bold; font-size: 11px; border-top: 1px solid #000; border-right: 1px solid #000; border-bottom: 0; border-left: 0; }
-
-  .grand-total-line { width: 200px; border-top: 1px solid #000; margin: 8px 0 4px; }
-  .grand-total-table { width: 200px; margin: 0 0 14px; border-collapse: collapse; }
-  .grand-total-table td { padding: 0; font-size: 11px; font-weight: bold; vertical-align: top; border: 0 !important; background: #fff !important; }
-  .grand-total-label { width: 58px; text-align: left; }
-  .grand-total-value { text-align: right; white-space: nowrap; font-family: "Calibri", "DejaVu Sans", sans-serif; }
-
-  .signature-table { margin-top: 14px; table-layout: fixed; }
-  .signature-table td { width: 14.28%; text-align: center; vertical-align: top; padding: 0 2px; border: 0 !important; background: #fff !important; }
-  .signature-label-row td { padding-bottom: 18px; }
-  .signature-placeholder-row td { padding-top: 50px; }
-  .signature-placeholder-table { width: 100%; border-collapse: collapse; }
-  .signature-placeholder-table td { padding: 0; font-family: "Calibri", "DejaVu Sans", sans-serif; font-size: 11px; font-weight: normal; text-align: center; border: 0 !important; background: #fff !important; }
-  .signature-bracket { width: 100px; }
-  .signature-space { width: 100px; }
-`;
 
 const buildBodyHtml = (data: KgFormData): string => {
   const { header, groups, summary } = data;
@@ -214,9 +184,10 @@ const buildBodyHtml = (data: KgFormData): string => {
   <span>Tara : ${fmtInt(header.tara)}</span>
 </div>`;
 
-  const groupTables = groups
-    .map(
-      (group, index) => `<div class="grade-title">Nama Grade : ${escapeHtml(group.gradeName)}</div>
+  const groupTables = groups.length > 0
+    ? groups
+        .map(
+          (group, index) => `<div class="grade-title">Nama Grade : ${escapeHtml(group.gradeName)}</div>
   <table class="report-table">
     <thead>
       <tr>
@@ -242,8 +213,9 @@ const buildBodyHtml = (data: KgFormData): string => {
       </tr>
     </tbody>
   </table>`,
-    )
-    .join("\n  ");
+        )
+        .join("\n  ")
+    : buildEmptyGradeTable();
 
   const grandTotal = `<div class="grand-total-line"></div>
 <table class="grand-total-table">
@@ -328,7 +300,7 @@ export function createPenerimaanKgReport(
         title: spec.title,
         subtitle: "",
         bodyHtml: buildBodyHtml(data),
-        extraCss: KG_FORM_CSS,
+        style: "penerimaan_kayu_bulat_kg",
         printedBy: meta.requestedBy,
         printedAt: formatPrintedAt(meta.generatedAt),
       });

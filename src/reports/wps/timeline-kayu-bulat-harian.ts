@@ -1,5 +1,5 @@
 import sql from "mssql";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import { escapeHtml, formatNumber, formatPrintedAt, formatTanggalId } from "../../templates/html";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
 import type { ReportDefinition } from "../types";
@@ -103,7 +103,16 @@ export const timelineKbHarianReport: ReportDefinition<
 
     let bodyHtml: string;
     if (!pivot || pivot.suppliers.length === 0) {
-      bodyHtml = `<table class="report-table"><tbody><tr><td class="center">Tidak ada data.</td></tr></tbody></table>`;
+      bodyHtml = `<table class="report-table">
+  <thead>
+    <tr class="headers-row">
+      <th>No</th>
+      <th>Nama Supplier</th>
+      <th>Total</th>
+    </tr>
+  </thead>
+  <tbody>${buildEmptyTableRow(3)}</tbody>
+</table>`;
     } else {
       const bodyRows = pivot.suppliers
         .map(
@@ -148,9 +157,7 @@ export const timelineKbHarianReport: ReportDefinition<
       title: "Laporan Time Line Kayu Bulat - Harian (JTG/PLI)",
       subtitle: `Periode ${start} s/d ${end}`,
       bodyHtml,
-      extraCss: `
-  .report-table th { white-space: nowrap; }
-`,
+      style: "timeline_kayu_bulat_harian",
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

@@ -5,7 +5,7 @@ import {
   formatPrintedAt,
   formatTanggalId,
 } from "../../templates/html";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
 import type { ReportDefinition, RenderResult } from "../types";
 
@@ -178,45 +178,6 @@ const countTrucks = (rows: NormalizedRow[]): number => {
 const sumTon = (rows: NormalizedRow[]): number =>
   rows.reduce((sum, row) => sum + row.ton, 0);
 
-const UMUR_RAMBUNG_CSS = `
-  .duration-bold { font-weight: bold; }
-  .section-break { height: 10px; }
-  .section-title { margin: 8px 0 4px 0; font-size: 12px; font-weight: bold; }
-
-  /* Compact cells so every column fits on one line (portrait, one page). */
-  .report-table thead th { font-size: 10px; padding: 2px 3px; }
-  .report-table tbody td { font-size: 9px; padding: 1px 3px; }
-
-  /* The shared CSS drops the bottom border of colspan headers (two-tier
-     headers). This report has a single header row, so keep the line. */
-  .report-table thead tr.headers-row:first-child th[colspan] {
-    border-bottom: 1px solid #000 !important;
-  }
-
-  /* Legacy border model: header band with top+bottom lines, data rows show
-     vertical separators only, totals row on a white band, and the table frame
-     closes with border-left + border-bottom (.report-table). */
-  .report-table tbody tr.data-row td.data-cell {
-    border-top: 0 !important;
-    border-bottom: 0 !important;
-    border-left: 0 !important;
-    border-right: 1px solid #000 !important;
-  }
-  .report-table tbody tr.totals-row td {
-    background: #fff !important;
-    font-size: 10px;
-    border-top: 1px solid #000 !important;
-    border-right: 1px solid #000 !important;
-    border-bottom: 0 !important;
-    border-left: 0 !important;
-  }
-
-  .group-note { width: 100%; margin: 4px 0 14px 0; font-size: 11px; }
-  .group-note td { border: 0 !important; padding: 0 4px; background: transparent !important; vertical-align: top; white-space: nowrap; }
-  .group-note .left { text-align: left; }
-  .group-note .center { text-align: center; }
-  .group-note .right { text-align: right; }
-`;
 
 const HEAD_HTML = `<thead>
     <tr class="headers-row">
@@ -258,13 +219,15 @@ const buildGroupTable = (rows: NormalizedRow[]): string => {
   return `<table class="report-table">
   ${HEAD_HTML}
   <tbody>
-    ${bodyRows}
-    <tr class="totals-row">
+    ${bodyRows || buildEmptyTableRow(12)}
+    ${rows.length > 0
+      ? `<tr class="totals-row">
       <td class="center data-cell" colspan="4">Total</td>
       <td class="center data-cell">${countTrucks(rows)} Truk</td>
       <td class="center data-cell" colspan="6"></td>
       <td class="number data-cell">${fmtTon(sumTon(rows))}</td>
-    </tr>
+    </tr>`
+      : ""}
   </tbody>
 </table>`;
 };
@@ -368,7 +331,7 @@ ${buildGroupNotes(groupName, groupRows, overallTon, overallTrucks)}`;
 
     const bodyHtml =
       sections ||
-      `<table class="report-table"><tbody><tr><td class="center">Tidak ada data.</td></tr></tbody></table>`;
+      `<table class="report-table">${HEAD_HTML}<tbody>${buildEmptyTableRow(12)}</tbody></table>`;
 
     const start = fmtTanggalPendek(meta.params.tglAwal);
     const end = fmtTanggalPendek(meta.params.tglAkhir);
@@ -377,7 +340,7 @@ ${buildGroupNotes(groupName, groupRows, overallTon, overallTrucks)}`;
       title: "Laporan Umur Kayu Bulat (Rambung)",
       subtitle: `Periode ${start} s/d ${end}`,
       bodyHtml,
-      extraCss: UMUR_RAMBUNG_CSS,
+      style: "umur_kayu_bulat_rambung",
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

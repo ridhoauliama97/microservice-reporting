@@ -1,4 +1,4 @@
-import { createSingleTableReport, type ReportColumn } from "./template";
+import { createSingleTableReport } from "./template";
 
 /**
  * Weight cell: >= 1000 → whole Kg with thousand separators (e.g. "3,760 Kg");

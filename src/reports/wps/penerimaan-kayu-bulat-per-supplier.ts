@@ -6,7 +6,7 @@ import {
 } from "./template";
 import { formatNumber, formatPrintedAt, formatTanggalId } from "../../templates/html";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
-import type { ReportDefinition, RenderResult } from "../types";
+import type { ReportDefinition } from "../types";
 
 /**
  * Special-case report (the legacy app builds this with a custom query, not
@@ -279,7 +279,7 @@ function buildBodyHtml(
   subtitleRecap: string,
 ): string {
   if (rows.length === 0) {
-    return `<table class="report-table"><tbody><tr><td class="center">Tidak ada data.</td></tr></tbody></table>`;
+    return buildReportTable({ columns: DETAIL_COLUMNS, rows: [] });
   }
 
   // Group by supplier in first-appearance order (the SQL orders by supplier).
@@ -306,7 +306,6 @@ function buildBodyHtml(
         colspan: 5,
         values: { JmlhPcs: pcs, TonKB: tonKb, TonKG: tonKg },
       },
-      emptyMessage: "Tidak ada data.",
     });
   }
 
@@ -319,7 +318,6 @@ function buildBodyHtml(
       label: "Total",
       values: recap.totals as unknown as Record<string, number | null | undefined>,
     },
-    emptyMessage: "Tidak ada data rangkuman.",
   });
 
   return body;

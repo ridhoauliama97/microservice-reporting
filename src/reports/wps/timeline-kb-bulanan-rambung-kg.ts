@@ -1,5 +1,5 @@
 import sql from "mssql";
-import { renderWpsReportPage } from "./template";
+import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import {
   escapeHtml,
   formatNumber,
@@ -141,7 +141,16 @@ export const timelineKbBulananKgReport: ReportDefinition<
 
     let bodyHtml: string;
     if (!pivot || pivot.suppliers.length === 0) {
-      bodyHtml = `<table class="report-table"><tbody><tr><td class="center">Tidak ada data.</td></tr></tbody></table>`;
+      bodyHtml = `<table class="report-table">
+  <thead>
+    <tr class="headers-row">
+      <th rowspan="2">No</th>
+      <th rowspan="2" style="text-align: center;">Nama Supplier</th>
+      <th rowspan="2">Total</th>
+    </tr>
+  </thead>
+  <tbody>${buildEmptyTableRow(3)}</tbody>
+</table>`;
     } else {
       const yearHeader = pivot.yearGroups
         .map((g) => `<th colspan="${g.count}">${g.year}</th>`)

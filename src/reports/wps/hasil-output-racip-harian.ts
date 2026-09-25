@@ -22,5 +22,4 @@ export const hasilOutputRacipHarianReport = createSingleDateTableReport({
     { label: "Masuk", kind: "number", field: "Masuk", bold: true },
   ],
   totals: { label: "Total", colspan: 6 },
-  emptyMessage: "Tidak ada data.",
 });

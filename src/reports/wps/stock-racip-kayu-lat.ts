@@ -6,7 +6,6 @@ import {
 } from "./template";
 import {
   escapeHtml,
-  formatNumber,
   formatPrintedAt,
   formatTanggalId,
 } from "../../templates/html";
@@ -28,11 +27,6 @@ interface StockRow extends Record<string, unknown> {
   JmlhBatang: number | null;
   Hasil: number | null;
 }
-
-const fmtInt = (value: unknown): string => formatNumber(Math.round(toFloat(value)), 0);
-
-const fmt4 = (value: number | null | undefined): string =>
-  formatNumber(toFloat(value), 4, { blankWhenZero: true });
 
 const toFloat = (value: unknown): number => {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -107,15 +101,13 @@ export const stockRacipKayuLatReport: ReportDefinition<
     const bodyHtml =
       groups.length > 0
         ? sections
-        : `<table class="report-table"><tbody><tr><td class="center">Tidak ada data.</td></tr></tbody></table>`;
+        : buildReportTable({ columns: DETAIL_COLUMNS, rows: [] });
 
     return renderWpsReportPage({
       title: "Laporan Stok Racip Kayu Lat",
       subtitle: `Per Tanggal : ${formatTanggalId(meta.params.tgl)}`,
       bodyHtml,
-      extraCss: `
-  .group-title { margin: 10px 0 4px 0; font-size: 12px; font-weight: bold; text-transform: uppercase; }
-`,
+      style: "stock_racip_kayu_lat",
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

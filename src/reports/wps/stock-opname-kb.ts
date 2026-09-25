@@ -1,10 +1,9 @@
-import sql from "mssql";
 import {
   buildReportTable,
   renderWpsReportPage,
   type ReportColumn,
 } from "./template";
-import { escapeHtml, formatNumber, formatPrintedAt, formatTanggalId } from "../../templates/html";
+import { formatNumber, formatPrintedAt } from "../../templates/html";
 import { z } from "zod";
 import type { ReportDefinition } from "../types";
 
@@ -80,7 +79,6 @@ export const stockOpnameKbReport: ReportDefinition<
     const bodyHtml = `${buildReportTable({
       columns: COLUMNS,
       rows,
-      emptyMessage: "Tidak ada data.",
     })}
 ${rangkuman}`;
 
@@ -88,17 +86,9 @@ ${rangkuman}`;
       title: "Laporan Stock Opname Kayu Bulat",
       subtitle: "",
       bodyHtml,
-      extraCss: OPNAME_CSS,
+      style: "stock_opname_kb",
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });
   },
 };
-
-const totalPcs = 0; // replaced inline in render (kept for readability of rangkuman)
-
-const OPNAME_CSS = `
-  .rangkuman-list { margin: 0 0 10px 18px; padding: 0; font-size: 10px; list-style: none; }
-  .rangkuman-list li { margin-bottom: 2px; }
-  .rangkuman-list strong { font-family: Calibri, "DejaVu Sans", sans-serif; }
-`;
