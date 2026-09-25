@@ -373,7 +373,7 @@ const buildSubTable = (rows: SubMutasiRow[]): string => {
 };
 
 const formatTanggalPendek = (iso: string): string =>
-  formatTanggalId(iso).replace(/(\d{2})\d{2}$/, "$1");
+  formatTanggalId(iso).replace(/\d{4}$/, (year) => year.slice(-2));
 
 const MUTASI_CC_CSS = `
   .report-table th, .report-table td.number { white-space: nowrap; }

@@ -125,10 +125,11 @@ describe('new template capabilities', () => {
     const cols: ReportColumn[] = [{ label: 'Tgl', kind: 'date', field: 'Tgl' }]
     const html = buildReportTable({
       columns: cols,
-      rows: [{ Tgl: '18 Sep 2026' }, { Tgl: '01 May 2026' }],
+      rows: [{ Tgl: '18 Sep 2026' }, { Tgl: '01 May 2026' }, { Tgl: '01 Aug 2026' }],
     })
     expect(html).toContain('18-Sep-2026')
     expect(html).toContain('01-Mei-2026')
+    expect(html).toContain('01-Agt-2026')
   })
 
   test('sumInTotal: false keeps the cell empty in the totals row', () => {

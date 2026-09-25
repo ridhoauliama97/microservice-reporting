@@ -248,7 +248,7 @@ export function buildViewModel(
 }
 
 const formatTanggalPendek = (iso: string): string =>
-  formatTanggalId(iso).replace(/(\d{2})\d{2}$/, "$1");
+  formatTanggalId(iso).replace(/\d{4}$/, (year) => year.slice(-2));
 
 const formatMovement = (value: number): string =>
   formatNumber(value, 1, { blankWhenZero: true });

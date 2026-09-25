@@ -129,7 +129,7 @@ const normalizeDate = (value: Date | string | null): string => {
 };
 
 const formatDate = (value: string): string =>
-  formatTanggalId(value).replace(/(\d{2})\d{2}$/, "$1");
+  formatTanggalId(value).replace(/\d{4}$/, (year) => year.slice(-2));
 
 /** Legacy number format: one decimal, no thousands separator, blank at zero. */
 const fmtOne = (value: number | null): string => {

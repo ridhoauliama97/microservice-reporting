@@ -50,7 +50,7 @@ const fmt = (value: number): string =>
   formatNumber(value, 4, { blankWhenZero: true });
 
 const formatTanggalPendek = (iso: string): string =>
-  formatTanggalId(iso).replace(/(\d{2})\d{2}$/, "$1");
+  formatTanggalId(iso).replace(/\d{4}$/, (year) => year.slice(-2));
 
 const compareText = (left: string, right: string): number =>
   left < right ? -1 : left > right ? 1 : 0;

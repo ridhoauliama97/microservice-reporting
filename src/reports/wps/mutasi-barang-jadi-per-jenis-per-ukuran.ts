@@ -89,7 +89,7 @@ const fmtM3Dash = (value: unknown): string => fmtM3(value) || "-";
 
 /** Legacy subtitle date format: d-M-y (2-digit year). */
 const fmtTanggalPendek = (iso: string): string =>
-  formatTanggalId(iso).replace(/(\d{2})\d{2}$/, "$1");
+  formatTanggalId(iso).replace(/\d{4}$/, (year) => year.slice(-2));
 
 const MUTASI_CSS = `
   .report-table tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }

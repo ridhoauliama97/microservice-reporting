@@ -58,7 +58,7 @@ const fmt2OrBlank = (value: number | null): string => {
 
 /** Legacy subtitle date format: d-M-y (2-digit year). */
 const fmtTanggalPendek = (iso: string): string =>
-  formatTanggalId(iso).replace(/(\d{2})\d{2}$/, "$1");
+  formatTanggalId(iso).replace(/\d{4}$/, (year) => year.slice(-2));
 
 function buildView(rows: KetahananRow[]): KetahananView[] {
   return rows.map((row) => {

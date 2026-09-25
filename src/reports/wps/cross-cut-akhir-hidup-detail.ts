@@ -41,29 +41,44 @@ const toText = (value: unknown): string => {
   return String(value).trim();
 };
 
+const toNumber = (value: unknown): number => {
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+  if (typeof value !== "string") return 0;
+
+  let normalized = value.trim().replaceAll(" ", "");
+  if (normalized === "") return 0;
+  if (normalized.includes(",") && normalized.includes(".")) {
+    normalized = normalized.lastIndexOf(",") > normalized.lastIndexOf(".")
+      ? normalized.replaceAll(".", "").replaceAll(",", ".")
+      : normalized.replaceAll(",", "");
+  } else if (normalized.includes(",")) {
+    normalized = /^-?\d{1,3}(?:,\d{3})+$/.test(normalized)
+      ? normalized.replaceAll(",", "")
+      : normalized.replaceAll(",", ".");
+  }
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
 /** Legacy $fmtDate: d-M-y (2-digit year). */
 const fmtDate = (value: unknown): string => {
   const raw = toText(value);
   if (raw === "") return "";
   const iso = /^(\d{4}-\d{2}-\d{2})/.exec(raw);
   if (!iso) return raw;
-  return formatTanggalId(iso[1]).replace(/(\d{2})\d{2}$/, "$1");
+  return formatTanggalId(iso[1]).replace(/\d{4}$/, (year) => year.slice(-2));
 };
 
 /** Legacy $fmtInt / $fmtDim: whole numbers with separators. */
 const fmtWhole = (value: unknown): string => {
   if (value === null || value === "") return "";
-  const num = typeof value === "number" ? value : Number(value);
-  if (!Number.isFinite(num)) return "";
-  return formatNumber(Math.round(num), 0);
+  return formatNumber(Math.round(toNumber(value)), 0);
 };
 
 /** Legacy $fmtM3: 4 decimals. */
 const fmtM3 = (value: unknown): string => {
   if (value === null || value === "") return "";
-  const num = typeof value === "number" ? value : Number(value);
-  if (!Number.isFinite(num)) return "";
-  return formatNumber(num, 4);
+  return formatNumber(toNumber(value), 4);
 };
 
 export const crossCutAkhirHidupDetailReport: ReportDefinition<
@@ -110,10 +125,7 @@ export const crossCutAkhirHidupDetailReport: ReportDefinition<
   },
 
   render(rows, meta) {
-    const totalM3 = rows.reduce(
-      (sum, row) => sum + (typeof row.M3 === "number" ? row.M3 : 0),
-      0,
-    );
+    const totalM3 = rows.reduce((sum, row) => sum + toNumber(row.M3), 0);
 
     const bodyRows = rows
       .map(

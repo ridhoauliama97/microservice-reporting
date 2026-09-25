@@ -61,7 +61,7 @@ const fmt = (value: unknown): string => {
 
 /** Legacy subtitle date format: d-M-y (2-digit year). */
 const fmtTanggalPendek = (iso: string): string =>
-  formatTanggalId(iso).replace(/(\d{2})\d{2}$/, "$1");
+  formatTanggalId(iso).replace(/\d{4}$/, (year) => year.slice(-2));
 
 const CSS = `
   .group-title { margin: 12px 0 4px 0; font-size: 12px; font-weight: bold; }

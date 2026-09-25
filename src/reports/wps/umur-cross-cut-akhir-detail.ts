@@ -30,12 +30,36 @@ interface UmurCcRow extends Record<string, unknown> {
   Period5: number | string | null;
 }
 
-const paramsSchema = z.object({
-  umur1: z.coerce.number().int().min(0).default(15),
-  umur2: z.coerce.number().int().min(0).default(30),
-  umur3: z.coerce.number().int().min(0).default(60),
-  umur4: z.coerce.number().int().min(0).default(90),
-});
+const paramsSchema = z
+  .object({
+    umur1: z.coerce.number().int().min(0).default(15),
+    umur2: z.coerce.number().int().min(0).default(30),
+    umur3: z.coerce.number().int().min(0).default(60),
+    umur4: z.coerce.number().int().min(0).default(90),
+  })
+  .superRefine((values, ctx) => {
+    if (values.umur2 < values.umur1) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["umur2"],
+        message: "Umur2 harus lebih besar atau sama dengan umur1.",
+      });
+    }
+    if (values.umur3 < values.umur2) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["umur3"],
+        message: "Umur3 harus lebih besar atau sama dengan umur2.",
+      });
+    }
+    if (values.umur4 < values.umur3) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["umur4"],
+        message: "Umur4 harus lebih besar atau sama dengan umur3.",
+      });
+    }
+  });
 type UmurCcParams = z.infer<typeof paramsSchema>;
 
 const AGE_KEYS = ["Period1", "Period2", "Period3", "Period4", "Period5"] as const;
@@ -156,13 +180,13 @@ export const umurCrossCutAkhirDetailReport: ReportDefinition<
 
   render(rows, meta) {
     const { umur1, umur2, umur3, umur4 } = meta.params;
-    // The CCAkhir legacy labels use the first cut-off as the lower bound of
-    // the second bucket, without the +1 adjustment used by the BJ report.
+    // The legacy labels use the first day after each lower cut-off as the
+    // beginning of the next bucket.
     const ageLabels = [
       `0 - ${umur1}`,
-      `${umur1} - ${umur2}`,
-      `${umur2} - ${umur3}`,
-      `${umur3} - ${umur4}`,
+      `${umur1 + 1} - ${umur2}`,
+      `${umur2 + 1} - ${umur3}`,
+      `${umur3 + 1} - ${umur4}`,
       `> ${umur4}`,
     ];
     const grand: Record<AgeKey | "Total", number> = {

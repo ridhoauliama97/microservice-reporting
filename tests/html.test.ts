@@ -73,6 +73,7 @@ describe('formatTanggalId', () => {
     expect(formatTanggalId('2026-01-01')).toBe('01-Jan-2026')
     expect(formatTanggalId('2026-09-21')).toBe('21-Sep-2026')
     expect(formatTanggalId('2026-05-15')).toBe('15-Mei-2026')
+    expect(formatTanggalId('2026-08-01')).toBe('01-Agt-2026')
   })
 
   test('passes through unparseable input unchanged', () => {

@@ -88,7 +88,7 @@ export const MONTHS_SHORT_ID = [
   "Mei",
   "Jun",
   "Jul",
-  "Agu",
+  "Agt",
   "Sep",
   "Okt",
   "Nov",

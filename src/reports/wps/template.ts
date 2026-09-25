@@ -208,7 +208,7 @@ function formatDateCell(value: unknown): string {
       // SP month abbreviations use English names; map the odd ones.
       const alias: Record<string, string> = {
         may: "mei",
-        aug: "agu",
+        aug: "agt",
         oct: "okt",
         dec: "des",
       };

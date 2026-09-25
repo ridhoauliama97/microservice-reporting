@@ -235,7 +235,7 @@ const fmtTon = (value: number | null | undefined): string =>
   formatNumber(value, 4, { blankWhenZero: false });
 // Legacy umur renders dates as dd-Mon-yy (2-digit year) so every date fits
 // its column on a single line. formatTanggalId gives dd-Mon-yyyy.
-const fmtTanggalKompak = (iso: string): string => formatTanggalId(iso).replace(/(\d{2})\d{2}$/, "$1");
+const fmtTanggalKompak = (iso: string): string => formatTanggalId(iso).replace(/\d{4}$/, (year) => year.slice(-2));
 
 const UMUR_CSS = `
   .duration-bold { font-weight: bold; }

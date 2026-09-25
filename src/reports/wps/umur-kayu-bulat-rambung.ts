@@ -98,7 +98,7 @@ const fmtHari = (days: number | null): string => (days === null ? "" : `${days} 
 
 /** Legacy d-M-y: 2-digit year keeps the racip dates on one line. */
 const fmtTanggalPendek = (iso: string): string =>
-  iso === "" ? "" : formatTanggalId(iso).replace(/(\d{2})\d{2}$/, "$1");
+  iso === "" ? "" : formatTanggalId(iso).replace(/\d{4}$/, (year) => year.slice(-2));
 
 const fmtTon = (value: number): string => formatNumber(value, 4);
 

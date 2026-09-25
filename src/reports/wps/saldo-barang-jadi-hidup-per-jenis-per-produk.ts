@@ -210,7 +210,7 @@ export const saldoBarangJadiHidupPerJenisPerProdukReport: ReportDefinition<
   render(rows, meta) {
     // Legacy subtitle: "Per <generation date>" in d-M-y (2-digit year).
     const generatedDate = formatTanggalId(meta.generatedAt.toISOString().slice(0, 10))
-      .replace(/(\d{2})\d{2}$/, "$1");
+      .replace(/\d{4}$/, (year) => year.slice(-2));
     return renderWpsReportPage({
       title: "Laporan Saldo Barang Jadi Hidup Per-Jenis Per-Produk",
       subtitle: `Per ${generatedDate}`,

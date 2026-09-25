@@ -33,6 +33,12 @@ describe('registry', () => {
   test('registers the mutasi-barang-jadi report', () => {
     expect(reports['mutasi-barang-jadi']).toBeDefined()
   })
+
+  test('validates Cross Cut Akhir age cut-offs in order', () => {
+    const schema = reports['umur-cross-cut-akhir-detail'].paramsSchema
+    expect(schema.safeParse({ umur1: 15, umur2: 30, umur3: 60, umur4: 90 }).success).toBe(true)
+    expect(schema.safeParse({ umur1: 30, umur2: 15, umur3: 60, umur4: 90 }).success).toBe(false)
+  })
 })
 
 describe('periodParamsSchema', () => {
