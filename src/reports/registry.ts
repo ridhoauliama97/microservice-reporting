@@ -5,7 +5,11 @@ import { hidupKbPerGroupReport } from './wps/hidup-kb-per-group'
 import { kayuBulatHidupReport } from './wps/kayu-bulat-hidup'
 import { kbKhususBangkangReport } from './wps/kb-khusus-bangkang'
 import { barangJadiHidupDetailReport } from './wps/barang-jadi-hidup-detail'
+import { crossCutAkhirHidupDetailReport } from './wps/cross-cut-akhir-hidup-detail'
 import { dashboardBarangJadiReport } from './wps/dashboard-barang-jadi'
+import { dashboardCrossCutAkhirReport } from './wps/dashboard-cross-cut-akhir'
+import { ketahananBarangCcAkhirReport } from './wps/ketahanan-barang-cc-akhir'
+import { mutasiCrossCutAkhirReport } from './wps/mutasi-cross-cut-akhir'
 import { mutasiHasilRacipReport } from './wps/mutasi-hasil-racip'
 import { mutasiKayuBulatGantungReport } from './wps/mutasi-kayu-bulat-gantung'
 import { mutasiKayuBulatKgReport } from './wps/mutasi-kayu-bulat-kg'
@@ -30,8 +34,11 @@ import { rekapPembelianKayuBulatKgReport } from './wps/rekap-pembelian-kayu-bula
 import { rekapPembelianKayuBulatReport } from './wps/rekap-pembelian-kayu-bulat'
 import { rekapProduksiPackingPerJenisPerGradeReport } from './wps/rekap-produksi-packing-per-jenis-per-grade'
 import { rekapProduksiBarangJadiConsolidatedReport } from './wps/rekap-produksi-barang-jadi-consolidated'
+import { rekapProduksiCrossCutAkhirConsolidatedReport } from './wps/rekap-produksi-cross-cut-akhir-consolidated'
+import { rekapProduksiCrossCutAkhirPerJenisPerGradeReport } from './wps/rekap-produksi-cross-cut-akhir-per-jenis-per-grade'
 import { saldoBarangJadiHidupPerJenisPerProdukReport } from './wps/saldo-barang-jadi-hidup-per-jenis-per-produk'
 import { umurBarangJadiDetailReport } from './wps/umur-barang-jadi-detail'
+import { umurCrossCutAkhirDetailReport } from './wps/umur-cross-cut-akhir-detail'
 import { rekapPenerimaanStDariSawmillKgReport } from './wps/rekap-penerimaan-st-dari-sawmill-kg'
 import { rekapPenerimaanStSawmillCostingRambungReport } from './wps/rekap-penerimaan-st-sawmill-costing-rambung'
 import { rekapRendemenRambungPerSupplierReport } from './wps/rekap-rendemen-rambung-per-supplier'
@@ -61,7 +68,11 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'mutasi-kayu-bulat-kg-gantung': mutasiKayuBulatKgGantungReport,
   'mutasi-barang-jadi': mutasiBarangJadiReport,
   'barang-jadi-hidup-detail': barangJadiHidupDetailReport,
+  'cross-cut-akhir-hidup-detail': crossCutAkhirHidupDetailReport,
   'dashboard-barang-jadi': dashboardBarangJadiReport,
+  'dashboard-cross-cut-akhir': dashboardCrossCutAkhirReport,
+  'ketahanan-barang-cc-akhir': ketahananBarangCcAkhirReport,
+  'mutasi-cross-cut-akhir': mutasiCrossCutAkhirReport,
   'mutasi-barang-jadi-per-jenis-per-ukuran': mutasiBarangJadiPerJenisPerUkuranReport,
   'mutasi-hasil-racip': mutasiHasilRacipReport,
   'mutasi-racip-detail': mutasiRacipDetailReport,
@@ -84,8 +95,11 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'rekap-pembelian-kayu-bulat-kg': rekapPembelianKayuBulatKgReport,
   'rekap-produksi-packing-per-jenis-per-grade': rekapProduksiPackingPerJenisPerGradeReport,
   'rekap-produksi-barang-jadi-consolidated': rekapProduksiBarangJadiConsolidatedReport,
+  'rekap-produksi-cross-cut-akhir-consolidated': rekapProduksiCrossCutAkhirConsolidatedReport,
+  'rekap-produksi-cross-cut-akhir-per-jenis-per-grade': rekapProduksiCrossCutAkhirPerJenisPerGradeReport,
   'saldo-barang-jadi-hidup-per-jenis-per-produk': saldoBarangJadiHidupPerJenisPerProdukReport,
   'umur-barang-jadi-detail': umurBarangJadiDetailReport,
+  'umur-cross-cut-akhir-detail': umurCrossCutAkhirDetailReport,
   'rekap-penerimaan-st-dari-sawmill-kg': rekapPenerimaanStDariSawmillKgReport,
   'rekap-penerimaan-st-sawmill-costing-rambung': rekapPenerimaanStSawmillCostingRambungReport,
   'rekap-rendemen-rambung-per-supplier': rekapRendemenRambungPerSupplierReport,
