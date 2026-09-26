@@ -128,6 +128,17 @@ const MUTASI_CROSS_CUT_AKHIR_CSS = `
   .sub-report-table { width: 92%; }
 `;
 
+const MUTASI_FINGER_JOINT_CSS = `
+  .report-table td.number { white-space: nowrap; }
+  /* The legacy blade sizes these columns in px against an 11px header font.
+     The shared layout renders at 12px, so the header is pinned back to 11px
+     and long labels wrap instead of colliding with their neighbour. */
+  .report-table thead tr.headers-row th { font-size: 11px; white-space: normal; line-height: 1.15; }
+  .report-table tbody tr.data-row td.data-cell { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
+  .report-table tbody tr.totals-row td { background: #fff !important; font-weight: bold; font-size: 11px; border-top: 1px solid #000; border-right: 1px solid #000; border-bottom: 0; border-left: 0; }
+  .sub-report-table { width: 70%; }
+`;
+
 const MUTASI_REPROSES_CSS = `
   .report-table th, .report-table td { white-space: nowrap; }
   .report-table tbody tr.data-row td.data-cell { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
@@ -435,6 +446,16 @@ const REKAP_PRODUKSI_BARANG_JADI_CONSOLIDATED_CSS = `
   }
 `;
 
+const REKAP_PRODUKSI_FINGER_JOINT_CONSOLIDATED_CSS = `
+  .section-title { margin: 10px 0 4px 0; font-size: 11px; font-weight: bold; }
+  .production-table { margin-bottom: 12px; font-size: 11px; }
+  .production-table th, .production-table td.number { white-space: nowrap; }
+  .production-table .bounded-row td:first-child { border-left: 1px solid #000; }
+  .production-table .bounded-row td:last-child { border-right: 1px solid #000; }
+  .production-table tbody tr.totals-row td { font-weight: bold; font-size: 11px; background: #fff; border-top: 1px solid #000; }
+  .production-table tbody tr.grand-total-row td { font-weight: bold; font-size: 11px; background: #e8eef7; border-top: 1px solid #000; }
+`;
+
 const REKAP_PRODUKSI_CROSS_CUT_AKHIR_CONSOLIDATED_CSS = `
   body { font-size: 10px; line-height: 1.15; }
   .production-section-title { margin: 10px 0 4px 0; font-size: 11px; font-weight: bold; }
@@ -451,6 +472,13 @@ const REKAP_PRODUKSI_CROSS_CUT_AKHIR_CONSOLIDATED_CSS = `
 `;
 
 const REKAP_PRODUKSI_CROSS_CUT_AKHIR_PER_JENIS_PER_GRADE_CSS = `
+  .group-title { margin: 10px 0 4px 0; font-size: 12px; font-weight: bold; }
+  .grade-table { margin-bottom: 12px; }
+  .grade-table tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
+  .grade-table tbody tr.totals-row td { background: #fff !important; font-weight: bold; font-size: 11px; border-top: 1px solid #000; border-bottom: 1px solid #000; }
+`;
+
+const REKAP_PRODUKSI_FINGER_JOINT_PER_JENIS_PER_GRADE_CSS = `
   .group-title { margin: 10px 0 4px 0; font-size: 12px; font-weight: bold; }
   .grade-table { margin-bottom: 12px; }
   .grade-table tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
@@ -646,6 +674,7 @@ const WPS_REPORT_STYLES = {
   mutasi_barang_jadi_per_jenis_per_ukuran: MUTASI_BARANG_JADI_PER_JENIS_PER_UKURAN_CSS,
   mutasi_barang_jadi: MUTASI_BARANG_JADI_CSS,
   mutasi_cross_cut_akhir: MUTASI_CROSS_CUT_AKHIR_CSS,
+  mutasi_finger_joint: MUTASI_FINGER_JOINT_CSS,
   mutasi_reproses: MUTASI_REPROSES_CSS,
   penerimaan_kayu_bulat_kg: PENERIMAAN_KAYU_BULAT_KG_CSS,
   penerimaan_kayu_bulat_per_supplier_grafik: PENERIMAAN_KAYU_BULAT_PER_SUPPLIER_GRAFIK_CSS,
@@ -658,8 +687,10 @@ const WPS_REPORT_STYLES = {
   rekap_penerimaan_st_dari_sawmill_kg: REKAP_PENERIMAAN_ST_DARI_SAWMILL_KG_CSS,
   rekap_penerimaan_st_sawmill_costing_rambung: REKAP_PENERIMAAN_ST_SAWMILL_COSTING_RAMBUNG_CSS,
   rekap_produksi_barang_jadi_consolidated: REKAP_PRODUKSI_BARANG_JADI_CONSOLIDATED_CSS,
+  rekap_produksi_finger_joint_consolidated: REKAP_PRODUKSI_FINGER_JOINT_CONSOLIDATED_CSS,
   rekap_produksi_cross_cut_akhir_consolidated: REKAP_PRODUKSI_CROSS_CUT_AKHIR_CONSOLIDATED_CSS,
   rekap_produksi_cross_cut_akhir_per_jenis_per_grade: REKAP_PRODUKSI_CROSS_CUT_AKHIR_PER_JENIS_PER_GRADE_CSS,
+  rekap_produksi_finger_joint_per_jenis_per_grade: REKAP_PRODUKSI_FINGER_JOINT_PER_JENIS_PER_GRADE_CSS,
   rekap_produksi_packing_per_jenis_per_grade: REKAP_PRODUKSI_PACKING_PER_JENIS_PER_GRADE_CSS,
   rekap_rendemen_rambung_per_supplier: REKAP_RENDEMEN_RAMBUNG_PER_SUPPLIER_CSS,
   saldo_barang_jadi_hidup_per_jenis_per_produk: SALDO_BARANG_JADI_HIDUP_PER_JENIS_PER_PRODUK_CSS,

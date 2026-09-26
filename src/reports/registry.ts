@@ -12,6 +12,10 @@ import { dashboardFingerJointReport } from './wps/dashboard-finger-joint'
 import { dashboardReprosesReport } from './wps/dashboard-reproses'
 import { fingerJointHidupDetailReport } from './wps/finger-joint-hidup-detail'
 import { ketahananBarangFingerJointReport } from './wps/ketahanan-barang-finger-joint'
+import { mutasiFingerJointReport } from './wps/mutasi-finger-joint'
+import { rekapProduksiFingerJointConsolidatedReport } from './wps/rekap-produksi-finger-joint-consolidated'
+import { rekapProduksiFingerJointPerJenisPerGradeReport } from './wps/rekap-produksi-finger-joint-per-jenis-per-grade'
+import { umurFingerJointDetailReport } from './wps/umur-finger-joint-detail'
 import { ketahananBarangCcAkhirReport } from './wps/ketahanan-barang-cc-akhir'
 import { ketahananBarangReprosesReport } from './wps/ketahanan-barang-reproses'
 import { mutasiCrossCutAkhirReport } from './wps/mutasi-cross-cut-akhir'
@@ -86,6 +90,7 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'ketahanan-barang-cc-akhir': ketahananBarangCcAkhirReport,
   'ketahanan-barang-reproses': ketahananBarangReprosesReport,
   'mutasi-cross-cut-akhir': mutasiCrossCutAkhirReport,
+  'mutasi-finger-joint': mutasiFingerJointReport,
   'mutasi-reproses': mutasiReprosesReport,
   'reproses-hidup-detail': reprosesHidupDetailReport,
   'mutasi-barang-jadi-per-jenis-per-ukuran': mutasiBarangJadiPerJenisPerUkuranReport,
@@ -115,9 +120,12 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'rekap-produksi-barang-jadi-consolidated': rekapProduksiBarangJadiConsolidatedReport,
   'rekap-produksi-cross-cut-akhir-consolidated': rekapProduksiCrossCutAkhirConsolidatedReport,
   'rekap-produksi-cross-cut-akhir-per-jenis-per-grade': rekapProduksiCrossCutAkhirPerJenisPerGradeReport,
+  'rekap-produksi-finger-joint-consolidated': rekapProduksiFingerJointConsolidatedReport,
+  'rekap-produksi-finger-joint-per-jenis-per-grade': rekapProduksiFingerJointPerJenisPerGradeReport,
   'saldo-barang-jadi-hidup-per-jenis-per-produk': saldoBarangJadiHidupPerJenisPerProdukReport,
   'umur-barang-jadi-detail': umurBarangJadiDetailReport,
   'umur-cross-cut-akhir-detail': umurCrossCutAkhirDetailReport,
+  'umur-finger-joint-detail': umurFingerJointDetailReport,
   'umur-reproses-detail': umurReprosesDetailReport,
   'rekap-penerimaan-st-dari-sawmill-kg': rekapPenerimaanStDariSawmillKgReport,
   'rekap-penerimaan-st-sawmill-costing-rambung': rekapPenerimaanStSawmillCostingRambungReport,
