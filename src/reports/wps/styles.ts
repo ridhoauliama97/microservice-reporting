@@ -481,6 +481,36 @@ const REKAP_PRODUKSI_LAMINATING_PER_JENIS_PER_GRADE_CSS = `
   .grade-table tbody tr.totals-row td { background: #fff !important; font-weight: bold; font-size: 11px; border-top: 1px solid #000; border-bottom: 1px solid #000; }
 `;
 
+const MUTASI_MOULDING_CSS = `${LAMINATING_TABLE_CSS}
+  .report-table td.number { white-space: nowrap; }
+  .report-table tbody tr.data-row td.data-cell { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
+  .report-table tbody tr.totals-row td { background: #fff !important; font-weight: bold; font-size: 11px; border-top: 1px solid #000; border-right: 1px solid #000; border-bottom: 0; border-left: 0; }
+`;
+
+const REKAP_PRODUKSI_MOULDING_CONSOLIDATED_CSS = `
+  .section-title { margin: 10px 0 4px 0; font-size: 11px; font-weight: bold; }
+  .production-table { margin-bottom: 12px; font-size: 11px; }
+  /* 18 columns at the legacy 5.55% leaves no room to keep headers on one
+     line, so they wrap instead of bleeding into the neighbouring cell, and
+     the date column is widened off percentage because "01-Agt-26" does not
+     fit 5.55% of the page. */
+  .production-table td.number { white-space: nowrap; }
+  .production-table thead th { white-space: normal; line-height: 1.15; padding: 3px 3px; }
+  .production-table thead th[colspan] { text-align: center; }
+  .production-table .strong-number { font-weight: bold; }
+  .production-table .bounded-row td:first-child { border-left: 1px solid #000; }
+  .production-table .bounded-row td:last-child { border-right: 1px solid #000; }
+  .production-table tbody tr.totals-row td { font-weight: bold; font-size: 11px; background: #fff; border-top: 1px solid #000; }
+  .production-table tbody tr.grand-total-row td { font-weight: bold; font-size: 11px; background: #e8eef7; border-top: 1px solid #000; }
+`;
+
+const REKAP_PRODUKSI_MOULDING_PER_JENIS_PER_GRADE_CSS = `
+  .group-title { margin: 10px 0 4px 0; font-size: 12px; font-weight: bold; }
+  .grade-table { margin-bottom: 12px; }
+  .grade-table tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
+  .grade-table tbody tr.totals-row td { background: #fff !important; font-weight: bold; font-size: 11px; border-top: 1px solid #000; border-bottom: 1px solid #000; }
+`;
+
 const REKAP_PRODUKSI_FINGER_JOINT_CONSOLIDATED_CSS = `
   .section-title { margin: 10px 0 4px 0; font-size: 11px; font-weight: bold; }
   .production-table { margin-bottom: 12px; font-size: 11px; }
@@ -706,11 +736,16 @@ const WPS_REPORT_STYLES = {
   dashboard_finger_joint: DASHBOARD_CROSS_CUT_AKHIR_CSS,
   // Same grid layout as the Cross Cut Akhir dashboard.
   dashboard_laminating: DASHBOARD_CROSS_CUT_AKHIR_CSS,
+  // Same grid layout as the Cross Cut Akhir dashboard.
+  dashboard_moulding: DASHBOARD_CROSS_CUT_AKHIR_CSS,
   dashboard_reproses: DASHBOARD_REPROSES_CSS,
   ketahanan_barang_reproses: KETAHANAN_BARANG_REPROSES_CSS,
   laminating_hidup_detail: LAMINATING_TABLE_CSS,
   umur_laminating_detail: LAMINATING_TABLE_CSS,
+  moulding_hidup_detail: LAMINATING_TABLE_CSS,
+  umur_moulding_detail: LAMINATING_TABLE_CSS,
   mutasi_laminating: MUTASI_LAMINATING_CSS,
+  mutasi_moulding: MUTASI_MOULDING_CSS,
   mutasi_barang_jadi_per_jenis_per_ukuran: MUTASI_BARANG_JADI_PER_JENIS_PER_UKURAN_CSS,
   mutasi_barang_jadi: MUTASI_BARANG_JADI_CSS,
   mutasi_cross_cut_akhir: MUTASI_CROSS_CUT_AKHIR_CSS,
@@ -733,6 +768,8 @@ const WPS_REPORT_STYLES = {
   rekap_produksi_finger_joint_per_jenis_per_grade: REKAP_PRODUKSI_FINGER_JOINT_PER_JENIS_PER_GRADE_CSS,
   rekap_produksi_laminating_consolidated: REKAP_PRODUKSI_LAMINATING_CONSOLIDATED_CSS,
   rekap_produksi_laminating_per_jenis_per_grade: REKAP_PRODUKSI_LAMINATING_PER_JENIS_PER_GRADE_CSS,
+  rekap_produksi_moulding_consolidated: REKAP_PRODUKSI_MOULDING_CONSOLIDATED_CSS,
+  rekap_produksi_moulding_per_jenis_per_grade: REKAP_PRODUKSI_MOULDING_PER_JENIS_PER_GRADE_CSS,
   rekap_produksi_packing_per_jenis_per_grade: REKAP_PRODUKSI_PACKING_PER_JENIS_PER_GRADE_CSS,
   rekap_rendemen_rambung_per_supplier: REKAP_RENDEMEN_RAMBUNG_PER_SUPPLIER_CSS,
   saldo_barang_jadi_hidup_per_jenis_per_produk: SALDO_BARANG_JADI_HIDUP_PER_JENIS_PER_PRODUK_CSS,

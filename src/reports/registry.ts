@@ -10,12 +10,19 @@ import { dashboardBarangJadiReport } from './wps/dashboard-barang-jadi'
 import { dashboardCrossCutAkhirReport } from './wps/dashboard-cross-cut-akhir'
 import { dashboardFingerJointReport } from './wps/dashboard-finger-joint'
 import { dashboardLaminatingReport } from './wps/dashboard-laminating'
+import { dashboardMouldingReport } from './wps/dashboard-moulding'
 import { laminatingHidupDetailReport } from './wps/laminating-hidup-detail'
 import { ketahananBarangLaminatingReport } from './wps/ketahanan-barang-laminating'
+import { ketahananBarangMouldingReport } from './wps/ketahanan-barang-moulding'
+import { mouldingHidupDetailReport } from './wps/moulding-hidup-detail'
 import { mutasiLaminatingReport } from './wps/mutasi-laminating'
+import { mutasiMouldingReport } from './wps/mutasi-moulding'
 import { rekapProduksiLaminatingConsolidatedReport } from './wps/rekap-produksi-laminating-consolidated'
 import { rekapProduksiLaminatingPerJenisPerGradeReport } from './wps/rekap-produksi-laminating-per-jenis-per-grade'
+import { rekapProduksiMouldingConsolidatedReport } from './wps/rekap-produksi-moulding-consolidated'
+import { rekapProduksiMouldingPerJenisPerGradeReport } from './wps/rekap-produksi-moulding-per-jenis-per-grade'
 import { umurLaminatingDetailReport } from './wps/umur-laminating-detail'
+import { umurMouldingDetailReport } from './wps/umur-moulding-detail'
 import { dashboardReprosesReport } from './wps/dashboard-reproses'
 import { fingerJointHidupDetailReport } from './wps/finger-joint-hidup-detail'
 import { ketahananBarangFingerJointReport } from './wps/ketahanan-barang-finger-joint'
@@ -92,12 +99,19 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'dashboard-cross-cut-akhir': dashboardCrossCutAkhirReport,
   'dashboard-finger-joint': dashboardFingerJointReport,
   'dashboard-laminating': dashboardLaminatingReport,
+  'dashboard-moulding': dashboardMouldingReport,
   'laminating-hidup-detail': laminatingHidupDetailReport,
   'ketahanan-barang-laminating': ketahananBarangLaminatingReport,
+  'ketahanan-barang-moulding': ketahananBarangMouldingReport,
+  'moulding-hidup-detail': mouldingHidupDetailReport,
   'mutasi-laminating': mutasiLaminatingReport,
+  'mutasi-moulding': mutasiMouldingReport,
   'rekap-produksi-laminating-consolidated': rekapProduksiLaminatingConsolidatedReport,
   'rekap-produksi-laminating-per-jenis-per-grade': rekapProduksiLaminatingPerJenisPerGradeReport,
+  'rekap-produksi-moulding-consolidated': rekapProduksiMouldingConsolidatedReport,
+  'rekap-produksi-moulding-per-jenis-per-grade': rekapProduksiMouldingPerJenisPerGradeReport,
   'umur-laminating-detail': umurLaminatingDetailReport,
+  'umur-moulding-detail': umurMouldingDetailReport,
   'finger-joint-hidup-detail': fingerJointHidupDetailReport,
   'ketahanan-barang-finger-joint': ketahananBarangFingerJointReport,
   'dashboard-reproses': dashboardReprosesReport,

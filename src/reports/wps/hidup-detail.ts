@@ -1,3 +1,4 @@
+import sql from "mssql";
 import { z } from "zod";
 import {
   escapeHtml,
@@ -5,6 +6,7 @@ import {
   formatPrintedAt,
   formatTanggalId,
 } from "../../templates/html";
+import { periodParamsSchema, type PeriodParams } from "../period-params";
 import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import type { ReportDefinition } from "../types";
 
@@ -158,21 +160,66 @@ export function createHidupDetailReport(
     async fetchData(_params, { pool }) {
       const conn = await pool;
       const result = await conn.request().execute(options.storedProcedure);
-      const raw = (result.recordset ?? []) as Array<Record<string, unknown>>;
-
-      const rows = normalizeHidupRows(raw, options);
-
-      // Legacy usort: Tanggal DESC, then item number ASC.
-      rows.sort((left, right) => {
-        const byDate = toText(right.tanggal).localeCompare(toText(left.tanggal));
-        if (byDate !== 0) return byDate;
-        return toText(left.no).localeCompare(toText(right.no));
-      });
-
-      return rows;
+      return sortHidupRows(
+        normalizeHidupRows((result.recordset ?? []) as Array<Record<string, unknown>>, options),
+      );
     },
 
     render(rows, meta) {
+      return renderHidupBody(rows, options, meta, "");
+    },
+  };
+}
+
+/**
+ * Moulding's SP is the odd one out: it takes a date range, so this variant
+ * binds @StartDate / @EndDate and shows the period in the subtitle. The legacy
+ * blade leaves the subtitle empty even though the result depends on the range,
+ * which reads as an oversight, so the period is shown here.
+ */
+export function createPeriodHidupDetailReport(
+  options: HidupDetailOptions,
+): ReportDefinition<PeriodParams, HidupRow[]> {
+  return {
+    type: options.type,
+    title: options.title,
+    paramsSchema: periodParamsSchema,
+
+    async fetchData(params, { pool }) {
+      const conn = await pool;
+      const result = await conn
+        .request()
+        .input("StartDate", sql.Date, params.tglAwal)
+        .input("EndDate", sql.Date, params.tglAkhir)
+        .execute(options.storedProcedure);
+      return sortHidupRows(
+        normalizeHidupRows((result.recordset ?? []) as Array<Record<string, unknown>>, options),
+      );
+    },
+
+    render(rows, meta) {
+      const subtitle = `Periode ${fmtDate(meta.params.tglAwal)} s/d ${fmtDate(meta.params.tglAkhir)}`;
+      return renderHidupBody(rows, options, meta, subtitle);
+    },
+  };
+}
+
+/** Legacy usort: Tanggal DESC, then item number ASC. */
+function sortHidupRows(rows: HidupRow[]): HidupRow[] {
+  rows.sort((left, right) => {
+    const byDate = toText(right.tanggal).localeCompare(toText(left.tanggal));
+    if (byDate !== 0) return byDate;
+    return toText(left.no).localeCompare(toText(right.no));
+  });
+  return rows;
+}
+
+function renderHidupBody(
+  rows: HidupRow[],
+  options: HidupDetailOptions,
+  meta: { requestedBy: string; generatedAt: Date },
+  subtitle: string,
+) {
       const totalM3 = rows.reduce((sum, row) => sum + toNumber(row.m3), 0);
 
       const bodyRows = rows
@@ -227,12 +274,10 @@ export function createHidupDetailReport(
 
       return renderWpsReportPage({
         title: options.title,
-        subtitle: "",
+        subtitle,
         bodyHtml,
         style: options.style,
         printedBy: meta.requestedBy,
         printedAt: formatPrintedAt(meta.generatedAt),
       });
-    },
-  };
 }
