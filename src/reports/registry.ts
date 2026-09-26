@@ -8,7 +8,10 @@ import { barangJadiHidupDetailReport } from './wps/barang-jadi-hidup-detail'
 import { crossCutAkhirHidupDetailReport } from './wps/cross-cut-akhir-hidup-detail'
 import { dashboardBarangJadiReport } from './wps/dashboard-barang-jadi'
 import { dashboardCrossCutAkhirReport } from './wps/dashboard-cross-cut-akhir'
+import { dashboardFingerJointReport } from './wps/dashboard-finger-joint'
 import { dashboardReprosesReport } from './wps/dashboard-reproses'
+import { fingerJointHidupDetailReport } from './wps/finger-joint-hidup-detail'
+import { ketahananBarangFingerJointReport } from './wps/ketahanan-barang-finger-joint'
 import { ketahananBarangCcAkhirReport } from './wps/ketahanan-barang-cc-akhir'
 import { ketahananBarangReprosesReport } from './wps/ketahanan-barang-reproses'
 import { mutasiCrossCutAkhirReport } from './wps/mutasi-cross-cut-akhir'
@@ -76,6 +79,9 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'cross-cut-akhir-hidup-detail': crossCutAkhirHidupDetailReport,
   'dashboard-barang-jadi': dashboardBarangJadiReport,
   'dashboard-cross-cut-akhir': dashboardCrossCutAkhirReport,
+  'dashboard-finger-joint': dashboardFingerJointReport,
+  'finger-joint-hidup-detail': fingerJointHidupDetailReport,
+  'ketahanan-barang-finger-joint': ketahananBarangFingerJointReport,
   'dashboard-reproses': dashboardReprosesReport,
   'ketahanan-barang-cc-akhir': ketahananBarangCcAkhirReport,
   'ketahanan-barang-reproses': ketahananBarangReprosesReport,

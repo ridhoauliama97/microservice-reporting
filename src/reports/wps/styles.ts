@@ -638,6 +638,9 @@ const UMUR_REPROSES_DETAIL_CSS = `
 const WPS_REPORT_STYLES = {
   dashboard_barang_jadi: DASHBOARD_BARANG_JADI_CSS,
   dashboard_cross_cut_akhir: DASHBOARD_CROSS_CUT_AKHIR_CSS,
+  // Identical layout to the Cross Cut Akhir dashboard, so it reuses the same
+  // CSS under its own name rather than duplicating the block.
+  dashboard_finger_joint: DASHBOARD_CROSS_CUT_AKHIR_CSS,
   dashboard_reproses: DASHBOARD_REPROSES_CSS,
   ketahanan_barang_reproses: KETAHANAN_BARANG_REPROSES_CSS,
   mutasi_barang_jadi_per_jenis_per_ukuran: MUTASI_BARANG_JADI_PER_JENIS_PER_UKURAN_CSS,
