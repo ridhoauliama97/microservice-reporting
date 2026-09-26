@@ -44,11 +44,15 @@ export interface HidupDetailOptions {
   numberColumn: string;
   /** Volume column as named by the SP ("Kubik" for CCA, "M3" for FJ). */
   volumeColumn: string;
-  /** Legacy header labels, which differ slightly per product. */
+  /** Legacy header labels, which differ per product. */
   labels: {
     number: string;
     spk: string;
     batang: string;
+    /** Dimension headers; Laminating spells these with units. */
+    tebal?: string;
+    lebar?: string;
+    panjang?: string;
   };
   /** Legacy per-column widths in px. */
   widths: {
@@ -63,6 +67,8 @@ export interface HidupDetailOptions {
     m3: string;
     lokasi: string;
   };
+  /** Optional layout preset; omitted by products that need no extra CSS. */
+  style?: Parameters<typeof renderWpsReportPage>[0]["style"];
 }
 
 const toText = (value: unknown): string => {
@@ -188,18 +194,19 @@ export function createHidupDetailReport(
         .join("\n    ");
 
       const w = options.widths;
+      const l = options.labels;
       const bodyHtml = `<table class="report-table">
   <thead>
     <tr class="headers-row">
       <th style="width: ${w.no};">No</th>
-      <th style="width: ${w.number};">${escapeHtml(options.labels.number)}</th>
+      <th style="width: ${w.number};">${escapeHtml(l.number)}</th>
       <th style="width: ${w.tanggal};">Tanggal</th>
-      <th style="width: ${w.spk};">${escapeHtml(options.labels.spk)}</th>
+      <th style="width: ${w.spk};">${escapeHtml(l.spk)}</th>
       <th>Jenis</th>
-      <th style="width: ${w.tebal};">Tebal</th>
-      <th style="width: ${w.lebar};">Lebar</th>
-      <th style="width: ${w.panjang};">Panjang</th>
-      <th style="width: ${w.batang};">${escapeHtml(options.labels.batang)}</th>
+      <th style="width: ${w.tebal};">${escapeHtml(l.tebal ?? "Tebal")}</th>
+      <th style="width: ${w.lebar};">${escapeHtml(l.lebar ?? "Lebar")}</th>
+      <th style="width: ${w.panjang};">${escapeHtml(l.panjang ?? "Panjang")}</th>
+      <th style="width: ${w.batang};">${escapeHtml(l.batang)}</th>
       <th style="width: ${w.m3};">M3</th>
       <th style="width: ${w.lokasi};">Lokasi</th>
     </tr>
@@ -222,6 +229,7 @@ export function createHidupDetailReport(
         title: options.title,
         subtitle: "",
         bodyHtml,
+        style: options.style,
         printedBy: meta.requestedBy,
         printedAt: formatPrintedAt(meta.generatedAt),
       });

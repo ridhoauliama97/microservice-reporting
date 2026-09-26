@@ -9,6 +9,13 @@ import { crossCutAkhirHidupDetailReport } from './wps/cross-cut-akhir-hidup-deta
 import { dashboardBarangJadiReport } from './wps/dashboard-barang-jadi'
 import { dashboardCrossCutAkhirReport } from './wps/dashboard-cross-cut-akhir'
 import { dashboardFingerJointReport } from './wps/dashboard-finger-joint'
+import { dashboardLaminatingReport } from './wps/dashboard-laminating'
+import { laminatingHidupDetailReport } from './wps/laminating-hidup-detail'
+import { ketahananBarangLaminatingReport } from './wps/ketahanan-barang-laminating'
+import { mutasiLaminatingReport } from './wps/mutasi-laminating'
+import { rekapProduksiLaminatingConsolidatedReport } from './wps/rekap-produksi-laminating-consolidated'
+import { rekapProduksiLaminatingPerJenisPerGradeReport } from './wps/rekap-produksi-laminating-per-jenis-per-grade'
+import { umurLaminatingDetailReport } from './wps/umur-laminating-detail'
 import { dashboardReprosesReport } from './wps/dashboard-reproses'
 import { fingerJointHidupDetailReport } from './wps/finger-joint-hidup-detail'
 import { ketahananBarangFingerJointReport } from './wps/ketahanan-barang-finger-joint'
@@ -84,6 +91,13 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'dashboard-barang-jadi': dashboardBarangJadiReport,
   'dashboard-cross-cut-akhir': dashboardCrossCutAkhirReport,
   'dashboard-finger-joint': dashboardFingerJointReport,
+  'dashboard-laminating': dashboardLaminatingReport,
+  'laminating-hidup-detail': laminatingHidupDetailReport,
+  'ketahanan-barang-laminating': ketahananBarangLaminatingReport,
+  'mutasi-laminating': mutasiLaminatingReport,
+  'rekap-produksi-laminating-consolidated': rekapProduksiLaminatingConsolidatedReport,
+  'rekap-produksi-laminating-per-jenis-per-grade': rekapProduksiLaminatingPerJenisPerGradeReport,
+  'umur-laminating-detail': umurLaminatingDetailReport,
   'finger-joint-hidup-detail': fingerJointHidupDetailReport,
   'ketahanan-barang-finger-joint': ketahananBarangFingerJointReport,
   'dashboard-reproses': dashboardReprosesReport,

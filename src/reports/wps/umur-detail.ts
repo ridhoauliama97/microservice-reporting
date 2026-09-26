@@ -102,6 +102,14 @@ export interface UmurDetailOptions {
     bucket: string;
     total: string;
   };
+  /** Dimension headers; Laminating spells these with units. */
+  labels?: {
+    tebal?: string;
+    lebar?: string;
+    panjang?: string;
+  };
+  /** Optional layout preset; omitted by products that need no extra CSS. */
+  style?: Parameters<typeof renderWpsReportPage>[0]["style"];
 }
 
 const toFloat = (value: unknown): number => {
@@ -246,9 +254,9 @@ export function createUmurDetailReport(
       <tr class="headers-row">
         <th${widthStyle(w.no)}>No</th>
         <th${widthStyle(w.jenis)}>Jenis</th>
-        <th${widthStyle(w.tebal)}>Tebal</th>
-        <th${widthStyle(w.lebar)}>Lebar</th>
-        <th${widthStyle(w.panjang)}>Panjang</th>
+        <th${widthStyle(w.tebal)}>${escapeHtml(options.labels?.tebal ?? "Tebal")}</th>
+        <th${widthStyle(w.lebar)}>${escapeHtml(options.labels?.lebar ?? "Lebar")}</th>
+        <th${widthStyle(w.panjang)}>${escapeHtml(options.labels?.panjang ?? "Panjang")}</th>
         ${ageLabels.map((label) => `<th${widthStyle(w.bucket)}>${escapeHtml(label)}</th>`).join("\n        ")}
         <th${widthStyle(w.total)}>Total</th>
       </tr>
@@ -267,6 +275,7 @@ export function createUmurDetailReport(
         title: options.title,
         subtitle: "",
         bodyHtml,
+        style: options.style,
         printedBy: meta.requestedBy,
         printedAt: formatPrintedAt(meta.generatedAt),
       });
