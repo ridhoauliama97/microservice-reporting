@@ -496,6 +496,23 @@ const FLOW_PRODUKSI_PER_PERIODE_CSS = `
   .summary-table td { border: 0 !important; padding: 2px 6px 2px 0; }
 `;
 
+const REKAP_MUTASI_CSS = `
+  .section-subtitle { margin: 6px 0 3px 0; font-size: 10px; font-weight: bold; }
+  .report-table { font-size: 10px; }
+  /* auto layout, not the shared fixed one: the 12-column Sawntimber section and
+     the 9-column production input tables were splitting totals across two
+     lines ("411.900" / "9") and overlapping their header text. Sizing columns
+     to their content avoids both. */
+  .report-table.rekap-main, .report-table.rekap-input { table-layout: auto; }
+  .report-table.rekap-main td.number, .report-table.rekap-input td.number { white-space: nowrap; }
+  .report-table.rekap-main thead th, .report-table.rekap-input thead th { white-space: nowrap; padding: 2px 4px; }
+  .report-table tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
+  .report-table tbody tr.totals-row td { font-weight: bold; border-top: 1px solid #000 !important; background: #fff !important; }
+  .report-table.rekap-input { width: 62%; }
+  .performance-table { width: 28%; margin-top: 4px; margin-bottom: 10px; margin-left: 8px; border-collapse: collapse; }
+  .performance-table td { padding: 3px 6px; border: 1px solid #000; font-weight: bold; background: #fff !important; }
+`;
+
 const DASHBOARD_RU_CSS = `
   .report-table.dashboard-ru { table-layout: fixed; font-size: 8px; }
   .report-table.dashboard-ru thead th { font-size: 8px; padding: 2px 2px; line-height: 1.1; border-bottom: 1px solid #000; border-left: 1px solid #000; }
@@ -820,6 +837,7 @@ const WPS_REPORT_STYLES = {
   hasil_produksi_mesin_lembur: HASIL_PRODUKSI_MESIN_LEMBUR_CSS,
   discrepancy_rekap_mutasi: DISCREPANCY_REKAP_MUTASI_CSS,
   dashboard_ru: DASHBOARD_RU_CSS,
+  rekap_mutasi: REKAP_MUTASI_CSS,
   mutasi_barang_jadi_per_jenis_per_ukuran: MUTASI_BARANG_JADI_PER_JENIS_PER_UKURAN_CSS,
   mutasi_barang_jadi: MUTASI_BARANG_JADI_CSS,
   mutasi_cross_cut_akhir: MUTASI_CROSS_CUT_AKHIR_CSS,

@@ -17,6 +17,7 @@ import { flowProduksiPerPeriodeReport } from './wps/flow-produksi-per-periode'
 import { hasilProduksiMesinLemburReport } from './wps/hasil-produksi-mesin-lembur'
 import { labelPerhariReport } from './wps/label-perhari'
 import { produksiHuluHilirReport } from './wps/produksi-hulu-hilir'
+import { rekapMutasiReport } from './wps/rekap-mutasi'
 import { laminatingHidupDetailReport } from './wps/laminating-hidup-detail'
 import { ketahananBarangLaminatingReport } from './wps/ketahanan-barang-laminating'
 import { ketahananBarangMouldingReport } from './wps/ketahanan-barang-moulding'
@@ -112,6 +113,7 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'hasil-produksi-mesin-lembur-dan-non-lembur': hasilProduksiMesinLemburReport,
   'label-perhari': labelPerhariReport,
   'produksi-hulu-hilir': produksiHuluHilirReport,
+  'rekap-mutasi': rekapMutasiReport,
   'laminating-hidup-detail': laminatingHidupDetailReport,
   'ketahanan-barang-laminating': ketahananBarangLaminatingReport,
   'ketahanan-barang-moulding': ketahananBarangMouldingReport,
