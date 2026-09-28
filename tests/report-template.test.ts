@@ -191,7 +191,7 @@ describe('new template capabilities', () => {
     expect(rendered.html).toContain('margin-bottom: 22px')
   })
 
-  test('single-date factory validates { tgl } and subtitles "Per Tanggal :"', () => {
+  test('single-date factory validates { tglAkhir } and subtitles "Per Tanggal :"', () => {
     const report = createSingleDateTableReport({
       type: 'dummy-single-date',
       title: 'Laporan Harian',
@@ -200,15 +200,18 @@ describe('new template capabilities', () => {
       columns,
     })
     expect(
-      report.paramsSchema.safeParse({ tgl: '2026-09-23' }).success,
+      report.paramsSchema.safeParse({ tglAkhir: '2026-09-23' }).success,
     ).toBe(true)
     expect(report.paramsSchema.safeParse({}).success).toBe(false)
     expect(
-      report.paramsSchema.safeParse({ tgl: '23-09-2026' }).success,
+      report.paramsSchema.safeParse({ tglAkhir: '23-09-2026' }).success,
     ).toBe(false)
+    // The old single-date key is gone, so a body still using it is rejected
+    // rather than silently ignored.
+    expect(report.paramsSchema.safeParse({ tgl: '2026-09-23' }).success).toBe(false)
     const rendered = report.render(
       [{ Jenis: 'ST RACIP RAMBUNG' }],
-      { requestedBy: 'garda', generatedAt: new Date(), params: { tgl: '2026-09-23' } },
+      { requestedBy: 'garda', generatedAt: new Date(), params: { tglAkhir: '2026-09-23' } },
     )
     expect(rendered.html).toContain('Per Tanggal : 23-Sep-2026')
   })
@@ -232,7 +235,7 @@ describe('new template capabilities', () => {
         { Jenis: 'A', Tebal: 3, Masuk: 1.5 },
         { Jenis: 'B', Tebal: 4, Masuk: 2.5 },
       ],
-      { requestedBy: 'garda', generatedAt: new Date(), params: { tgl: '2026-09-23' } },
+      { requestedBy: 'garda', generatedAt: new Date(), params: { tglAkhir: '2026-09-23' } },
     )
     const totalsRow = rendered.html.slice(rendered.html.indexOf('totals-row'))
     expect(totalsRow).toContain('colspan="3"')

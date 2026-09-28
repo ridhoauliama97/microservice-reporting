@@ -4,9 +4,13 @@ import {
   formatNumber,
   formatPrintedAt,
 } from "../../templates/html";
-import { z } from "zod";
 import type { ReportDefinition, RenderMeta } from "../types";
-import { buildEmptyTableRow, renderWpsReportPage } from "./template";
+import {
+  buildEmptyTableRow,
+  renderWpsReportPage,
+  singleDateParamsSchema,
+  type SingleDateParams,
+} from "./template";
 
 /**
  * SP_LapProduktivitasDashboard — "Laporan Dashboard RU". Ported from
@@ -133,9 +137,7 @@ interface DashboardRuData {
   stockKbNonPulai: number;
 }
 
-const paramsSchema = z.object({
-  tgl: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal harus YYYY-MM-DD"),
-});
+const paramsSchema = singleDateParamsSchema;
 
 const toText = (value: unknown): string =>
   value === null || value === undefined ? "" : String(value).trim();
@@ -348,7 +350,7 @@ export function buildDashboardRuData(rows: RuRow[]): DashboardRuData {
 /** Legacy formatSummaryDecimal: two decimals and no thousands separator. */
 const formatSummaryDecimal = (value: number): string => value.toFixed(2);
 
-export const dashboardRuReport: ReportDefinition<{ tgl: string }, DashboardRuData> = {
+export const dashboardRuReport: ReportDefinition<SingleDateParams, DashboardRuData> = {
   type: "dashboard-ru",
   title: "Laporan Dashboard RU",
   paramsSchema,
@@ -357,12 +359,12 @@ export const dashboardRuReport: ReportDefinition<{ tgl: string }, DashboardRuDat
     const conn = await pool;
     const result = await conn
       .request()
-      .input("Periode", sql.Date, params.tgl)
+      .input("Periode", sql.Date, params.tglAkhir)
       .execute("SP_LapProduktivitasDashboard");
     return buildDashboardRuData((result.recordset ?? []) as RuRow[]);
   },
 
-  render(data, meta: RenderMeta<{ tgl: string }>) {
+  render(data, meta: RenderMeta<SingleDateParams>) {
     // Each sub-column carries its own relative width (see GROUP_SUB_WIDTH), so
     // the colgroup is built from the column list rather than a flat ratio.
     const totalWidth =
@@ -442,7 +444,7 @@ export const dashboardRuReport: ReportDefinition<{ tgl: string }, DashboardRuDat
     </tbody>
   </table>`;
 
-    const parsed = new Date(`${meta.params.tgl}T00:00:00`);
+    const parsed = new Date(`${meta.params.tglAkhir}T00:00:00`);
     const periodLabel = Number.isNaN(parsed.getTime())
       ? ""
       : `${MONTHS_FULL_ID[parsed.getMonth()]} ${parsed.getFullYear()}`;

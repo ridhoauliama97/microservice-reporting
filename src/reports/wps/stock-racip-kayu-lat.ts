@@ -2,21 +2,22 @@ import sql from "mssql";
 import {
   buildReportTable,
   renderWpsReportPage,
+  singleDateParamsSchema,
   type ReportColumn,
+  type SingleDateParams,
 } from "./template";
 import {
   escapeHtml,
   formatPrintedAt,
   formatTanggalId,
 } from "../../templates/html";
-import { z } from "zod";
 import type { ReportDefinition } from "../types";
 
 /**
  * Special-case report: stock per Racip Kayu Lat, grouped per Jenis with a
  * "Jumlah" row each. Ported from open-api-report's
  * StockRacipKayuLatReportService + stock-racip-kayu-lat-pdf.blade.php.
- * The SP takes a single @TglAkhir date; body params: { tgl }.
+ * The SP takes a single @TglAkhir date; body params: { tglAkhir }.
  */
 
 interface StockRow extends Record<string, unknown> {
@@ -43,20 +44,18 @@ const DETAIL_COLUMNS: ReportColumn[] = [
 ];
 
 export const stockRacipKayuLatReport: ReportDefinition<
-  { tgl: string },
+  SingleDateParams,
   StockRow[]
 > = {
   type: "stock-racip-kayu-lat",
   title: "Laporan Stok Racip Kayu Lat",
-  paramsSchema: z.object({
-    tgl: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal harus YYYY-MM-DD"),
-  }),
+  paramsSchema: singleDateParamsSchema,
 
   async fetchData(params, { pool }) {
     const conn = await pool;
     const result = await conn
       .request()
-      .input("TglAkhir", sql.Date, params.tgl)
+      .input("TglAkhir", sql.Date, params.tglAkhir)
       .execute("sp_LapStockRacipKayuLat");
     const rows = (result.recordset ?? []) as StockRow[];
 
@@ -105,7 +104,7 @@ export const stockRacipKayuLatReport: ReportDefinition<
 
     return renderWpsReportPage({
       title: "Laporan Stok Racip Kayu Lat",
-      subtitle: `Per Tanggal : ${formatTanggalId(meta.params.tgl)}`,
+      subtitle: `Per Tanggal : ${formatTanggalId(meta.params.tglAkhir)}`,
       bodyHtml,
       style: "stock_racip_kayu_lat",
       printedBy: meta.requestedBy,

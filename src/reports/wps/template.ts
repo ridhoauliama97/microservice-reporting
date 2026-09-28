@@ -460,10 +460,18 @@ export function createSnapshotTableReport(
   };
 }
 
-export interface SingleDateParams {
-  /** As-of date, "YYYY-MM-DD". */
-  tgl: string;
-}
+/**
+ * The parameter shape for an "as of" report: one date, named `tglAkhir` so it
+ * matches the fifty period reports that take `tglAwal` / `tglAkhir` and the
+ * stored-procedure parameter it binds to. Reports that declare their own schema
+ * should use this rather than repeating the regex - four copies drifted apart
+ * before this was shared.
+ */
+export const singleDateParamsSchema = z.object({
+  tglAkhir: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal harus YYYY-MM-DD"),
+});
+
+export type SingleDateParams = z.infer<typeof singleDateParamsSchema>;
 
 export interface SingleDateTableReportSpec {
   type: string;
@@ -483,7 +491,7 @@ export interface SingleDateTableReportSpec {
 
 /**
  * Factory for "as of" daily SPs that take a single date parameter. Body
- * params: `{ tgl: "YYYY-MM-DD" }`; the subtitle reads "Per Tanggal : …".
+ * params: `{ tglAkhir: "YYYY-MM-DD" }`; the subtitle reads "Per Tanggal : …".
  */
 export function createSingleDateTableReport(
   spec: SingleDateTableReportSpec,
@@ -492,21 +500,19 @@ export function createSingleDateTableReport(
   return {
     type: spec.type,
     title: spec.title,
-    paramsSchema: z.object({
-      tgl: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal harus YYYY-MM-DD"),
-    }),
+    paramsSchema: singleDateParamsSchema,
 
     async fetchData(params, { pool }) {
       const conn = await pool;
       const result = await conn
         .request()
-        .input(paramName, sql.Date, params.tgl)
+        .input(paramName, sql.Date, params.tglAkhir)
         .execute(spec.spName);
       return (result.recordset ?? []) as Array<Record<string, unknown>>;
     },
 
     render(rows, meta) {
-      const subtitle = `Per Tanggal : ${formatTanggalId(meta.params.tgl)}`;
+      const subtitle = `Per Tanggal : ${formatTanggalId(meta.params.tglAkhir)}`;
       return renderStandardTable(spec, rows, subtitle, meta);
     },
   };

@@ -3,7 +3,7 @@ import { formatTrimmed } from "../../templates/html";
 
 /**
  * "As of" daily report — the SP takes only @EndDate, body params are a
- * single { tgl }. Columns follow the legacy report: non-Masuk columns
+ * single { tglAkhir }. Columns follow the legacy report: non-Masuk columns
  * first, then Masuk; Masuk and Jlh Batang render bold; the totals row
  * shows only the Masuk total (colspan covers the other columns).
  */

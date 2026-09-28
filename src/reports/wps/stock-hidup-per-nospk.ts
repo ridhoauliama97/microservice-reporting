@@ -1,5 +1,4 @@
 import sql from "mssql";
-import { z } from "zod";
 import {
   escapeHtml,
   formatNumber,
@@ -7,7 +6,12 @@ import {
   formatTanggalId,
 } from "../../templates/html";
 import type { ReportDefinition, RenderMeta } from "../types";
-import { buildEmptyTableRow, renderWpsReportPage } from "./template";
+import {
+  buildEmptyTableRow,
+  renderWpsReportPage,
+  singleDateParamsSchema,
+  type SingleDateParams,
+} from "./template";
 
 /**
  * SP_LapSemuaStockHidupPerSPK — "Laporan Stock Hidup Per No SPK" and its
@@ -26,10 +30,19 @@ import { buildEmptyTableRow, renderWpsReportPage } from "./template";
  * naturally with the placeholder "-" last, and details by Jenis then thickness,
  * width and length.
  *
- * The parameter is a single as-of date, so the body takes `{ tgl }`.
+ * The parameter is a single as-of date, so the body takes `{ tglAkhir }`.
  */
 
-const CATEGORY_ORDER = ["ST", "S4S", "FJ", "MLD", "LMT", "CCAKHIR", "SAND", "BJADI"] as const;
+const CATEGORY_ORDER = [
+  "ST",
+  "S4S",
+  "FJ",
+  "MLD",
+  "LMT",
+  "CCAKHIR",
+  "SAND",
+  "BJADI",
+] as const;
 
 const CATEGORY_LABELS: Record<string, string> = {
   ST: "ST",
@@ -42,9 +55,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   MLD: "Moulding",
 };
 
-const paramsSchema = z.object({
-  tgl: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal harus YYYY-MM-DD"),
-});
+const paramsSchema = singleDateParamsSchema;
 
 interface SpkRow extends Record<string, unknown> {
   Kategori: unknown;
@@ -191,7 +202,8 @@ export function buildStockHidupData(rows: SpkRow[]): StockHidupData {
 
     for (const spk of orderedSpks) {
       spk.rows.sort((left, right) => {
-        if (left.jenis !== right.jenis) return left.jenis < right.jenis ? -1 : 1;
+        if (left.jenis !== right.jenis)
+          return left.jenis < right.jenis ? -1 : 1;
         for (const field of ["tebal", "lebar", "panjang"] as const) {
           const diff = (left[field] ?? 0) - (right[field] ?? 0);
           if (diff !== 0) return diff;
@@ -303,9 +315,9 @@ const renderSummary = (data: StockHidupData): string => {
   return `<div class="summary-title">Rangkuman</div>
   <ul class="summary-list">
     ${lines.join("\n    ")}
-    <li class="grand-total"><span>Grand Total</span><span class="number">${escapeHtml(fmtTotal(data.summary.grandTotal))}</span></li>
-  </ul>`;
+    </ul>`;
 };
+//<li class="grand-total"><span>Grand Total</span><span class="number">${escapeHtml(fmtTotal(data.summary.grandTotal))}</span></li>
 
 interface StockHidupSpec {
   type: string;
@@ -317,7 +329,7 @@ interface StockHidupSpec {
 /** Shared factory for the two "Stock Hidup Per No SPK" reports. */
 export function createStockHidupPerNoSpkReport(
   spec: StockHidupSpec,
-): ReportDefinition<{ tgl: string }, StockHidupData> {
+): ReportDefinition<SingleDateParams, StockHidupData> {
   return {
     type: spec.type,
     title: spec.title,
@@ -327,13 +339,13 @@ export function createStockHidupPerNoSpkReport(
       const conn = await pool;
       const result = await conn
         .request()
-        .input("TglAkhir", sql.Date, params.tgl)
+        .input("TglAkhir", sql.Date, params.tglAkhir)
         .input("UsingMode", sql.TinyInt, spec.usingMode)
         .execute("SP_LapSemuaStockHidupPerSPK");
       return buildStockHidupData((result.recordset ?? []) as SpkRow[]);
     },
 
-    render(data, meta: RenderMeta<{ tgl: string }>) {
+    render(data, meta: RenderMeta<SingleDateParams>) {
       const bodyHtml =
         data.categories.length > 0
           ? `${data.categories.map(renderCategoryTable).join("\n  ")}
@@ -342,7 +354,7 @@ export function createStockHidupPerNoSpkReport(
 
       return renderWpsReportPage({
         title: spec.title,
-        subtitle: `Per Tanggal : ${formatTanggalId(meta.params.tgl)}`,
+        subtitle: `Per Tanggal : ${formatTanggalId(meta.params.tglAkhir)}`,
         bodyHtml,
         style: "stock_hidup_per_nospk",
         printedBy: meta.requestedBy,
@@ -358,8 +370,9 @@ export const stockHidupPerNoSpkReport = createStockHidupPerNoSpkReport({
   usingMode: 3,
 });
 
-export const stockHidupPerNoSpkDiscrepancyReport = createStockHidupPerNoSpkReport({
-  type: "stock-hidup-per-nospk-discrepancy",
-  title: "Laporan Stock Hidup Per No SPK (Discrepancy)",
-  usingMode: 1,
-});
+export const stockHidupPerNoSpkDiscrepancyReport =
+  createStockHidupPerNoSpkReport({
+    type: "stock-hidup-per-nospk-discrepancy",
+    title: "Laporan Stock Hidup Per No SPK (Discrepancy)",
+    usingMode: 1,
+  });
