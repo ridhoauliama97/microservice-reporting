@@ -20,9 +20,11 @@ import { buildEmptyTableRow, renderWpsReportPage } from "./template";
  *
  * Kayu Bulat and Sawn Timber can be compacted: past a thousand rows the
  * document-number column is dropped and the remaining size columns are grouped,
- * summing pieces and volume. That matters in practice - Sawn Timber returns
- * 8,477 rows for August 2026, so it is always compacted in practice, while
- * Kayu Bulat's 216 rows are not. The note above the table says so and gives the
+ * summing pieces and volume. That is opt-in per request (`compact: true`) and
+ * off by default, so every detail is shown. It matters in practice - Sawn Timber
+ * returns 8,477 rows for August 2026 and 16,957 for a quarter, which is 142 and
+ * roughly 290 pages of table on its own - so long periods are better requested
+ * compacted. The note above the table says when it happened and gives the
  * before/after row counts.
  *
  * Sections may be selected via an optional `sections` array; anything invalid
@@ -34,7 +36,10 @@ interface SectionDefinition {
   label: string;
   spName: string;
   columns: readonly string[];
-  /** Present only where the section may be compacted; excludes the id column. */
+  /**
+   * Present only where the section may be compacted; excludes the id column.
+   * Compaction is opt-in per request via the `compact` parameter.
+   */
   compactColumns?: readonly string[];
   idColumn: string;
   valueColumn: string;
@@ -59,6 +64,10 @@ const SECTION_DEFINITIONS: readonly SectionDefinition[] = [
     label: "Sawn Timber",
     spName: "SPWps_LapRekapStockOnHand_SubST",
     columns: ["NoST", "Jenis", "Tebal", "Lebar", "Panjang", "JmlhBatang", "Ton"],
+    // Compaction defined but not enabled by default: this section is why the
+    // report is large - 8,477 rows for August 2026 - and folding it by size
+    // drops the No ST column, which is the column the section exists to show.
+    // Callers can opt in per request with `compact: true`.
     compactColumns: ["Jenis", "Tebal", "Lebar", "Panjang", "JmlhBatang", "Ton"],
     idColumn: "NoST",
     valueColumn: "Ton",
@@ -93,7 +102,6 @@ const SECTION_DEFINITIONS: readonly SectionDefinition[] = [
 
 const SECTION_KEYS = SECTION_DEFINITIONS.map((section) => section.key);
 const COMPACT_THRESHOLD = 1000;
-
 /** Column headers shortened for the report, as the legacy blade remaps them. */
 const HEADER_LABELS: Record<string, string> = {
   NoKayuBulat: "No KB",
@@ -118,6 +126,13 @@ const SIZE_COLUMNS = ["Tebal", "Lebar", "Panjang"];
 const paramsSchema = periodParamsSchema.extend({
   /** Optional filter; unknown keys are ignored and an empty pick means all ten. */
   sections: z.array(z.string()).optional(),
+  /**
+   * Fold the compactable sections (Kayu Bulat, Sawn Timber) by size once they
+   * pass a thousand rows, which drops their document-number column. Off by
+   * default so every detail is shown; turn it on for long periods, where the
+   * full detail runs to hundreds of pages.
+   */
+  compact: z.boolean().optional(),
 });
 
 interface SectionData {
@@ -169,8 +184,13 @@ const fmt0 = (value: unknown): string =>
 function buildDisplayRows(
   definition: SectionDefinition,
   rows: Array<Record<string, unknown>>,
+  compactEnabled: boolean,
 ): { columns: string[]; rows: Array<Record<string, unknown>>; isCompacted: boolean } {
-  if (!definition.compactColumns || rows.length <= COMPACT_THRESHOLD) {
+  if (
+    !compactEnabled ||
+    !definition.compactColumns ||
+    rows.length <= COMPACT_THRESHOLD
+  ) {
     return { columns: [...definition.columns], rows, isCompacted: false };
   }
 
@@ -208,6 +228,7 @@ function buildDisplayRows(
 export function buildSectionData(
   definition: SectionDefinition,
   rows: Array<Record<string, unknown>>,
+  compactEnabled = false,
 ): SectionData {
   let totalValue = 0;
   let totalPcs = 0;
@@ -220,7 +241,7 @@ export function buildSectionData(
     if (documentNo !== "") documents.add(documentNo);
   }
 
-  const display = buildDisplayRows(definition, rows);
+  const display = buildDisplayRows(definition, rows, compactEnabled);
   return {
     key: definition.key,
     label: definition.label,
@@ -266,7 +287,7 @@ export const rekapStockOnHandReport: ReportDefinition<
     );
 
     const sections = definitions.map((definition, index) =>
-      buildSectionData(definition, rowSets[index]!),
+      buildSectionData(definition, rowSets[index]!, params.compact === true),
     );
 
     return {

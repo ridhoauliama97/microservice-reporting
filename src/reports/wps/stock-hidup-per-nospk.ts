@@ -275,31 +275,37 @@ const renderCategoryTable = (category: Category): string => {
   </table>`;
 };
 
-const renderSummary = (data: StockHidupData): string => `<div class="summary-title">Rangkuman</div>
-  <table class="summary-table">
-    <tbody>
-      <tr>
-        <td>Total No SPK</td>
-        <td class="number">${escapeHtml(formatNumber(data.summary.totalSpk, 0))}</td>
-      </tr>
-      <tr>
-        <td>Total Kategori</td>
-        <td class="number">${escapeHtml(formatNumber(data.summary.totalCategories, 0))}</td>
-      </tr>
-      ${data.categories
-        .map(
-          (category) => `<tr>
-        <td>Total ${escapeHtml(category.label)}</td>
-        <td class="number">${escapeHtml(fmtTotal(category.total))}</td>
-      </tr>`,
-        )
-        .join("\n      ")}
-      <tr class="totals-row">
-        <td>Grand Total (m3)</td>
-        <td class="number">${escapeHtml(fmtTotal(data.summary.grandTotal))}</td>
-      </tr>
-    </tbody>
-  </table>`;
+/**
+ * The Rangkuman is a list rather than a two-column table. A rule is drawn under
+ * the last per-category line so the Grand Total reads as a separate total, and
+ * the unit is dropped from that label - the figures above it are a mix of Ton and
+ * m3 across the report, so "(m3)" was misleading anyway.
+ */
+const renderSummary = (data: StockHidupData): string => {
+  const lines = [
+    `<li><span>Total No SPK</span><span class="number">${escapeHtml(formatNumber(data.summary.totalSpk, 0))}</span></li>`,
+    `<li><span>Total Kategori</span><span class="number">${escapeHtml(formatNumber(data.summary.totalCategories, 0))}</span></li>`,
+    ...data.categories.map(
+      (category) =>
+        `<li><span>Total ${escapeHtml(category.label)}</span><span class="number">${escapeHtml(fmtTotal(category.total))}</span></li>`,
+    ),
+  ];
+
+  // A rule under the last per-category line, so the grand total below it reads
+  // as a separate figure rather than another category.
+  if (lines.length > 0) {
+    lines[lines.length - 1] = lines[lines.length - 1]!.replace(
+      "<li>",
+      '<li class="summary-last">',
+    );
+  }
+
+  return `<div class="summary-title">Rangkuman</div>
+  <ul class="summary-list">
+    ${lines.join("\n    ")}
+    <li class="grand-total"><span>Grand Total</span><span class="number">${escapeHtml(fmtTotal(data.summary.grandTotal))}</span></li>
+  </ul>`;
+};
 
 interface StockHidupSpec {
   type: string;

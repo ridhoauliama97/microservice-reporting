@@ -590,8 +590,19 @@ const STOCK_HIDUP_PER_NOSPK_CSS = `
   .report-table thead tr.headers-row th { white-space: normal; line-height: 1.15; padding: 3px 3px; }
   .report-table tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
   .report-table tbody tr.totals-row td { font-weight: bold; border-top: 1px solid #000 !important; background: #fff !important; }
-  .summary-table { width: 34%; border-collapse: collapse; margin-top: 4px; }
-  .summary-table td { padding: 2px 4px; }
+  .summary-list {
+    list-style: none; margin: 4px 0 0 0; padding: 0; width: 34%;
+    /* Keep the list whole: a split left the Grand Total stranded alone on an
+       otherwise blank page. */
+    break-inside: avoid; page-break-inside: avoid;
+  }
+  .summary-list li {
+    display: flex; justify-content: space-between; gap: 12px;
+    padding: 2px 4px; border-bottom: 1px solid transparent;
+  }
+  .summary-list li.summary-last { border-bottom: 1px solid #000; }
+  .summary-list li.grand-total { font-weight: bold; }
+  .summary-list li .number { text-align: right; white-space: nowrap; }
 `;
 
 const PRODUKSI_SEMUA_MESIN_CSS = `
