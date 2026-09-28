@@ -496,6 +496,17 @@ const FLOW_PRODUKSI_PER_PERIODE_CSS = `
   .summary-table td { border: 0 !important; padding: 2px 6px 2px 0; }
 `;
 
+const HASIL_PRODUKSI_MESIN_LEMBUR_CSS = `
+  .report-table { font-size: 10px; }
+  .report-table thead tr th { white-space: normal; line-height: 1.15; padding: 3px 4px; }
+  .report-table tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
+  .report-table tbody tr.total-row td { font-weight: bold; border-top: 1px solid #000 !important; background: #fff !important; }
+  .report-table tbody tr.date-group-start td { border-top: 1px solid #000 !important; }
+  .report-table tbody tr:first-child.date-group-start td { border-top: 0 !important; }
+  .page-break-before { break-before: page; page-break-before: always; }
+  .rangkuman-title { text-align: center; margin: 0 0 8px 0; font-size: 14px; font-weight: bold; }
+`;
+
 const PRODUKSI_HULU_HILIR_CSS = `
   .report-table.hulu-hilur { table-layout: fixed; width: 100%; }
   .report-table.hulu-hilur { font-size: 8px; }
@@ -777,6 +788,7 @@ const WPS_REPORT_STYLES = {
   flow_produksi_per_periode: FLOW_PRODUKSI_PER_PERIODE_CSS,
   label_perhari: LABEL_PERHARI_CSS,
   produksi_hulu_hilur: PRODUKSI_HULU_HILIR_CSS,
+  hasil_produksi_mesin_lembur: HASIL_PRODUKSI_MESIN_LEMBUR_CSS,
   mutasi_barang_jadi_per_jenis_per_ukuran: MUTASI_BARANG_JADI_PER_JENIS_PER_UKURAN_CSS,
   mutasi_barang_jadi: MUTASI_BARANG_JADI_CSS,
   mutasi_cross_cut_akhir: MUTASI_CROSS_CUT_AKHIR_CSS,

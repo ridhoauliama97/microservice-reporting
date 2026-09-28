@@ -12,6 +12,7 @@ import { dashboardFingerJointReport } from './wps/dashboard-finger-joint'
 import { dashboardLaminatingReport } from './wps/dashboard-laminating'
 import { dashboardMouldingReport } from './wps/dashboard-moulding'
 import { flowProduksiPerPeriodeReport } from './wps/flow-produksi-per-periode'
+import { hasilProduksiMesinLemburReport } from './wps/hasil-produksi-mesin-lembur'
 import { labelPerhariReport } from './wps/label-perhari'
 import { produksiHuluHilirReport } from './wps/produksi-hulu-hilir'
 import { laminatingHidupDetailReport } from './wps/laminating-hidup-detail'
@@ -104,6 +105,7 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'dashboard-laminating': dashboardLaminatingReport,
   'dashboard-moulding': dashboardMouldingReport,
   'flow-produksi-per-periode': flowProduksiPerPeriodeReport,
+  'hasil-produksi-mesin-lembur-dan-non-lembur': hasilProduksiMesinLemburReport,
   'label-perhari': labelPerhariReport,
   'produksi-hulu-hilir': produksiHuluHilirReport,
   'laminating-hidup-detail': laminatingHidupDetailReport,
