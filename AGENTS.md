@@ -10,7 +10,7 @@ Instruksi kerja untuk Code Agent. Baca **seluruh file ini** sebelum mengubah apa
 2. **Jangan berasumsi.** Kalau ada hal penting yang tidak dijelaskan di file ini, **berhenti dan tanya user** (satu pertanyaan ringkas). Jangan menebak nama tabel, stored procedure, atau kolom database.
 3. **Jangan menambah package** di luar daftar di bagian 3. Kalau terpaksa perlu, tanya dulu.
 4. **Jangan menjalankan perintah destruktif**: `rm -rf`, `docker system prune`, `docker compose down -v`, `git reset --hard`, `git push --force`.
-5. **Jangan commit atau push** kecuali user meminta.
+5. **Jangan commit atau push** kecuali user meminta. Semua pekerjaan harian (laporan baru, ubah kode, testing, cari bug) dilakukan di branch `development`, bukan `main` (bagian 11a).
 6. **Jangan pernah** menulis secret asli (password, `JWT_SECRET`) ke file yang masuk Git. Hanya `.env.example` dengan nilai contoh.
 7. Bahasa:
    - Balasan ke user: **Bahasa Indonesia**, santai, singkat.
@@ -705,6 +705,25 @@ Catatan Docker yang **wajib dipahami**:
 - `.env` harus ada di folder proyek sebelum `docker compose up`.
 - Gotenberg dan Redis tidak dipublikasikan ke host di compose produksi; hanya `api` yang terbuka.
 - Jika Gotenberg gagal start, cek `docker compose logs gotenberg` (kemungkinan flag tidak dikenali oleh versi image).
+
+---
+
+## 11a. Konvensi Branch
+
+Dua branch, dua tujuan. Ditetapkan user, berlaku untuk semua sesi.
+
+| Branch | Isi | Siapa yang boleh commit |
+| --- | --- | --- |
+| `main` | **Hanya rilis.** Hanya berisi software yang sudah dianggap stabil oleh user. | **Tidak boleh.** Tidak ada fitur, perbaikan, atau laporan baru yang masuk ke sini. |
+| `development` | Arena kerja harian: laporan baru, ubah kode, cari bug, testing. | Ya, tempat semua commit harian. |
+
+Aturan praktis:
+
+- **Selalu kerjakan di `development`.** Sebelum mulai, `git status -sb` harus menunjukkan branch `development`. Kalau masih `main`, pindah dulu (`git checkout development`).
+- **Jangan pernah `git push` ke `main`.** Rilis ke `main` adalah keputusan user, bukan keputusan agent. Tetap tanyakan setiap kali, karena rilis ke `main` sulit dibatalkan.
+- Kalau `development` belum ada di remote, push sekali dengan `git push -u origin development` (hanya setelah user minta).
+- Commit harian tetap hanya boleh kalau user meminta (aturan 0.5) — memakai branch `development` tidak otomatis memberi izin commit.
+- Jangan pernah membuat branch lain (feature branch, hotfix, dan sejenisnya) tanpa diminta user.
 
 ---
 
