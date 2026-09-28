@@ -16,6 +16,16 @@ import { discrepancyRekapMutasiReport } from './wps/discrepancy-rekap-mutasi'
 import { flowProduksiPerPeriodeReport } from './wps/flow-produksi-per-periode'
 import { hasilProduksiMesinLemburReport } from './wps/hasil-produksi-mesin-lembur'
 import { labelPerhariReport } from './wps/label-perhari'
+import { penjualanLokalReport } from './wps/penjualan-lokal'
+import { rekapPenjualanPerProdukReport } from './wps/rekap-penjualan-per-produk'
+import {
+  rekapPenjualanEksporPerBuyerPerProdukReport,
+  rekapPenjualanEksporPerProdukPerBuyerReport,
+} from './wps/rekap-penjualan-ekspor'
+import { timelineRekapPenjualanPerProdukReport } from './wps/timeline-rekap-penjualan-per-produk'
+import { koordinatTanahReport } from './wps/koordinat-tanah'
+import { penjualanBarangJadiM3Report } from './wps/penjualan-barang-jadi-m3'
+import { suratJalanReport } from './wps/surat-jalan'
 import { produksiHuluHilirReport } from './wps/produksi-hulu-hilir'
 import { produksiSemuaMesinReport } from './wps/produksi-semua-mesin'
 import { rekapMutasiReport } from './wps/rekap-mutasi'
@@ -119,6 +129,17 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'flow-produksi-per-periode': flowProduksiPerPeriodeReport,
   'hasil-produksi-mesin-lembur-dan-non-lembur': hasilProduksiMesinLemburReport,
   'label-perhari': labelPerhariReport,
+  'penjualan-lokal': penjualanLokalReport,
+  'rekap-penjualan-per-produk': rekapPenjualanPerProdukReport,
+  'rekap-penjualan-ekspor-per-produk-per-buyer':
+    rekapPenjualanEksporPerProdukPerBuyerReport,
+  'rekap-penjualan-ekspor-per-buyer-per-produk':
+    rekapPenjualanEksporPerBuyerPerProdukReport,
+  'timeline-rekap-penjualan-per-produk':
+    timelineRekapPenjualanPerProdukReport,
+  'koordinat-tanah': koordinatTanahReport,
+  'penjualan-barang-jadi-m3': penjualanBarangJadiM3Report,
+  'surat-jalan': suratJalanReport,
   'produksi-hulu-hilir': produksiHuluHilirReport,
   'produksi-semua-mesin': produksiSemuaMesinReport,
   'rekap-mutasi': rekapMutasiReport,

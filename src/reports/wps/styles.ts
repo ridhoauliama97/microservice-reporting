@@ -626,6 +626,174 @@ const PRODUKSI_HULU_HILIR_CSS = `
   .report-table.hulu-hilur .output-below-target { color: #c00000; font-weight: bold; font-style: italic; }
 `;
 
+// Koordinat Tanah: a two-column header block above three stacked tables.
+const KOORDINAT_TANAH_CSS = `
+  .meta-grid { width: 100%; margin-bottom: 10px; }
+  .meta-grid td { border: 0 !important; padding: 2px 6px 2px 0; vertical-align: top; }
+  .meta-grid table { width: 100%; border-collapse: collapse; }
+  .meta-label { width: 68px; white-space: nowrap; }
+  .meta-sep { width: 10px; text-align: center; }
+  .section-title { margin: 10px 0 6px 0; font-size: 12px; font-weight: bold; }
+  .report-table { margin-bottom: 10px; }
+  .report-table thead tr th { padding: 2px 3px; font-size: 10px; white-space: normal; line-height: 1.15; }
+  .report-table tbody tr.totals-row td { background: #fff !important; font-weight: bold; border-top: 1px solid #000 !important; }
+  .ringkasan { margin-top: 8px; font-size: 11px; font-weight: bold; }
+`;
+
+// Penjualan Barang Jadi (m3): a header block, then a table per Jenis Kayu each
+// followed by its own right-aligned total block.
+const PENJUALAN_BARANG_JADI_M3_CSS = `
+  .meta-grid { width: 100%; margin-bottom: 10px; }
+  .meta-grid td { border: 0 !important; padding: 2px 6px 2px 0; vertical-align: top; }
+  .meta-grid table { width: 100%; border-collapse: collapse; }
+  .meta-label { width: 68px; white-space: nowrap; }
+  .meta-sep { width: 10px; text-align: center; }
+  .section-title { margin: 10px 0 4px 0; font-size: 12px; font-weight: bold; }
+  .report-table thead tr th { padding: 2px 3px; font-size: 10px; white-space: normal; line-height: 1.15; }
+  .report-table td.number { white-space: nowrap; }
+  .total-line { width: 240px; margin: 0 0 12px auto; border-collapse: collapse; }
+  .total-line td { border: 0; padding: 1px 4px; vertical-align: top; }
+  .total-line .total-label { text-align: right; white-space: nowrap; }
+  .total-line .total-value { text-align: right; white-space: nowrap; font-weight: bold; font-family: Calibri, "DejaVu Sans", sans-serif; }
+  .total-line.grand-total { margin-top: 6px; margin-bottom: 0; }
+`;
+
+// Surat Jalan is a delivery note, not a report: an all-caps centred title, the
+// consignee block on the left and the document block on the right, then the logs
+// and a six-column signature block carried in the page footer.
+const SURAT_JALAN_CSS = `
+  .report-title { display: none; }
+  .document-title { margin: 0 0 10px; text-align: center; font-size: 18px; font-weight: bold; }
+  .header-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+  .header-table td { border: 0; padding: 0; vertical-align: top; }
+  .recipient-name { margin-top: 2px; font-size: 16px; font-weight: bold; }
+  .vehicle { margin-top: 8px; }
+  .meta-table { width: auto; border-collapse: collapse; margin-left: auto; }
+  .meta-table td { border: 0; padding: 1px 0; }
+  .meta-date { text-align: right; }
+  .meta-table .meta-label { width: 112px; white-space: nowrap; text-align: right; }
+  .meta-table .meta-sep { width: 12px; text-align: center; }
+  .meta-table .meta-value { min-width: 170px; text-align: right; }
+  /* Breathing room between the rule that closes the header block and the table
+     below it. */
+  .top-line { border-top: 1px solid #000; margin-bottom: 14px; }
+  .report-table { margin-bottom: 26px; }
+  .report-table thead tr th { padding: 2px 3px; font-size: 9px; white-space: normal; line-height: 1.15; }
+  .report-table td.nowrap, .report-table th { white-space: nowrap; }
+  .report-table td.number { white-space: nowrap; }
+  /* A rule above the first row of each new delivery date. */
+  .report-table tbody tr.date-separator td { border-top: 2px solid #000 !important; }
+  .report-table tbody tr.totals-row td { background: #fff !important; font-weight: bold; border-top: 1px solid #000 !important; }
+  /* The signature block is part of the body, so it can use normal flow. */
+  .signature-top-line { border-top: 1px solid #000; margin-bottom: 8px; }
+  .signature-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-bottom: 6px; }
+  .signature-table td { border: 0; padding: 0 2px; vertical-align: top; text-align: center; background: transparent; }
+  .signature-label { font-weight: normal; text-align: center; margin: 0; }
+  .signature-space td { height: 40px; }
+  .signature-line { font-family: "Courier New", monospace; font-size: 11px; }
+`;
+
+// Timeline Rekap Penjualan Per-Produk. The month columns are generated, so the
+// table is sized for up to fourteen of them (the legacy blade's 3.5% floor on
+// 52% of the page width) and stays in portrait to match.
+const TIMELINE_PENJUALAN_CSS = `
+  body { font-size: 10px; line-height: 1.15; }
+  .summary-title { margin: 14px 0 4px 0; font-size: 11px; font-weight: bold; }
+  .report-table.detail-table, .report-table.summary-table { margin-bottom: 14px; }
+  /* Column widths are emitted inline by the report: under table-layout:fixed a
+     set of declared percentages that does not add up to 100 is scaled up
+     proportionally, so the leftover cannot be left to the month columns here. */
+  /* Legacy border model: outer box on the table, cells add only a left rule,
+     and the first cell of each row has none so the box is not doubled. */
+  .report-table { border: 1px solid #000; }
+  .report-table th, .report-table td { border: 0; border-left: 1px solid #000; padding: 2px 4px; vertical-align: middle; }
+  .report-table th:first-child, .report-table td:first-child { border-left: 0; }
+  /* Close the right-hand side of each row too. Relying on the table's own
+     border left the last column looking open where a cell background (zebra,
+     or the product-name whiteout) met it. */
+  .report-table th:last-child, .report-table td:last-child { border-right: 1px solid #000; }
+  .report-table th[colspan] { border-right: 1px solid #000; }
+  /* Headings stay on one line. They used to be allowed to wrap, which split
+     "Sub Total" over two rows; the column widths are now sized from the widest
+     heading, so there is room without wrapping. */
+  .report-table th { border-bottom: 1px solid #000; white-space: nowrap; }
+  .report-table tbody td { border-top: 0; border-bottom: 0; }
+  .report-table td.number { white-space: nowrap; }
+  /* The product name sits on one middle row of its block, so its cell is
+     whited out: the zebra would otherwise stripe the name's row only. */
+  .report-table td.product-name-cell { background: #fff !important; text-align: center !important; }
+  /* The total row sits on a white band with a rule above it. Each cell carries
+     its own top border so the line runs the full width, including under the
+     last column, which a single colspan'd cell would have left open. */
+  .report-table tbody tr.totals-row td { font-weight: bold; border-top: 1px solid #000 !important; background: #fff !important; }
+  .report-table tbody tr.product-divider td { border-top: 1px solid #000 !important; }
+  .report-table.detail-table { width: 100%; }
+  .report-table.summary-table { width: 92%; }
+`;
+
+// Rekap Penjualan (Per-Produk, Per-Produk & Per-Buyer, Per-Buyer & Per-Produk).
+// The three blades are the same stylesheet, so they share one preset; the inner
+// section title is called .group-title because the legacy class name flipped
+// between the two export reports (buyer-title / product-title) for no reason.
+const REKAP_PENJUALAN_CSS = `
+  body { font-size: 10px; line-height: 1.15; }
+  .section-title { margin: 8px 0 4px 0; font-size: 11px; font-weight: bold; }
+  .summary-title { margin: 14px 0 4px 0; font-size: 11px; font-weight: bold; }
+
+  /* Legacy border model: the table carries the outer box and each cell adds a
+     LEFT rule, so the column separators run the full height. Only the first
+     cell of a row drops its left rule, otherwise the outer box is doubled.
+     An earlier version zeroed border-left on EVERY header and total-row cell,
+     which left those two bands with no column separators at all. */
+  .report-table { border: 1px solid #000; }
+  .report-table th, .report-table td { border: 0; border-left: 1px solid #000; padding: 2px 4px; vertical-align: middle; }
+  .report-table th:first-child, .report-table td:first-child { border-left: 0; }
+  /* The header closes with a rule underneath and keeps its column separators. */
+  .report-table thead th { border-bottom: 1px solid #000; font-size: 11px; }
+  .report-table tbody td { border-top: 0; border-bottom: 0; }
+  .report-table td.number { white-space: nowrap; }
+  /* The total row sits on a white band with a rule above it, again keeping the
+     column separators so it reads as part of the grid. */
+  .report-table tbody tr.totals-row td { background: #fff !important; font-weight: bold; border-top: 1px solid #000 !important; }
+
+  /* The two export reports nest a table under each Buyer/Produk heading; the
+     table and the heading share one left edge so the two line up. */
+  .group-title { margin: 8px 0 4px 18px; font-size: 10px; font-weight: bold; }
+  .report-table.product-table.indented-table { margin-left: 18px; width: calc(100% - 18px); }
+
+  .report-table.summary-table { width: 70%; margin-top: 4px; }
+  .report-table.summary-table td, .report-table.summary-table th { padding: 2px 4px; }
+
+  /* Per-Produk's Rangkuman is a bordered four-column table of its own. */
+  table.summary-table { width: 62%; border-collapse: collapse; margin-top: 4px; }
+  table.summary-table th, table.summary-table td { border: 1px solid #000; padding: 2px 5px; }
+  table.summary-table th { background: #fff; font-size: 11px; }
+  table.summary-table td.number { white-space: nowrap; }
+  table.summary-table tr.totals-row td { background: #fff !important; font-weight: bold; font-size: 11px; }
+  table.summary-table tr.totals-row td.grand-label { text-align: right; }
+`;
+
+// Penjualan Lokal keeps full cell borders on every side (its blade does not use
+// the shared "vertical separators only" data-row pattern), so it only needs the
+// section-total and grand-total lines aligned under the table.
+const PENJUALAN_LOKAL_CSS = `
+  .section-title { margin: 12px 0 4px 0; font-size: 12px; font-weight: bold; }
+  /* Both total lines span the full table width and carry the same 4px right
+     padding as a data cell, so their figures end on exactly the same right edge
+     as the Ton column. At the legacy's 97% width they stopped 13pt short of the
+     table; at a full width with no padding they overshot the cells by the cell
+     padding. */
+  .section-total {
+    box-sizing: border-box; width: 100%; padding-right: 4px; margin: 6px 0 2px 0;
+    text-align: right; font-weight: bold; white-space: nowrap;
+  }
+  .grand-total {
+    box-sizing: border-box; width: 100%; padding-right: 4px; margin: 2px 0 0 0;
+    text-align: right; font-weight: bold; white-space: nowrap;
+  }
+  .report-table.penjualan-lokal-section td.number { white-space: nowrap; }
+`;
+
 const LABEL_PERHARI_CSS = `
   .section-title { margin: 10px 0 4px 0; font-size: 12px; font-weight: bold; }
   .report-table { font-size: 10px; }
@@ -722,9 +890,9 @@ const SALDO_BARANG_JADI_HIDUP_PER_JENIS_PER_PRODUK_CSS = `
   .report-table tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
   .report-table tbody tr.totals-row td { background: #fff !important; font-weight: bold; font-size: 11px; border-top: 1px solid #000; border-right: 1px solid #000; border-bottom: 0; border-left: 0; }
   .report-table tbody tr.totals-row td.blank { text-align: center; }
-  /* Summary "Total (M3) Per-Jenis" sits flush left, aligned with the
-     "JABON" section title (only the product tables are indented) and has no
-     border. */
+  /* Summary "Total (m3) Per-Jenis" sits flush left, aligned with the
+    "JABON" section title (only the product tables are indented) and has no
+    border. */
   .report-table-summary { margin-left: 0; margin-top: 4px; border-collapse: collapse; border-spacing: 0; border: 0; }
   .report-table-summary td { padding: 1px 4px; border: 0 !important; }
   .report-table-summary tbody tr.totals-row td { background: #fff !important; font-weight: bold; font-size: 11px; border: 0 !important; }
@@ -898,6 +1066,12 @@ const WPS_REPORT_STYLES = {
   mutasi_moulding: MUTASI_MOULDING_CSS,
   flow_produksi_per_periode: FLOW_PRODUKSI_PER_PERIODE_CSS,
   label_perhari: LABEL_PERHARI_CSS,
+  penjualan_lokal: PENJUALAN_LOKAL_CSS,
+  rekap_penjualan: REKAP_PENJUALAN_CSS,
+  timeline_penjualan: TIMELINE_PENJUALAN_CSS,
+  koordinat_tanah: KOORDINAT_TANAH_CSS,
+  penjualan_barang_jadi_m3: PENJUALAN_BARANG_JADI_M3_CSS,
+  surat_jalan: SURAT_JALAN_CSS,
   produksi_hulu_hilur: PRODUKSI_HULU_HILIR_CSS,
   produksi_semua_mesin: PRODUKSI_SEMUA_MESIN_CSS,
   stock_hidup_per_nospk: STOCK_HIDUP_PER_NOSPK_CSS,
