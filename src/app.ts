@@ -16,7 +16,13 @@ import { registerHealthRoutes } from './routes/health'
 
 // OpenAPIHono (not plain Hono) so every HTTP route gets OpenAPI docs for free.
 // The defaultHook formats ALL Zod validation failures uniformly.
+//
+// `strict: false` (Hono defaults it to true) makes /reports and /reports/ the
+// same route. Strict mode treats a trailing slash as a distinct path, so
+// POST /reports/ returned 404 NOT_FOUND — which reads as a wrong path rather
+// than a punctuation detail, and Postman users add the slash by habit.
 export const app = new OpenAPIHono<AppEnv>({
+  strict: false,
   defaultHook: (result, c) => {
     if (!result.success) {
       return errorResponse(c, validationError(result.error.issues))
