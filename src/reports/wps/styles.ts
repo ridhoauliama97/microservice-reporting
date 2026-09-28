@@ -545,6 +545,14 @@ const DASHBOARD_RU_CSS = `
   .summary-table td { border: 0 !important; padding: 1px 4px; background: #fff !important; }
 `;
 
+const REKAP_MUTASI_CROSS_TAB_CSS = `
+  .report-table.cross-tab { font-size: 10px; table-layout: fixed; }
+  .report-table.cross-tab thead th { padding: 3px 3px; font-size: 10px; }
+  .report-table.cross-tab tbody td { padding: 2px 3px; }
+  .report-table.cross-tab tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
+  .stats-table { margin-top: 4px; margin-bottom: 8px; }
+`;
+
 const DISCREPANCY_REKAP_MUTASI_CSS = `
   .report-table { font-size: 10px; table-layout: fixed; }
   .report-table thead th { padding: 3px 3px; font-size: 10px; }
@@ -563,6 +571,15 @@ const HASIL_PRODUKSI_MESIN_LEMBUR_CSS = `
   .report-table tbody tr:first-child.date-group-start td { border-top: 0 !important; }
   .page-break-before { break-before: page; page-break-before: always; }
   .rangkuman-title { text-align: center; margin: 0 0 8px 0; font-size: 14px; font-weight: bold; }
+`;
+
+const PRODUKSI_SEMUA_MESIN_CSS = `
+  .report-table.semua-mesin { table-layout: fixed; font-size: 9px; }
+  .report-table.semua-mesin thead th { font-size: 9px; padding: 2px 2px; line-height: 1.1; }
+  .report-table.semua-mesin thead th[rowspan] { vertical-align: middle; }
+  .report-table.semua-mesin thead tr:last-child th { font-size: 8px; }
+  .report-table.semua-mesin tbody td { padding: 1px 2px; white-space: nowrap; }
+  .report-table.semua-mesin tbody tr.total-row td { font-weight: bold; border-top: 1px solid #000 !important; background: #fff !important; }
 `;
 
 const PRODUKSI_HULU_HILIR_CSS = `
@@ -850,8 +867,10 @@ const WPS_REPORT_STYLES = {
   flow_produksi_per_periode: FLOW_PRODUKSI_PER_PERIODE_CSS,
   label_perhari: LABEL_PERHARI_CSS,
   produksi_hulu_hilur: PRODUKSI_HULU_HILIR_CSS,
+  produksi_semua_mesin: PRODUKSI_SEMUA_MESIN_CSS,
   hasil_produksi_mesin_lembur: HASIL_PRODUKSI_MESIN_LEMBUR_CSS,
   discrepancy_rekap_mutasi: DISCREPANCY_REKAP_MUTASI_CSS,
+  rekap_mutasi_cross_tab: REKAP_MUTASI_CROSS_TAB_CSS,
   dashboard_ru: DASHBOARD_RU_CSS,
   rekap_mutasi: REKAP_MUTASI_CSS,
   mutasi_barang_jadi_per_jenis_per_ukuran:

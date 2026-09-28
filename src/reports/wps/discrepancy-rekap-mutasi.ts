@@ -1,12 +1,16 @@
 import sql from "mssql";
-import {
-  escapeHtml,
-  formatNumber,
-  formatPrintedAt,
-  formatTanggalId,
-} from "../../templates/html";
+import { escapeHtml, formatPrintedAt, formatTanggalId } from "../../templates/html";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
 import type { ReportDefinition } from "../types";
+import {
+  buildDisplayHeader,
+  buildStatRows,
+  COLUMN_KEYS,
+  dayLabel,
+  metricCells,
+  readMetrics,
+  type Metrics,
+} from "./rekap-mutasi-shared";
 import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 
 /**
@@ -27,26 +31,6 @@ import { buildEmptyTableRow, renderWpsReportPage } from "./template";
  * displayed; only the ten product columns below are.
  */
 
-type Metrics = Record<string, number | null>;
-
-/** SP column -> header label, in display order. */
-const DISPLAY_COLUMNS: ReadonlyArray<readonly [string, string]> = [
-  ["KB", "Zero Kayu Bulat"],
-  ["KBKG", "Zero Kayu Bulat KG"],
-  ["ST", "Stock Sawn Timber"],
-  ["S4S", "Zero S4S"],
-  ["FJ", "Zero Finger Joint"],
-  ["MLD", "Zero Moulding"],
-  ["LMT", "Zero Laminating"],
-  ["CCAkhir", "Zero CCAkhir"],
-  ["SAND", "Zero Sanding"],
-  ["BJadi", "Zero Barang Jadi"],
-];
-
-const COLUMN_KEYS = DISPLAY_COLUMNS.map(([key]) => key);
-const COLUMN_LABELS = DISPLAY_COLUMNS.map(([, label]) => label);
-/** KBKG is head-count/weight, so it prints as a whole number. */
-const KG_COLUMN = "KBKG";
 
 interface MutasiV2Row extends Record<string, unknown> {
   Tanggal: unknown;
@@ -59,62 +43,8 @@ interface DiscrepancyData {
   statRows: Array<{ label: string; metrics: Metrics }>;
 }
 
-const toText = (value: unknown): string =>
-  value === null || value === undefined ? "" : String(value).trim();
-
-/**
- * Legacy toFloat: accepts numbers and numeric strings, and for strings
- * disambiguates "1.234,56" (European) from "1,234.56" (US) by looking at
- * which separator comes last.
- */
-const toFloat = (value: unknown): number | null => {
-  if (typeof value === "number") return Number.isFinite(value) ? value : null;
-  if (typeof value !== "string") return null;
-
-  let normalized = value.trim();
-  if (normalized === "") return null;
-  normalized = normalized.replace(/ /g, "");
-
-  const lastComma = normalized.lastIndexOf(",");
-  const lastDot = normalized.lastIndexOf(".");
-  if (lastComma !== -1 && lastDot !== -1) {
-    if (lastComma > lastDot) {
-      normalized = normalized.replace(/\./g, "").replace(/,/g, ".");
-    } else {
-      normalized = normalized.replace(/,/g, "");
-    }
-  } else if (lastComma !== -1) {
-    normalized = normalized.replace(/,/g, ".");
-  }
-
-  return Number.isFinite(Number(normalized)) ? Number(normalized) : null;
-};
-
 const formatTanggalPendek = (iso: string): string =>
   formatTanggalId(iso).replace(/\d{4}$/, (year) => year.slice(-2));
-
-/** Legacy $fmt: four decimals, no blank-at-zero. Null prints empty. */
-const fmt = (value: number | null): string =>
-  value === null ? "" : formatNumber(value, 4);
-
-const fmtKg = (value: number | null): string =>
-  value === null ? "" : formatNumber(value, 0);
-
-const formatMetric = (key: string, value: number | null): string =>
-  key === KG_COLUMN ? fmtKg(value) : fmt(value);
-
-/** "01".."31", from date('d', ...) in the legacy service. */
-const dayLabel = (value: unknown): string => {
-  if (value instanceof Date) return String(value.getDate()).padStart(2, "0");
-  const iso = /^(\d{4}-\d{2})-(\d{2})/.exec(toText(value));
-  return iso ? iso[2]! : "";
-};
-
-const readMetrics = (row: Record<string, unknown> | undefined): Metrics => {
-  const metrics: Metrics = {};
-  for (const key of COLUMN_KEYS) metrics[key] = toFloat(row?.[key]);
-  return metrics;
-};
 
 export function buildDiscrepancyData(
   nonSpkRaw: MutasiV2Row[],
@@ -127,28 +57,7 @@ export function buildDiscrepancyData(
   }));
 
   const berSpkRow = berSpkRaw.length > 0 ? readMetrics(berSpkRaw[0]) : null;
-
-  const statRows: DiscrepancyData["statRows"] =
-    statsRaw.length === 0
-      ? []
-      : (["Avg", "Min", "Max"] as const).map((label) => {
-          const metrics: Metrics = {};
-          for (const key of COLUMN_KEYS) {
-            const values = statsRaw
-              .map((row) => toFloat(row[key]))
-              .filter((value): value is number => value !== null);
-            if (values.length === 0) {
-              metrics[key] = null;
-            } else if (label === "Avg") {
-              metrics[key] = values.reduce((sum, value) => sum + value, 0) / values.length;
-            } else if (label === "Min") {
-              metrics[key] = Math.min(...values);
-            } else {
-              metrics[key] = Math.max(...values);
-            }
-          }
-          return { label, metrics };
-        });
+  const statRows = buildStatRows(statsRaw);
 
   // With stats rows available the total is simply the last stats row; only if
   // there are none does it fall back to adding the Ber-SPK snapshot onto the
@@ -166,22 +75,10 @@ export function buildDiscrepancyData(
   return { nonSpkRows, berSpkRow, totalRow, statRows };
 }
 
-const buildHeader = (): string => `<thead>
-      <tr class="headers-row">
-        <th style="width: 46px;"></th>
-        ${COLUMN_LABELS.map((label) => `<th>${escapeHtml(label)}</th>`).join("\n        ")}
-      </tr>
-    </thead>`;
-
-const metricCells = (metrics: Metrics): string =>
-  COLUMN_KEYS.map((key) => `<td class="number">${escapeHtml(formatMetric(key, metrics[key] ?? null))}</td>`).join(
-    "\n        ",
-  );
-
 /** One section table: header plus either its rows or the shared empty state. */
 const buildSectionTable = (bodyRows: string): string =>
   `<table class="report-table">
-    ${buildHeader()}
+    ${buildDisplayHeader("", "46px")}
     <tbody>
       ${bodyRows || buildEmptyTableRow(1 + COLUMN_KEYS.length)}
     </tbody>
@@ -251,7 +148,7 @@ export const discrepancyRekapMutasiReport: ReportDefinition<PeriodParams, Discre
       data.statRows.length > 0
         ? `<div class="section-title">Statistik Stock</div>
   <table class="report-table stats-table">
-    ${buildHeader()}
+    ${buildDisplayHeader("", "46px")}
     <tbody>
       ${statBody}
     </tbody>
