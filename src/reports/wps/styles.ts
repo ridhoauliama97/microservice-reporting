@@ -496,6 +496,15 @@ const FLOW_PRODUKSI_PER_PERIODE_CSS = `
   .summary-table td { border: 0 !important; padding: 2px 6px 2px 0; }
 `;
 
+const DISCREPANCY_REKAP_MUTASI_CSS = `
+  .report-table { font-size: 10px; table-layout: fixed; }
+  .report-table thead th { padding: 3px 3px; font-size: 10px; }
+  .report-table tbody td { padding: 2px 3px; }
+  .report-table tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
+  .report-table tbody tr.totals-row td { font-weight: bold; border-top: 1px solid #000 !important; background: #fff !important; }
+  .stats-table { margin-top: 4px; margin-bottom: 8px; }
+`;
+
 const HASIL_PRODUKSI_MESIN_LEMBUR_CSS = `
   .report-table { font-size: 10px; }
   .report-table thead tr th { white-space: normal; line-height: 1.15; padding: 3px 4px; }
@@ -789,6 +798,7 @@ const WPS_REPORT_STYLES = {
   label_perhari: LABEL_PERHARI_CSS,
   produksi_hulu_hilur: PRODUKSI_HULU_HILIR_CSS,
   hasil_produksi_mesin_lembur: HASIL_PRODUKSI_MESIN_LEMBUR_CSS,
+  discrepancy_rekap_mutasi: DISCREPANCY_REKAP_MUTASI_CSS,
   mutasi_barang_jadi_per_jenis_per_ukuran: MUTASI_BARANG_JADI_PER_JENIS_PER_UKURAN_CSS,
   mutasi_barang_jadi: MUTASI_BARANG_JADI_CSS,
   mutasi_cross_cut_akhir: MUTASI_CROSS_CUT_AKHIR_CSS,
