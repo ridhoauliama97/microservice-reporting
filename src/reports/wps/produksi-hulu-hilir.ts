@@ -251,12 +251,16 @@ const renderWpsReportPageOptions = (
   //
   // The No column is deliberately wider than the legacy 36px: with 15 machine
   // groups the px ratios are scaled down to roughly 1.6% of the page, which
-  // clipped the statistics labels to "Tot:", "Av:", "Mir" and "Ma:". 100px
+  // clipped the statistics labels to "Tot:", "Av:", "Mir" and "Ma:". 76px
   // still fits the two-digit day numbers but leaves room for "Total"/"Target".
-  const NO_WIDTH = 100;
-  const TBL_WIDTH = 42;
-  const OUTPUT_WIDTH = 52;
-  const REND_WIDTH = 54;
+  //
+  // Rend is the widest of the three sub-columns because it is the only one
+  // carrying a unit: "116.5%" needs more room than the two-digit thickness in
+  // Tbl, and at the previous ratio it ran through the column border.
+  const NO_WIDTH = 76;
+  const TBL_WIDTH = 40;
+  const OUTPUT_WIDTH = 54;
+  const REND_WIDTH = 62;
   const totalWidth = NO_WIDTH + data.columns.length * (TBL_WIDTH + OUTPUT_WIDTH + REND_WIDTH);
   const pct = (px: number): string => `${((px / totalWidth) * 100).toFixed(4)}%`;
 

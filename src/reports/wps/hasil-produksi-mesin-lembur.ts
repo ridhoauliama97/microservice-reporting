@@ -146,7 +146,9 @@ const formatTanggalPendek = (iso: string): string =>
 
 /** Legacy $fmtNumber: four decimals by default, blank at zero. */
 const fmt = (value: number | null, decimals = 4): string =>
-  value === null || Math.abs(value) < EPSILON ? "" : formatNumber(value, decimals);
+  value === null || Math.abs(value) < EPSILON
+    ? ""
+    : formatNumber(value, decimals);
 
 /** "Senin, 01-Agu-26", from the English day name the SP returns. */
 const formatTanggalDisplay = (iso: string, hari: string): string => {
@@ -192,14 +194,18 @@ export function buildLemburData(rows: LemburRow[]): LemburData {
   // Fixed machine order first, then anything the data introduces.
   const orderedNames = [
     ...MACHINE_ORDER.filter((name) => machines.has(name)),
-    ...[...machines].filter((name) => !(MACHINE_ORDER as readonly string[]).includes(name)),
+    ...[...machines].filter(
+      (name) => !(MACHINE_ORDER as readonly string[]).includes(name),
+    ),
   ];
   const orderOf = new Map(orderedNames.map((name, index) => [name, index]));
 
   // Legacy: date, then machine order, then shift.
   flat.sort((left, right) => {
-    if (left.tanggal !== right.tanggal) return left.tanggal < right.tanggal ? -1 : 1;
-    const byMachine = (orderOf.get(left.machine) ?? 0) - (orderOf.get(right.machine) ?? 0);
+    if (left.tanggal !== right.tanggal)
+      return left.tanggal < right.tanggal ? -1 : 1;
+    const byMachine =
+      (orderOf.get(left.machine) ?? 0) - (orderOf.get(right.machine) ?? 0);
     if (byMachine !== 0) return byMachine;
     if (left.shift !== right.shift) return left.shift < right.shift ? -1 : 1;
     return 0;
@@ -222,7 +228,8 @@ export function buildLemburData(rows: LemburRow[]): LemburData {
     }
     group.rows.push(entry);
   }
-  for (const [tanggal, group] of byDate) groupedRows.push({ tanggal, hari: group.hari, rows: group.rows });
+  for (const [tanggal, group] of byDate)
+    groupedRows.push({ tanggal, hari: group.hari, rows: group.rows });
 
   // Summary keyed by machine + unit number, with no date in the key, matching legacy.
   interface SumAcc {
@@ -270,7 +277,10 @@ export function buildLemburData(rows: LemburRow[]): LemburData {
     if (!orderedKeys.includes(key)) orderedKeys.push(key);
   }
 
-  const summaryRows: SummaryRow[] = orderedKeys.map((key) => ({ ...summaryMap.get(key)!, no: 0 }));
+  const summaryRows: SummaryRow[] = orderedKeys.map((key) => ({
+    ...summaryMap.get(key)!,
+    no: 0,
+  }));
   summaryRows.forEach((row, index) => {
     row.no = index + 1;
   });
@@ -284,7 +294,14 @@ export function buildLemburData(rows: LemburRow[]): LemburData {
       output: totals.output + row.output,
       outputLembur: totals.outputLembur + row.outputLembur,
     }),
-    { totalTk: 0, totalHm: 0, totalTkLembur: 0, totalHmLembur: 0, output: 0, outputLembur: 0 },
+    {
+      totalTk: 0,
+      totalHm: 0,
+      totalTkLembur: 0,
+      totalHmLembur: 0,
+      output: 0,
+      outputLembur: 0,
+    },
   );
 
   return { groupedRows, summaryRows, grandTotals };
@@ -300,14 +317,14 @@ export function buildLemburData(rows: LemburRow[]): LemburData {
  * columns, which only ever hold one or two digits.
  */
 const LEMBUR_COLUMN_WIDTHS = [
-  "18%",  // Tanggal / No
-  "20%",  // Nama Mesin
-  "7%",   // Normal TK
-  "7%",   // Normal HM
-  "17%",  // Normal mtr3
-  "7%",   // Lembur TK
-  "7%",   // Lembur HM
-  "17%",  // Lembur mtr3
+  "18%", // Tanggal / No
+  "20%", // Nama Mesin
+  "7%", // Normal TK
+  "7%", // Normal HM
+  "17%", // Normal mtr3
+  "7%", // Lembur TK
+  "7%", // Lembur HM
+  "17%", // Lembur mtr3
 ];
 
 const LEMBUR_COLGROUP = `<colgroup>
@@ -325,7 +342,10 @@ const SUB_HEADERS = `
         <th>HM</th>
         <th>mtr3</th>`;
 
-export const hasilProduksiMesinLemburReport: ReportDefinition<PeriodParams, LemburData> = {
+export const hasilProduksiMesinLemburReport: ReportDefinition<
+  PeriodParams,
+  LemburData
+> = {
   type: "hasil-produksi-mesin-lembur-dan-non-lembur",
   title: "Laporan Hasil Produksi Mesin Lembur Dan Non Lembur",
   paramsSchema: periodParamsSchema,
@@ -369,7 +389,10 @@ export const hasilProduksiMesinLemburReport: ReportDefinition<PeriodParams, Lemb
 
     const summaryBody = data.summaryRows
       .map(
-        (row, index) => `<tr class="${index % 2 === 0 ? "row-odd" : "row-even"}">
+        (
+          row,
+          index,
+        ) => `<tr class="${index % 2 === 0 ? "row-odd" : "row-even"}">
         <td class="center">${row.no}</td>
         <td>${escapeHtml(row.machine)}</td>
         <td class="center">${escapeHtml(fmt(row.totalTk, 0))}</td>

@@ -555,10 +555,12 @@ const HASIL_PRODUKSI_MESIN_LEMBUR_CSS = `
 
 const PRODUKSI_HULU_HILIR_CSS = `
   .report-table.hulu-hilur { table-layout: fixed; width: 100%; }
-  .report-table.hulu-hilur { font-size: 8px; }
-  .report-table.hulu-hilur thead th { font-size: 8px; padding: 2px 1px; line-height: 1.1; }
-  .report-table.hulu-hilur tbody td { padding: 1px 2px; white-space: nowrap; }
-  .report-table.hulu-hilur tbody tr.total-row td { font-weight: bold; border-top: 1px solid #000 !important; background: #fff !important; font-size: 8px; }
+  /* 45 columns on one landscape page: 7px keeps values such as "116.5%" inside
+     their borders. At 8px they overran the column edge. */
+  .report-table.hulu-hilur { font-size: 7px; }
+  .report-table.hulu-hilur thead th { font-size: 7px; padding: 2px 1px; line-height: 1.1; }
+  .report-table.hulu-hilur tbody td { padding: 1px; white-space: nowrap; }
+  .report-table.hulu-hilur tbody tr.total-row td { font-weight: bold; border-top: 1px solid #000 !important; background: #fff !important; font-size: 7px; }
   .report-table.hulu-hilur tbody tr.target-row td { font-weight: bold; border-top: 1px solid #000 !important; background: #fff !important; }
   .report-table.hulu-hilur .output-below-target { color: #c00000; font-weight: bold; font-style: italic; }
 `;
