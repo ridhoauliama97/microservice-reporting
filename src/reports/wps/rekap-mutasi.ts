@@ -804,8 +804,16 @@ export const rekapMutasiReport: ReportDefinition<PeriodParams, RekapMutasiData> 
           `<div class="section-title">${escapeHtml(section.title)}</div>`,
           renderMainTable(section),
         ];
-        if (section.inputTable) parts.push(renderInputTable(section.inputTable));
-        if (section.performance) parts.push(renderPerformance(section.performance));
+        // The input breakdown and the Input/Output/Rendemen summary are one
+        // visual unit under the main table, so they share a wrapper and
+        // therefore a left edge. They used to carry their own margins (8px on
+        // the summary, none on the input table) and drifted apart.
+        const detail: string[] = [];
+        if (section.inputTable) detail.push(renderInputTable(section.inputTable));
+        if (section.performance) detail.push(renderPerformance(section.performance));
+        if (detail.length > 0) {
+          parts.push(`<div class="section-detail">\n    ${detail.join("\n    ")}\n  </div>`);
+        }
         return parts.join("\n  ");
       })
       .join("\n  ");

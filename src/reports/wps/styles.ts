@@ -509,7 +509,11 @@ const REKAP_MUTASI_CSS = `
   .report-table tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
   .report-table tbody tr.totals-row td { font-weight: bold; border-top: 1px solid #000 !important; background: #fff !important; }
   .report-table.rekap-input { width: 62%; }
-  .performance-table { width: 28%; margin-top: 4px; margin-bottom: 10px; margin-left: 8px; border-collapse: collapse; }
+  /* One wrapper for the input breakdown and the Input/Output/Rendemen summary,
+     so both sit on the same left edge under the main table. */
+  .section-detail { margin-left: 10px; }
+  .section-detail > * { margin-left: 0; }
+  .performance-table { width: 28%; margin-top: 4px; margin-bottom: 10px; border-collapse: collapse; }
   .performance-table td { padding: 3px 6px; border: 1px solid #000; font-weight: bold; background: #fff !important; }
 `;
 
