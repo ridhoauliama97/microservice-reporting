@@ -496,6 +496,26 @@ const FLOW_PRODUKSI_PER_PERIODE_CSS = `
   .summary-table td { border: 0 !important; padding: 2px 6px 2px 0; }
 `;
 
+const DASHBOARD_RU_CSS = `
+  .report-table.dashboard-ru { table-layout: fixed; font-size: 8px; }
+  .report-table.dashboard-ru thead th { font-size: 8px; padding: 2px 2px; line-height: 1.1; border-bottom: 1px solid #000; border-left: 1px solid #000; }
+  .report-table.dashboard-ru thead th.no-column { border-right: 2px solid #000 !important; }
+  .report-table.dashboard-ru thead th.group-start,
+  .report-table.dashboard-ru thead th.stock-type-start { border-left: 2px solid #000 !important; }
+  .report-table.dashboard-ru thead tr:first-child th { border-bottom: 0; }
+  .report-table.dashboard-ru thead tr.sub-header th { border-top: 1px solid #000; }
+  .report-table.dashboard-ru tbody td { padding: 1px 2px; border-left: 1px solid #000; border-top: 0; border-bottom: 0; white-space: nowrap; }
+  .report-table.dashboard-ru tbody td.no-column { border-right: 2px solid #000 !important; }
+  .report-table.dashboard-ru tbody td.group-start,
+  .report-table.dashboard-ru tbody td.stock-type-start { border-left: 2px solid #000 !important; }
+  .report-table.dashboard-ru tbody tr.total-row td { font-weight: bold; border-top: 1px solid #000 !important; background: #fff !important; }
+  .report-table.dashboard-ru .tone-blue { color: #005bbb; font-weight: bold; }
+  .report-table.dashboard-ru .tone-orange { color: #e67e00; font-weight: bold; }
+  .report-table.dashboard-ru .tone-red { color: #c00000; font-weight: bold; }
+  .summary-table { width: 38%; border-collapse: collapse; border-spacing: 0; margin-top: 6px; }
+  .summary-table td { border: 0 !important; padding: 1px 4px; background: #fff !important; }
+`;
+
 const DISCREPANCY_REKAP_MUTASI_CSS = `
   .report-table { font-size: 10px; table-layout: fixed; }
   .report-table thead th { padding: 3px 3px; font-size: 10px; }
@@ -799,6 +819,7 @@ const WPS_REPORT_STYLES = {
   produksi_hulu_hilur: PRODUKSI_HULU_HILIR_CSS,
   hasil_produksi_mesin_lembur: HASIL_PRODUKSI_MESIN_LEMBUR_CSS,
   discrepancy_rekap_mutasi: DISCREPANCY_REKAP_MUTASI_CSS,
+  dashboard_ru: DASHBOARD_RU_CSS,
   mutasi_barang_jadi_per_jenis_per_ukuran: MUTASI_BARANG_JADI_PER_JENIS_PER_UKURAN_CSS,
   mutasi_barang_jadi: MUTASI_BARANG_JADI_CSS,
   mutasi_cross_cut_akhir: MUTASI_CROSS_CUT_AKHIR_CSS,

@@ -11,6 +11,7 @@ import { dashboardCrossCutAkhirReport } from './wps/dashboard-cross-cut-akhir'
 import { dashboardFingerJointReport } from './wps/dashboard-finger-joint'
 import { dashboardLaminatingReport } from './wps/dashboard-laminating'
 import { dashboardMouldingReport } from './wps/dashboard-moulding'
+import { dashboardRuReport } from './wps/dashboard-ru'
 import { discrepancyRekapMutasiReport } from './wps/discrepancy-rekap-mutasi'
 import { flowProduksiPerPeriodeReport } from './wps/flow-produksi-per-periode'
 import { hasilProduksiMesinLemburReport } from './wps/hasil-produksi-mesin-lembur'
@@ -105,6 +106,7 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'dashboard-finger-joint': dashboardFingerJointReport,
   'dashboard-laminating': dashboardLaminatingReport,
   'dashboard-moulding': dashboardMouldingReport,
+  'dashboard-ru': dashboardRuReport,
   'discrepancy-rekap-mutasi': discrepancyRekapMutasiReport,
   'flow-produksi-per-periode': flowProduksiPerPeriodeReport,
   'hasil-produksi-mesin-lembur-dan-non-lembur': hasilProduksiMesinLemburReport,
