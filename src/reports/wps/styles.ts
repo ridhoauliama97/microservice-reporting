@@ -500,9 +500,9 @@ const REKAP_MUTASI_CSS = `
   .section-subtitle { margin: 6px 0 3px 0; font-size: 10px; font-weight: bold; }
   .report-table { font-size: 10px; }
   /* auto layout, not the shared fixed one: the 12-column Sawntimber section and
-     the 9-column production input tables were splitting totals across two
-     lines ("411.900" / "9") and overlapping their header text. Sizing columns
-     to their content avoids both. */
+    the 9-column production input tables were splitting totals across two
+    lines ("411.900" / "9") and overlapping their header text. Sizing columns
+    to their content avoids both. */
   .report-table.rekap-main, .report-table.rekap-input { table-layout: auto; }
   .report-table.rekap-main td.number, .report-table.rekap-input td.number { white-space: nowrap; }
   .report-table.rekap-main thead th, .report-table.rekap-input thead th { white-space: nowrap; padding: 2px 4px; }
@@ -565,8 +565,10 @@ const PRODUKSI_HULU_HILIR_CSS = `
 
 const LABEL_PERHARI_CSS = `
   .section-title { margin: 10px 0 4px 0; font-size: 12px; font-weight: bold; }
-  .report-table { font-size: 11px; }
-  .report-table thead tr.headers-row th { white-space: normal; line-height: 1.15; padding: 3px 4px; }
+  .report-table { font-size: 10px; }
+  .report-table.label-perhari-detail { table-layout: fixed; }
+  .label-perhari-summary { width: 50% }
+  .report-table thead tr.headers-row th { white-space: normal; line-height: 1.15; padding: 3px 3px; }
   .report-table tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
   .report-table tbody tr.totals-row td { background: #fff !important; font-weight: bold; font-size: 11px; border-top: 1px solid #000; }
   .chunk-page-break { break-after: page; page-break-after: always; }
@@ -576,9 +578,9 @@ const REKAP_PRODUKSI_MOULDING_CONSOLIDATED_CSS = `
   .section-title { margin: 10px 0 4px 0; font-size: 11px; font-weight: bold; }
   .production-table { margin-bottom: 12px; font-size: 11px; }
   /* 18 columns at the legacy 5.55% leaves no room to keep headers on one
-     line, so they wrap instead of bleeding into the neighbouring cell, and
-     the date column is widened off percentage because "01-Agt-26" does not
-     fit 5.55% of the page. */
+    line, so they wrap instead of bleeding into the neighbouring cell, and
+    the date column is widened off percentage because "01-Agt-26" does not
+    fit 5.55% of the page. */
   .production-table td.number { white-space: nowrap; }
   .production-table thead th { white-space: normal; line-height: 1.15; padding: 3px 3px; }
   .production-table thead th[colspan] { text-align: center; }
@@ -838,33 +840,49 @@ const WPS_REPORT_STYLES = {
   discrepancy_rekap_mutasi: DISCREPANCY_REKAP_MUTASI_CSS,
   dashboard_ru: DASHBOARD_RU_CSS,
   rekap_mutasi: REKAP_MUTASI_CSS,
-  mutasi_barang_jadi_per_jenis_per_ukuran: MUTASI_BARANG_JADI_PER_JENIS_PER_UKURAN_CSS,
+  mutasi_barang_jadi_per_jenis_per_ukuran:
+    MUTASI_BARANG_JADI_PER_JENIS_PER_UKURAN_CSS,
   mutasi_barang_jadi: MUTASI_BARANG_JADI_CSS,
   mutasi_cross_cut_akhir: MUTASI_CROSS_CUT_AKHIR_CSS,
   mutasi_finger_joint: MUTASI_FINGER_JOINT_CSS,
   mutasi_reproses: MUTASI_REPROSES_CSS,
   penerimaan_kayu_bulat_kg: PENERIMAAN_KAYU_BULAT_KG_CSS,
-  penerimaan_kayu_bulat_per_supplier_grafik: PENERIMAAN_KAYU_BULAT_PER_SUPPLIER_GRAFIK_CSS,
-  penerimaan_kayu_bulat_per_supplier_group: PENERIMAAN_KAYU_BULAT_PER_SUPPLIER_GROUP_CSS,
-  penerimaan_kayu_bulat_per_supplier_kg: PENERIMAAN_KAYU_BULAT_PER_SUPPLIER_KG_CSS,
+  penerimaan_kayu_bulat_per_supplier_grafik:
+    PENERIMAAN_KAYU_BULAT_PER_SUPPLIER_GRAFIK_CSS,
+  penerimaan_kayu_bulat_per_supplier_group:
+    PENERIMAAN_KAYU_BULAT_PER_SUPPLIER_GROUP_CSS,
+  penerimaan_kayu_bulat_per_supplier_kg:
+    PENERIMAAN_KAYU_BULAT_PER_SUPPLIER_KG_CSS,
   penerimaan_kayu_bulat_ton: PENERIMAAN_KAYU_BULAT_TON_CSS,
   perbandingan_kb_masuk_periode_kg: PERBANDINGAN_KB_MASUK_PERIODE_KG_CSS,
   perbandingan_kb_masuk_periode: PERBANDINGAN_KB_MASUK_PERIODE_CSS,
   rekap_pembelian_kayu_bulat_kg: REKAP_PEMBELIAN_KAYU_BULAT_KG_CSS,
   rekap_penerimaan_st_dari_sawmill_kg: REKAP_PENERIMAAN_ST_DARI_SAWMILL_KG_CSS,
-  rekap_penerimaan_st_sawmill_costing_rambung: REKAP_PENERIMAAN_ST_SAWMILL_COSTING_RAMBUNG_CSS,
-  rekap_produksi_barang_jadi_consolidated: REKAP_PRODUKSI_BARANG_JADI_CONSOLIDATED_CSS,
-  rekap_produksi_finger_joint_consolidated: REKAP_PRODUKSI_FINGER_JOINT_CONSOLIDATED_CSS,
-  rekap_produksi_cross_cut_akhir_consolidated: REKAP_PRODUKSI_CROSS_CUT_AKHIR_CONSOLIDATED_CSS,
-  rekap_produksi_cross_cut_akhir_per_jenis_per_grade: REKAP_PRODUKSI_CROSS_CUT_AKHIR_PER_JENIS_PER_GRADE_CSS,
-  rekap_produksi_finger_joint_per_jenis_per_grade: REKAP_PRODUKSI_FINGER_JOINT_PER_JENIS_PER_GRADE_CSS,
-  rekap_produksi_laminating_consolidated: REKAP_PRODUKSI_LAMINATING_CONSOLIDATED_CSS,
-  rekap_produksi_laminating_per_jenis_per_grade: REKAP_PRODUKSI_LAMINATING_PER_JENIS_PER_GRADE_CSS,
-  rekap_produksi_moulding_consolidated: REKAP_PRODUKSI_MOULDING_CONSOLIDATED_CSS,
-  rekap_produksi_moulding_per_jenis_per_grade: REKAP_PRODUKSI_MOULDING_PER_JENIS_PER_GRADE_CSS,
-  rekap_produksi_packing_per_jenis_per_grade: REKAP_PRODUKSI_PACKING_PER_JENIS_PER_GRADE_CSS,
+  rekap_penerimaan_st_sawmill_costing_rambung:
+    REKAP_PENERIMAAN_ST_SAWMILL_COSTING_RAMBUNG_CSS,
+  rekap_produksi_barang_jadi_consolidated:
+    REKAP_PRODUKSI_BARANG_JADI_CONSOLIDATED_CSS,
+  rekap_produksi_finger_joint_consolidated:
+    REKAP_PRODUKSI_FINGER_JOINT_CONSOLIDATED_CSS,
+  rekap_produksi_cross_cut_akhir_consolidated:
+    REKAP_PRODUKSI_CROSS_CUT_AKHIR_CONSOLIDATED_CSS,
+  rekap_produksi_cross_cut_akhir_per_jenis_per_grade:
+    REKAP_PRODUKSI_CROSS_CUT_AKHIR_PER_JENIS_PER_GRADE_CSS,
+  rekap_produksi_finger_joint_per_jenis_per_grade:
+    REKAP_PRODUKSI_FINGER_JOINT_PER_JENIS_PER_GRADE_CSS,
+  rekap_produksi_laminating_consolidated:
+    REKAP_PRODUKSI_LAMINATING_CONSOLIDATED_CSS,
+  rekap_produksi_laminating_per_jenis_per_grade:
+    REKAP_PRODUKSI_LAMINATING_PER_JENIS_PER_GRADE_CSS,
+  rekap_produksi_moulding_consolidated:
+    REKAP_PRODUKSI_MOULDING_CONSOLIDATED_CSS,
+  rekap_produksi_moulding_per_jenis_per_grade:
+    REKAP_PRODUKSI_MOULDING_PER_JENIS_PER_GRADE_CSS,
+  rekap_produksi_packing_per_jenis_per_grade:
+    REKAP_PRODUKSI_PACKING_PER_JENIS_PER_GRADE_CSS,
   rekap_rendemen_rambung_per_supplier: REKAP_RENDEMEN_RAMBUNG_PER_SUPPLIER_CSS,
-  saldo_barang_jadi_hidup_per_jenis_per_produk: SALDO_BARANG_JADI_HIDUP_PER_JENIS_PER_PRODUK_CSS,
+  saldo_barang_jadi_hidup_per_jenis_per_produk:
+    SALDO_BARANG_JADI_HIDUP_PER_JENIS_PER_PRODUK_CSS,
   saldo_hidup_kayu_bulat_kg: SALDO_HIDUP_KAYU_BULAT_KG_CSS,
   stock_opname_kb: STOCK_OPNAME_KB_CSS,
   stock_racip_kayu_lat: STOCK_RACIP_KAYU_LAT_CSS,

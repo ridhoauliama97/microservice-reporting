@@ -69,7 +69,16 @@ interface LabelData {
   totalBerat: number;
 }
 
-const CATEGORY_ORDER = ["ST", "S4S", "FJ", "MLD", "LMT", "CCA", "SAND", "BJ"] as const;
+const CATEGORY_ORDER = [
+  "ST",
+  "S4S",
+  "FJ",
+  "MLD",
+  "LMT",
+  "CCA",
+  "SAND",
+  "BJ",
+] as const;
 const CHUNK_SIZE = 300;
 
 const toText = (value: unknown): string =>
@@ -109,23 +118,36 @@ const pushUniqueString = (bucket: string[], value: string): void => {
   if (value !== "" && !bucket.includes(value)) bucket.push(value);
 };
 
-const pushUniqueFormatted = (bucket: string[], value: number | null, decimals: number): void => {
+const pushUniqueFormatted = (
+  bucket: string[],
+  value: number | null,
+  decimals: number,
+): void => {
   if (value === null) return;
   const formatted = formatNumber(value, decimals);
   if (!bucket.includes(formatted)) bucket.push(formatted);
 };
 
-const implodeValues = (values: string[]): string => (values.length === 0 ? "-" : values.join(" / "));
+const implodeValues = (values: string[]): string =>
+  values.length === 0 ? "-" : values.join(" / ");
 
 /** Groups the SP rows by product and then by label, exactly like the legacy service. */
 export function buildLabelCategories(rows: LabelRow[]): LabelData {
-  const grouped = new Map<string, { labels: Map<string, LabelGroup & { values: LabelValues }>; totalPcs: number; totalBerat: number }>();
+  const grouped = new Map<
+    string,
+    {
+      labels: Map<string, LabelGroup & { values: LabelValues }>;
+      totalPcs: number;
+      totalBerat: number;
+    }
+  >();
 
   for (const row of rows) {
     const category = toText(row.Ket) || "LAINNYA";
     const noLabel = toText(row.NoLabel);
     // Rows without a label are kept apart by a synthetic key, like the legacy md5 fallback.
-    const labelKey = noLabel !== "" ? noLabel : `__EMPTY__:${JSON.stringify(row)}`;
+    const labelKey =
+      noLabel !== "" ? noLabel : `__EMPTY__:${JSON.stringify(row)}`;
 
     let bucket = grouped.get(category);
     if (!bucket) {
@@ -151,7 +173,12 @@ export function buildLabelCategories(rows: LabelRow[]): LabelData {
         pcs: 0,
         berat: 0,
         values: {
-          noUrut: [], mesin: [], jenis: [], tebal: [], lebar: [], panjang: [],
+          noUrut: [],
+          mesin: [],
+          jenis: [],
+          tebal: [],
+          lebar: [],
+          panjang: [],
         },
       };
       bucket.labels.set(labelKey, group);
@@ -174,7 +201,9 @@ export function buildLabelCategories(rows: LabelRow[]): LabelData {
 
   const orderedKeys = [
     ...CATEGORY_ORDER.filter((key) => grouped.has(key)),
-    ...[...grouped.keys()].filter((key) => !(CATEGORY_ORDER as readonly string[]).includes(key)),
+    ...[...grouped.keys()].filter(
+      (key) => !(CATEGORY_ORDER as readonly string[]).includes(key),
+    ),
   ];
 
   const categories: LabelCategory[] = orderedKeys.map((name, index) => {
@@ -227,19 +256,54 @@ interface LabelValues {
 const compareText = (left: string, right: string): number =>
   left < right ? -1 : left > right ? 1 : 0;
 
-const DETAIL_HEADERS = `
-        <th style="width: 36px;">No</th>
-        <th style="width: 88px;">No Label</th>
-        <th style="width: 56px;">Urut</th>
-        <th style="width: 82px;">No SPK</th>
-        <th style="width: 82px;">SPK Asal</th>
-        <th style="width: 96px;">Mesin</th>
-        <th>Jenis</th>
-        <th style="width: 54px;">Tebal</th>
-        <th style="width: 54px;">Lebar</th>
-        <th style="width: 58px;">Panjang</th>
-        <th style="width: 58px;">Pcs</th>
-        <th style="width: 84px;">Berat</th>`;
+/**
+ * Column widths as percentages of the table, not pixels.
+ *
+ * The legacy blade used fixed pixel widths totalling 748px, which is wider than
+ * A4 portrait's content box. Under a fixed table layout the only auto-sized
+ * column (Jenis) then collapsed to zero width and wrapped one character per
+ * line, turning 4k rows into 528 pages. Percentages always add up to the page
+ * width, so no column can collapse: the values below keep the legacy
+ * proportions but leave Jenis enough room for the longest wood name.
+ */
+const DETAIL_COLUMN_WIDTHS = [
+  "4%", // No
+  "11%", // No Label
+  "7%", // Urut
+  "9%", // No SPK
+  "9%", // SPK Asal
+  "12%", // Mesin
+  "13%", // Jenis
+  "6%", // Tebal
+  "6%", // Lebar
+  "6%", // Panjang
+  "6%", // Pcs
+  "11%", // Berat - carries a value plus a unit, e.g. "0.4443 Ton"
+];
+
+const DETAIL_LABELS = [
+  "No",
+  "No Label",
+  "Urut",
+  "No SPK",
+  "SPK Asal",
+  "Mesin",
+  "Jenis",
+  "Tebal",
+  "Lebar",
+  "Panjang",
+  "Pcs",
+  "Berat",
+];
+
+const DETAIL_COLGROUP = `<colgroup>
+      ${DETAIL_COLUMN_WIDTHS.map((width) => `<col style="width: ${width};">`).join("\n      ")}
+    </colgroup>`;
+
+const DETAIL_HEADERS = DETAIL_LABELS.map(
+  (label) =>
+    `<th style="width: ${DETAIL_COLUMN_WIDTHS[DETAIL_LABELS.indexOf(label)]};">${escapeHtml(label)}</th>`,
+).join("");
 
 const buildCategoryChunk = (
   category: LabelCategory,
@@ -248,7 +312,10 @@ const buildCategoryChunk = (
 ): string => {
   const bodyRows = rows
     .map(
-      (row, index) => `<tr class="data-row ${index % 2 === 0 ? "row-odd" : "row-even"}">
+      (
+        row,
+        index,
+      ) => `<tr class="data-row ${index % 2 === 0 ? "row-odd" : "row-even"}">
       <td class="center">${startIndex + index + 1}</td>
       <td class="center">${escapeHtml(row.noLabel)}</td>
       <td class="center">${escapeHtml(row.noUrut)}</td>
@@ -265,7 +332,8 @@ const buildCategoryChunk = (
     )
     .join("\n      ");
 
-  return `<table class="report-table">
+  return `<table class="report-table label-perhari-detail">
+    ${DETAIL_COLGROUP}
     <thead>
       <tr class="headers-row">${DETAIL_HEADERS}
       </tr>
@@ -300,17 +368,25 @@ export const labelPerhariReport: ReportDefinition<PeriodParams, LabelData> = {
     const sections = data.categories.map((category) => {
       const chunks: string[] = [];
       for (let i = 0; i < Math.max(1, category.rows.length); i += CHUNK_SIZE) {
-        chunks.push(buildCategoryChunk(category, category.rows.slice(i, i + CHUNK_SIZE), i));
+        chunks.push(
+          buildCategoryChunk(
+            category,
+            category.rows.slice(i, i + CHUNK_SIZE),
+            i,
+          ),
+        );
       }
       const title = `<div class="section-title">${category.no}. ${escapeHtml(category.name)}</div>`;
       return `${title}\n${chunks.join('\n<div class="chunk-page-break"></div>\n')}`;
     });
 
+    // Four columns, matching the legacy summary. The category number moves into
+    // the Kategori cell so it still lines up with the section titles above:
+    // 1. ST, 2. S4S, and so on.
     const summaryRows = data.categories
       .map(
         (category) => `<tr class="data-row">
-      <td class="center">${category.no}</td>
-      <td class="label">${escapeHtml(category.name)}</td>
+      <td class="label">${category.no}. ${escapeHtml(category.name)}</td>
       <td class="number">${escapeHtml(fmtInt(category.rows.length))}</td>
       <td class="number">${escapeHtml(fmtInt(category.totalPcs))}</td>
       <td class="number">${escapeHtml(fmtWeightWithUnit(category.totalBerat, category.name))}</td>
@@ -320,17 +396,17 @@ export const labelPerhariReport: ReportDefinition<PeriodParams, LabelData> = {
 
     const bodyHtml = `${sections.join("\n  ")}
   <div class="section-title">Rangkuman</div>
-  <table class="report-table">
+  <table class="report-table label-perhari-summary">
     <thead>
       <tr class="headers-row">
-        <th>Kategori</th>
+        <th style="width: 80px;">Kategori</th>
         <th style="width: 84px;">Jumlah</th>
         <th style="width: 90px;">Total Pcs</th>
         <th style="width: 90px;">Total Berat</th>
       </tr>
     </thead>
     <tbody>
-      ${summaryRows || buildEmptyTableRow(5)}
+      ${summaryRows || buildEmptyTableRow(4)}
       <tr class="totals-row">
         <td class="center">Grand Total</td>
         <td class="number">${escapeHtml(fmtInt(data.labelCount))}</td>
@@ -345,11 +421,6 @@ export const labelPerhariReport: ReportDefinition<PeriodParams, LabelData> = {
       subtitle: `Periode ${formatTanggalPendek(meta.params.tglAwal)} s/d ${formatTanggalPendek(meta.params.tglAkhir)}`,
       bodyHtml,
       style: "label_perhari",
-      // The legacy fixed widths add up to 748px, which is wider than A4
-      // portrait's content box, so the only auto-sized column (Jenis)
-      // collapses to zero width and its text wraps one character per line -
-      // that alone turned 4k rows into 528 pages. Landscape fits the columns.
-      landscape: true,
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });
