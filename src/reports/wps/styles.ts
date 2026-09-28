@@ -487,6 +487,15 @@ const MUTASI_MOULDING_CSS = `${LAMINATING_TABLE_CSS}
   .report-table tbody tr.totals-row td { background: #fff !important; font-weight: bold; font-size: 11px; border-top: 1px solid #000; border-right: 1px solid #000; border-bottom: 0; border-left: 0; }
 `;
 
+const FLOW_PRODUKSI_PER_PERIODE_CSS = `
+  .report-table { font-size: 11px; }
+  .report-table thead tr.headers-row th { white-space: normal; line-height: 1.15; padding: 3px 4px; }
+  .report-table tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
+  .report-table tbody tr.totals-row td { background: #fff !important; font-weight: bold; font-size: 11px; border-top: 1px solid #000; }
+  .summary-table { width: auto; margin-top: 12px; }
+  .summary-table td { border: 0 !important; padding: 2px 6px 2px 0; }
+`;
+
 const REKAP_PRODUKSI_MOULDING_CONSOLIDATED_CSS = `
   .section-title { margin: 10px 0 4px 0; font-size: 11px; font-weight: bold; }
   .production-table { margin-bottom: 12px; font-size: 11px; }
@@ -746,6 +755,7 @@ const WPS_REPORT_STYLES = {
   umur_moulding_detail: LAMINATING_TABLE_CSS,
   mutasi_laminating: MUTASI_LAMINATING_CSS,
   mutasi_moulding: MUTASI_MOULDING_CSS,
+  flow_produksi_per_periode: FLOW_PRODUKSI_PER_PERIODE_CSS,
   mutasi_barang_jadi_per_jenis_per_ukuran: MUTASI_BARANG_JADI_PER_JENIS_PER_UKURAN_CSS,
   mutasi_barang_jadi: MUTASI_BARANG_JADI_CSS,
   mutasi_cross_cut_akhir: MUTASI_CROSS_CUT_AKHIR_CSS,

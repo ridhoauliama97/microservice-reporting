@@ -15,6 +15,7 @@ function createPool(): Promise<sql.ConnectionPool> {
       encrypt: env.DB_ENCRYPT,
       trustServerCertificate: env.DB_TRUST_CERT,
     },
+    requestTimeout: env.DB_REQUEST_TIMEOUT_MS,
     pool: { max: 10, min: 0 },
   })
 

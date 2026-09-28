@@ -24,6 +24,11 @@ const envSchema = z.object({
   DB_PASSWORD: z.string().min(1),
   DB_ENCRYPT: boolFromString('false'),
   DB_TRUST_CERT: boolFromString('true'),
+  // Some WPS procedures are genuinely slow: SP_LapProduktivitasDashboard
+  // measures 14-18s, which is at or over the mssql default of 15s. Without a
+  // raised timeout that report fails intermittently, so the floor is well
+  // above the worst observed query.
+  DB_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(120000),
 
   // Must match the WPS backend's JWT_SECRET exactly. The real WPS secret is
   // 10 chars, so the floor is deliberately low (8) — just enough to catch
