@@ -331,6 +331,16 @@ const LEMBUR_COLGROUP = `<colgroup>
         ${LEMBUR_COLUMN_WIDTHS.map((width) => `<col style="width: ${width};">`).join("\n        ")}
       </colgroup>`;
 
+/**
+ * The Rangkuman drops the leading No column, so it needs its own colgroup: the
+ * same six measurement columns with Nama Mesin taking the freed space.
+ */
+const LEMBUR_SUMMARY_COLUMN_WIDTHS = ["24%", "9%", "9%", "20%", "9%", "9%", "20%"];
+
+const LEMBUR_SUMMARY_COLGROUP = `<colgroup>
+        ${LEMBUR_SUMMARY_COLUMN_WIDTHS.map((width) => `<col style="width: ${width};">`).join("\n        ")}
+      </colgroup>`;
+
 const GROUP_HEADERS = `
         <th colspan="3">Jam Kerja Normal</th>
         <th colspan="3">Jam Kerja Lembur</th>`;
@@ -387,13 +397,14 @@ export const hasilProduksiMesinLemburReport: ReportDefinition<
       })
       .join("\n      ");
 
+    // No column omitted: the machine name already identifies each row, and the
+    // numbers ran 1..n in machine order anyway.
     const summaryBody = data.summaryRows
       .map(
         (
           row,
           index,
         ) => `<tr class="${index % 2 === 0 ? "row-odd" : "row-even"}">
-        <td class="center">${row.no}</td>
         <td>${escapeHtml(row.machine)}</td>
         <td class="center">${escapeHtml(fmt(row.totalTk, 0))}</td>
         <td class="center">${escapeHtml(fmt(row.totalHm, 0))}</td>
@@ -431,19 +442,18 @@ export const hasilProduksiMesinLemburReport: ReportDefinition<
   <div class="page-break-before">
     <h2 class="rangkuman-title">Rangkuman</h2>
     <table class="report-table lembur-rangkuman">
-      ${LEMBUR_COLGROUP}
+      ${LEMBUR_SUMMARY_COLGROUP}
       <thead>
         <tr>
-          <th rowspan="2">No</th>
           <th rowspan="2">Nama Mesin</th>${GROUP_HEADERS}
         </tr>
         <tr>${SUB_HEADERS}
         </tr>
       </thead>
       <tbody>
-        ${summaryBody || buildEmptyTableRow(8)}
+        ${summaryBody || buildEmptyTableRow(7)}
         <tr class="total-row">
-          <td colspan="2" class="center">Grand Total</td>
+          <td class="center">Grand Total</td>
           <td class="center">${escapeHtml(fmt(data.grandTotals.totalTk, 0))}</td>
           <td class="center">${escapeHtml(fmt(data.grandTotals.totalHm, 0))}</td>
           <td class="number">${escapeHtml(fmt(data.grandTotals.output, 4))}</td>

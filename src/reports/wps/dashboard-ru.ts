@@ -91,7 +91,7 @@ const GROUP_SUB_WIDTH: Record<string, number> = {
   "Penerimaan Kayu Bulat": 48,
   "Saldo ST PBL Hidup": 64,
   "Stock Kayu Bulat Hidup": 48,
-  "Kiln & Dryer": 54,
+  "Kiln & Dryer": 58,
   "Sawmill Bansaw": 52,
   "Sawmill SLP": 48,
   "Sawmill SLP 1": 48,
@@ -389,6 +389,11 @@ export const dashboardRuReport: ReportDefinition<{ tgl: string }, DashboardRuDat
         .map((column, columnIndex) => {
           const value = row.cells[column.key] ?? "";
           const classes = ["number"];
+          // Kiln & Dryer cells hold the longest values in the report
+          // ("JTG-38", ">RB-44") across ten narrow columns, so they get their
+          // own class and a smaller font rather than taking width from the
+          // other thirty-four columns.
+          if (column.groupSource === KILN_GROUP_SOURCE) classes.push("kiln-cell");
           if (data.groupStartIndexes.has(columnIndex)) classes.push("group-start");
           if (data.stockTypeStartIndexes.has(columnIndex)) classes.push("stock-type-start");
           classes.push(cellToneClass(column, value).trim());

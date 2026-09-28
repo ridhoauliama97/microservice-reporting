@@ -249,18 +249,22 @@ const renderWpsReportPageOptions = (
   // Legacy colgroup ratios, in px, scaled to percentages so the browser keeps
   // the same proportions at any paper size (table-layout: fixed).
   //
-  // The No column is deliberately wider than the legacy 36px: with 15 machine
-  // groups the px ratios are scaled down to roughly 1.6% of the page, which
-  // clipped the statistics labels to "Tot:", "Av:", "Mir" and "Ma:". 76px
-  // still fits the two-digit day numbers but leaves room for "Total"/"Target".
+  // The No column keeps a generous share: it is one column out of forty-five, so
+  // widening it costs every other column under a third of a pixel, and it has
+  // to hold the statistics labels ("Total", "Target") which are wider than any
+  // number in the table.
   //
-  // Rend is the widest of the three sub-columns because it is the only one
-  // carrying a unit: "116.5%" needs more room than the two-digit thickness in
-  // Tbl, and at the previous ratio it ran through the column border.
-  const NO_WIDTH = 76;
-  const TBL_WIDTH = 40;
-  const OUTPUT_WIDTH = 54;
-  const REND_WIDTH = 62;
+  // The three sub-columns are then sized from measurement rather than guesswork.
+  // On a 200dpi render the table body is 2341px wide, 46 borders take 138px of
+  // it, and the label inks are: "Tbl" 23px, "Output" 49px, "Rend" 48px, "Target"
+  // 42px. Those need 27.9 / 53.2 / 53.2 / 50.4px of inner width for a few
+  // pixels of padding, which the ratios below satisfy with at least 4px to
+  // spare. At the previous 54 units "Output" filled its cell edge to edge and
+  // touched both borders.
+  const NO_WIDTH = 56;
+  const TBL_WIDTH = 35;
+  const OUTPUT_WIDTH = 66;
+  const REND_WIDTH = 63;
   const totalWidth = NO_WIDTH + data.columns.length * (TBL_WIDTH + OUTPUT_WIDTH + REND_WIDTH);
   const pct = (px: number): string => `${((px / totalWidth) * 100).toFixed(4)}%`;
 

@@ -535,6 +535,9 @@ const DASHBOARD_RU_CSS = `
   .report-table.dashboard-ru tbody td.group-start,
   .report-table.dashboard-ru tbody td.stock-type-start { border-left: 2px solid #000 !important; }
   .report-table.dashboard-ru tbody tr.total-row td { font-weight: bold; border-top: 1px solid #000 !important; background: #fff !important; }
+  /* Kiln & Dryer cells carry the longest values in the report across ten narrow
+     columns, so they run a point smaller than the rest. */
+  .report-table.dashboard-ru tbody td.kiln-cell { font-size: 6px; }
   .report-table.dashboard-ru .tone-blue { color: #005bbb; font-weight: bold; }
   .report-table.dashboard-ru .tone-orange { color: #e67e00; font-weight: bold; }
   .report-table.dashboard-ru .tone-red { color: #c00000; font-weight: bold; }
@@ -567,8 +570,8 @@ const PRODUKSI_HULU_HILIR_CSS = `
   /* 45 columns on one landscape page: 7px keeps values such as "116.5%" inside
      their borders. At 8px they overran the column edge. */
   .report-table.hulu-hilur { font-size: 7px; }
-  .report-table.hulu-hilur thead th { font-size: 7px; padding: 2px 1px; line-height: 1.1; }
-  .report-table.hulu-hilur tbody td { padding: 1px; white-space: nowrap; }
+  .report-table.hulu-hilur thead th { font-size: 7px; padding: 2px 2px; line-height: 1.1; }
+  .report-table.hulu-hilur tbody td { padding: 1px 2px; white-space: nowrap; }
   .report-table.hulu-hilur tbody tr.total-row td { font-weight: bold; border-top: 1px solid #000 !important; background: #fff !important; font-size: 7px; }
   .report-table.hulu-hilur tbody tr.target-row td { font-weight: bold; border-top: 1px solid #000 !important; background: #fff !important; }
   .report-table.hulu-hilur .output-below-target { color: #c00000; font-weight: bold; font-style: italic; }
