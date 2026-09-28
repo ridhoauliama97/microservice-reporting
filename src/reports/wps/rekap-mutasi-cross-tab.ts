@@ -41,7 +41,10 @@ interface CrossTabData {
 
 export function buildCrossTabData(rawRows: MutasiRow[]): CrossTabData {
   return {
-    rows: rawRows.map((row) => ({ day: dayLabel(row.Tanggal), metrics: readMetrics(row) })),
+    rows: rawRows.map((row) => ({
+      day: dayLabel(row.Tanggal),
+      metrics: readMetrics(row),
+    })),
     statRows: buildStatRows(rawRows),
   };
 }
@@ -49,7 +52,10 @@ export function buildCrossTabData(rawRows: MutasiRow[]): CrossTabData {
 const formatTanggalPendek = (iso: string): string =>
   formatTanggalId(iso).replace(/\d{4}$/, (year) => year.slice(-2));
 
-export const rekapMutasiCrossTabReport: ReportDefinition<PeriodParams, CrossTabData> = {
+export const rekapMutasiCrossTabReport: ReportDefinition<
+  PeriodParams,
+  CrossTabData
+> = {
   type: "rekap-mutasi-cross-tab",
   title: "Laporan Rekap Mutasi (Cross Tab)",
   paramsSchema: periodParamsSchema,
@@ -67,7 +73,10 @@ export const rekapMutasiCrossTabReport: ReportDefinition<PeriodParams, CrossTabD
   render(data, meta) {
     const bodyRows = data.rows
       .map(
-        (row, index) => `<tr class="${(index + 1) % 2 === 1 ? "row-odd" : "row-even"}">
+        (
+          row,
+          index,
+        ) => `<tr class="${(index + 1) % 2 === 1 ? "row-odd" : "row-even"}">
         <td class="center">${escapeHtml(row.day)}</td>
         ${metricCells(row.metrics)}
       </tr>`,
@@ -76,7 +85,10 @@ export const rekapMutasiCrossTabReport: ReportDefinition<PeriodParams, CrossTabD
 
     const statBody = data.statRows
       .map(
-        (row, index) => `<tr class="${(index + 1) % 2 === 1 ? "row-odd" : "row-even"}">
+        (
+          row,
+          index,
+        ) => `<tr class="${(index + 1) % 2 === 1 ? "row-odd" : "row-even"}">
         <td class="center"><strong>${escapeHtml(row.label)}</strong></td>
         ${metricCells(row.metrics)}
       </tr>`,
@@ -86,7 +98,7 @@ export const rekapMutasiCrossTabReport: ReportDefinition<PeriodParams, CrossTabD
     const columnCount = 1 + COLUMN_KEYS.length;
 
     const bodyHtml = `<table class="report-table cross-tab">
-    ${buildDisplayHeader("Tanggal")}
+    ${buildDisplayHeader("")}
     <tbody>
       ${bodyRows || buildEmptyTableRow(columnCount)}
     </tbody>

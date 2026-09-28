@@ -7,7 +7,11 @@ import {
 } from "../../templates/html";
 import { periodParamsSchema, type PeriodParams } from "../period-params";
 import type { ReportDefinition } from "../types";
-import { buildEmptyTable, buildEmptyTableRow, renderWpsReportPage } from "./template";
+import {
+  buildEmptyTable,
+  buildEmptyTableRow,
+  renderWpsReportPage,
+} from "./template";
 
 /**
  * "Laporan Rekap Mutasi". Ported from RekapMutasiReportService and
@@ -133,8 +137,16 @@ const BARANG_JADI_COLUMNS: Array<[string, string]> = [
 
 const SIMPLE_METRICS = ["Awal", "Masuk", "Keluar", "Jual", "Akhir"];
 const ST_METRICS = [
-  "Awal", "Masuk", "Beli", "AdjustmentPlus", "AdjustmentMinus",
-  "BongkarSusunPlus", "BongkarSusunMinus", "Jual", "Keluar", "Akhir",
+  "Awal",
+  "Masuk",
+  "Beli",
+  "AdjustmentPlus",
+  "AdjustmentMinus",
+  "BongkarSusunPlus",
+  "BongkarSusunMinus",
+  "Jual",
+  "Keluar",
+  "Akhir",
 ];
 const PRODUCTION_METRICS = ["Awal", "Masuk", "Jual", "Keluar", "Akhir"];
 
@@ -165,9 +177,21 @@ const PRODUCTION_SPECS: ProductionSpec[] = [
     inputGrouped: false,
     mapper: (row) => ({
       Awal: toFloat(row.S4SAwal),
-      Masuk: sumValues(row, ["S4SMasuk", "AdjOutputS4S", "BSOutputS4S", "ProdOutputS4S", "CCAProdOutputS4S"]),
+      Masuk: sumValues(row, [
+        "S4SMasuk",
+        "AdjOutputS4S",
+        "BSOutputS4S",
+        "ProdOutputS4S",
+        "CCAProdOutputS4S",
+      ]),
       Jual: toFloat(row.JualS4S),
-      Keluar: sumValues(row, ["AdjInputS4S", "BsInputS4S", "FJinputS4S", "MldInputS4S", "S4SInputS4S"]),
+      Keluar: sumValues(row, [
+        "AdjInputS4S",
+        "BsInputS4S",
+        "FJinputS4S",
+        "MldInputS4S",
+        "S4SInputS4S",
+      ]),
       Akhir: toFloat(row.AkhirS4S),
     }),
     leftLabel: "Input",
@@ -184,9 +208,21 @@ const PRODUCTION_SPECS: ProductionSpec[] = [
     inputGrouped: true,
     mapper: (row) => ({
       Awal: toFloat(row.FJAwal),
-      Masuk: sumValues(row, ["FJMasuk", "AdjOutputFJ", "BSOutputFJ", "FJProdOutput"]),
+      Masuk: sumValues(row, [
+        "FJMasuk",
+        "AdjOutputFJ",
+        "BSOutputFJ",
+        "FJProdOutput",
+      ]),
       Jual: toFloat(row.FJJual),
-      Keluar: sumValues(row, ["AdjInptFJ", "BSInptFJ", "MldInptFJ", "CCAInptFJ", "S4SInptFJ", "SandInptFJ"]),
+      Keluar: sumValues(row, [
+        "AdjInptFJ",
+        "BSInptFJ",
+        "MldInptFJ",
+        "CCAInptFJ",
+        "S4SInptFJ",
+        "SandInptFJ",
+      ]),
       Akhir: toFloat(row.FJAkhir),
     }),
     leftLabel: "Input",
@@ -199,15 +235,34 @@ const PRODUCTION_SPECS: ProductionSpec[] = [
     mainSp: "SP_Mutasi_Moulding",
     subSp: "SP_SubMutasi_Moulding",
     inputTitle: "Input Moulding Produksi (m3)",
-    inputColumns: ["BJ", "CCAkhir", "FJ", "Laminating", "Moulding", "S4S", "Sanding"],
+    inputColumns: [
+      "BJ",
+      "CCAkhir",
+      "FJ",
+      "Laminating",
+      "Moulding",
+      "S4S",
+      "Sanding",
+    ],
     inputGrouped: true,
     mapper: (row) => ({
       Awal: toFloat(row.MLDAwal),
-      Masuk: sumValues(row, ["MLDMasuk", "AdjOutputMLD", "BSOutptutMLD", "MLDProdOutput"]),
+      Masuk: sumValues(row, [
+        "MLDMasuk",
+        "AdjOutputMLD",
+        "BSOutptutMLD",
+        "MLDProdOutput",
+      ]),
       Jual: toFloat(row.MLDJual),
       Keluar: sumValues(row, [
-        "AdjInptMLD", "BSInptMLD", "MLDInptMLD", "CCAInptMLD",
-        "LMTInptMLD", "PACKInptMLD", "SANDInptMLD", "S4SinptMLD",
+        "AdjInptMLD",
+        "BSInptMLD",
+        "MLDInptMLD",
+        "CCAInptMLD",
+        "LMTInptMLD",
+        "PACKInptMLD",
+        "SANDInptMLD",
+        "S4SinptMLD",
       ]),
       Akhir: toFloat(row.MLDAkhir),
     }),
@@ -225,9 +280,20 @@ const PRODUCTION_SPECS: ProductionSpec[] = [
     inputGrouped: true,
     mapper: (row) => ({
       Awal: toFloat(row.LMTAwal),
-      Masuk: sumValues(row, ["LMTMasuk", "AdjOutputLMT", "BSOutputLMT", "LMTProdOuput"]),
+      Masuk: sumValues(row, [
+        "LMTMasuk",
+        "AdjOutputLMT",
+        "BSOutputLMT",
+        "LMTProdOuput",
+      ]),
       Jual: toFloat(row.LMTJual),
-      Keluar: sumValues(row, ["AdjInptLMT", "BSInptLMT", "CCAProdInptLMT", "MldProdInptLMT", "S4SProdInptLMT"]),
+      Keluar: sumValues(row, [
+        "AdjInptLMT",
+        "BSInptLMT",
+        "CCAProdInptLMT",
+        "MldProdInptLMT",
+        "S4SProdInptLMT",
+      ]),
       Akhir: toFloat(row.LMTAkhir),
     }),
     leftLabel: "Input",
@@ -244,11 +310,23 @@ const PRODUCTION_SPECS: ProductionSpec[] = [
     inputGrouped: true,
     mapper: (row) => ({
       Awal: toFloat(row.CCAkhirAwal),
-      Masuk: sumValues(row, ["CCAMasuk", "AdjOutputCCA", "BSOutputCCA", "CCAProdOutput"]),
+      Masuk: sumValues(row, [
+        "CCAMasuk",
+        "AdjOutputCCA",
+        "BSOutputCCA",
+        "CCAProdOutput",
+      ]),
       Jual: toFloat(row.CCAJual),
       Keluar: sumValues(row, [
-        "AdjInptCCA", "BSInputCCA", "FJProdInpt", "MldProdinpt", "S4SProdInpt",
-        "SandProdInpt", "LMTProdInpt", "PACKProdInpt", "CCAInputCCA",
+        "AdjInptCCA",
+        "BSInputCCA",
+        "FJProdInpt",
+        "MldProdinpt",
+        "S4SProdInpt",
+        "SandProdInpt",
+        "LMTProdInpt",
+        "PACKProdInpt",
+        "CCAInputCCA",
       ]),
       Akhir: toFloat(row.CCAAkhir),
     }),
@@ -267,11 +345,21 @@ const PRODUCTION_SPECS: ProductionSpec[] = [
     inputGrouped: true,
     mapper: (row) => ({
       Awal: toFloat(row.SANDAwal),
-      Masuk: sumValues(row, ["SANDMasuk", "AdjOutputSAND", "BSOutputSAND", "SANDProdOutput"]),
+      Masuk: sumValues(row, [
+        "SANDMasuk",
+        "AdjOutputSAND",
+        "BSOutputSAND",
+        "SANDProdOutput",
+      ]),
       Jual: toFloat(row.SANDJual),
       Keluar: sumValues(row, [
-        "AdjInptSAND", "BSInptSAND", "LMTProdInptSAND", "PACKProdInptSAND",
-        "CCAProdInptSand", "SANDProdInptSand", "MLDProdInptSand",
+        "AdjInptSAND",
+        "BSInptSAND",
+        "LMTProdInptSAND",
+        "PACKProdInptSAND",
+        "CCAProdInptSand",
+        "SANDProdInptSand",
+        "MLDProdInptSand",
       ]),
       Akhir: toFloat(row.SANDAkhir),
     }),
@@ -309,7 +397,10 @@ const sumValues = (row: Record<string, unknown>, keys: string[]): Metric => {
   return found ? total : null;
 };
 
-const sumColumns = (rows: RekapRow[], columns: string[]): Record<string, number> => {
+const sumColumns = (
+  rows: RekapRow[],
+  columns: string[],
+): Record<string, number> => {
   const totals: Record<string, number> = {};
   for (const column of columns) totals[column] = 0;
   for (const row of rows) {
@@ -321,8 +412,11 @@ const sumColumns = (rows: RekapRow[], columns: string[]): Record<string, number>
   return totals;
 };
 
-const hasNonZeroMetric = (row: Record<string, unknown>, columns: string[]): boolean =>
-  columns.some((column) => Math.abs((toFloat(row[column]) ?? 0)) > EPSILON);
+const hasNonZeroMetric = (
+  row: Record<string, unknown>,
+  columns: string[],
+): boolean =>
+  columns.some((column) => Math.abs(toFloat(row[column]) ?? 0) > EPSILON);
 
 const stripPrefix = (label: string, prefix: string): string =>
   label.startsWith(prefix) ? label.slice(prefix.length) : label;
@@ -337,20 +431,38 @@ const woodFamilyFromJenis = (label: string): string => {
 };
 
 const formatKayuBulatJenis = (label: string): string =>
-  stripPrefix(label, "KB ").split(" - ").join(" ").split("MC MATA").join("MC-MATA");
+  stripPrefix(label, "KB ")
+    .split(" - ")
+    .join(" ")
+    .split("MC MATA")
+    .join("MC-MATA");
 
 const cleanInputJenis = (label: string): string => {
   let result = label;
-  for (const prefix of ["ST ", "S4S ", "FJ ", "MLD ", "LMT ", "CCA ", "SND ", "BJ "]) {
+  for (const prefix of [
+    "ST ",
+    "S4S ",
+    "FJ ",
+    "MLD ",
+    "LMT ",
+    "CCA ",
+    "SND ",
+    "BJ ",
+  ]) {
     result = stripPrefix(result, prefix);
   }
   return result.trim();
 };
 
-const renumber = (rows: RekapRow[]): RekapRow[] => rows.map((row, index) => ({ ...row, No: index + 1 }));
+const renumber = (rows: RekapRow[]): RekapRow[] =>
+  rows.map((row, index) => ({ ...row, No: index + 1 }));
 
 /** Legacy compareByOrder: known labels first in the given order, then alphabetical. */
-const compareByOrder = (left: string, right: string, order: string[]): number => {
+const compareByOrder = (
+  left: string,
+  right: string,
+  order: string[],
+): number => {
   const leftIndex = order.indexOf(left);
   const rightIndex = order.indexOf(right);
   const a = leftIndex === -1 ? Number.MAX_SAFE_INTEGER : leftIndex;
@@ -370,7 +482,15 @@ function aggregateByWoodGroup(
     const family = woodFamilyFromJenis(toText(row.Jenis));
     let group = groups.get(family);
     if (!group) {
-      group = { No: 0, Jenis: family, Awal: 0, Masuk: 0, Jual: 0, Keluar: 0, Akhir: 0 };
+      group = {
+        No: 0,
+        Jenis: family,
+        Awal: 0,
+        Masuk: 0,
+        Jual: 0,
+        Keluar: 0,
+        Akhir: 0,
+      };
       groups.set(family, group);
     }
     for (const [key, value] of Object.entries(mapper(row))) {
@@ -421,17 +541,28 @@ function buildInputRowsDetailed(
 ): RekapRow[] {
   const rows: RekapRow[] = [];
   for (const row of sourceRows) {
-    const entry: RekapRow = { No: 0, Jenis: cleanInputJenis(toText(row.Jenis)) };
+    const entry: RekapRow = {
+      No: 0,
+      Jenis: cleanInputJenis(toText(row.Jenis)),
+    };
     for (const column of columns) entry[column] = toFloat(row[column]);
     if (hasNonZeroMetric(entry, columns)) rows.push(entry);
   }
   return renumber(rows);
 }
 
-function buildInputTable(title: string, rows: RekapRow[], columns: string[]): SubTable {
+function buildInputTable(
+  title: string,
+  rows: RekapRow[],
+  columns: string[],
+): SubTable {
   return {
     title,
-    columns: [["No", "No"], ["Jenis", "Jenis"], ...columns.map((c): [string, string] => [c, c])],
+    columns: [
+      ["No", "No"],
+      ["Jenis", "Jenis"],
+      ...columns.map((c): [string, string] => [c, c]),
+    ],
     rows,
     totals: sumColumns(rows, columns),
   };
@@ -476,7 +607,13 @@ function buildProductionSection(spec: ProductionSpec): RekapSection {
     rows: [],
     totals: {},
     inputTable: buildInputTable(spec.inputTitle, [], spec.inputColumns),
-    performance: { leftLabel: spec.leftLabel, rightLabel: spec.rightLabel, input: 0, output: 0, rendemen: null },
+    performance: {
+      leftLabel: spec.leftLabel,
+      rightLabel: spec.rightLabel,
+      input: 0,
+      output: 0,
+      rendemen: null,
+    },
   };
 }
 
@@ -494,7 +631,10 @@ export function buildRekapMutasiSections(sources: {
    */
   production: Record<
     string,
-    { main: Array<Record<string, unknown>>; sub: Array<Record<string, unknown>> }
+    {
+      main: Array<Record<string, unknown>>;
+      sub: Array<Record<string, unknown>>;
+    }
   >;
 }): RekapSection[] {
   const sections: RekapSection[] = [];
@@ -531,7 +671,10 @@ export function buildRekapMutasiSections(sources: {
     title: "2. Kayu Bulat - Rambung (Kg)",
     // Kilograms print as whole numbers.
     valueFormat: "integer0",
-    columns: SIMPLE_COLUMNS.map(([key, label]) => [key, key === "Jenis" ? "Jenis Grade Kayu" : label]),
+    columns: SIMPLE_COLUMNS.map(([key, label]) => [
+      key,
+      key === "Jenis" ? "Jenis Grade Kayu" : label,
+    ]),
     rows: kgRows,
     totals: sumColumns(kgRows, SIMPLE_METRICS),
   });
@@ -550,7 +693,9 @@ export function buildRekapMutasiSections(sources: {
     Keluar: toFloat(row.Keluar),
     Akhir: toFloat(row.Akhir),
   }));
-  stRows.sort((left, right) => compareByOrder(left.Jenis, right.Jenis, ST_WOOD_ORDER));
+  stRows.sort((left, right) =>
+    compareByOrder(left.Jenis, right.Jenis, ST_WOOD_ORDER),
+  );
   sections.push({
     key: "sawntimber",
     title: "3. Sawntimber (Ton)",
@@ -569,7 +714,11 @@ export function buildRekapMutasiSections(sources: {
     const section = buildProductionSection(spec);
     section.rows = mainRows;
     section.totals = sumColumns(mainRows, PRODUCTION_METRICS);
-    const inputTable = buildInputTable(spec.inputTitle, inputRows, spec.inputColumns);
+    const inputTable = buildInputTable(
+      spec.inputTitle,
+      inputRows,
+      spec.inputColumns,
+    );
     section.inputTable = inputTable;
     section.performance = buildPerformanceBlock(
       section.totals,
@@ -597,12 +746,23 @@ export function buildRekapMutasiSections(sources: {
     valueFormat: "decimal4",
     columns: BARANG_JADI_COLUMNS,
     rows: barangJadiRows,
-    totals: sumColumns(barangJadiRows, ["Awal", "Masuk", "Plus", "Minus", "Jual", "Akhir"]),
+    totals: sumColumns(barangJadiRows, [
+      "Awal",
+      "Masuk",
+      "Plus",
+      "Minus",
+      "Jual",
+      "Akhir",
+    ]),
   };
   const barangJadiInput = buildInputTable(
     "Input Barang Jadi Produksi (m3)",
     buildInputRowsGroupedByFamily(sources.barangJadiSub, [
-      "Moulding", "Sanding", "CCAkhir", "WIPLama", "BarangJadi",
+      "Moulding",
+      "Sanding",
+      "CCAkhir",
+      "WIPLama",
+      "BarangJadi",
     ]),
     ["Moulding", "Sanding", "CCAkhir", "WIPLama", "BarangJadi"],
   );
@@ -623,7 +783,10 @@ const formatTanggalPendek = (iso: string): string =>
   formatTanggalId(iso).replace(/\d{4}$/, (year) => year.slice(-2));
 
 /** Legacy $formatValue: blank at zero, otherwise four decimals or whole numbers. */
-const formatValue = (value: Metric, format: "decimal4" | "integer0"): string => {
+const formatValue = (
+  value: Metric,
+  format: "decimal4" | "integer0",
+): string => {
   if (value === null || Math.abs(value) < EPSILON) return "";
   return formatNumber(value, format === "integer0" ? 0 : 4);
 };
@@ -668,7 +831,10 @@ const renderTotalsRow = (
   return `<tr class="totals-row">
             <td class="center" colspan="2">Total :</td>
             ${numeric
-              .map(([key]) => `<td class="number">${escapeHtml(formatValue(totals[key] ?? 0, format))}</td>`)
+              .map(
+                ([key]) =>
+                  `<td class="number">${escapeHtml(formatValue(totals[key] ?? 0, format))}</td>`,
+              )
               .join("\n            ")}
           </tr>`;
 };
@@ -736,7 +902,9 @@ const renderInputTable = (table: SubTable): string => {
   </table>`;
 };
 
-const renderPerformance = (performance: Performance): string => `<table class="performance-table">
+const renderPerformance = (
+  performance: Performance,
+): string => `<table class="performance-table">
     <tbody>
       <tr>
         <td class="center">${escapeHtml(performance.leftLabel)}</td>
@@ -751,7 +919,10 @@ const renderPerformance = (performance: Performance): string => `<table class="p
     </tbody>
   </table>`;
 
-export const rekapMutasiReport: ReportDefinition<PeriodParams, RekapMutasiData> = {
+export const rekapMutasiReport: ReportDefinition<
+  PeriodParams,
+  RekapMutasiData
+> = {
   type: "rekap-mutasi",
   title: "Laporan Rekap Mutasi",
   paramsSchema: periodParamsSchema,
@@ -769,7 +940,11 @@ export const rekapMutasiReport: ReportDefinition<PeriodParams, RekapMutasiData> 
 
     // Seventeen procedures: ten mutasi, seven companion input breakdowns.
     const [
-      kayuBulat, kayuBulatKg, sawnTimber, barangJadi, barangJadiSub,
+      kayuBulat,
+      kayuBulatKg,
+      sawnTimber,
+      barangJadi,
+      barangJadiSub,
       ...productionSets
     ] = await Promise.all([
       run("SP_Mutasi_KayuBulat"),
@@ -777,12 +952,24 @@ export const rekapMutasiReport: ReportDefinition<PeriodParams, RekapMutasiData> 
       run("SP_Mutasi_ST"),
       run("SP_Mutasi_BarangJadi"),
       run("SP_SubMutasi_BarangJadi"),
-      ...PRODUCTION_SPECS.flatMap((spec) => [run(spec.mainSp), run(spec.subSp)]),
+      ...PRODUCTION_SPECS.flatMap((spec) => [
+        run(spec.mainSp),
+        run(spec.subSp),
+      ]),
     ]);
 
-    const production: Record<string, { main: Array<Record<string, unknown>>; sub: Array<Record<string, unknown>> }> = {};
+    const production: Record<
+      string,
+      {
+        main: Array<Record<string, unknown>>;
+        sub: Array<Record<string, unknown>>;
+      }
+    > = {};
     PRODUCTION_SPECS.forEach((spec, index) => {
-      production[spec.key] = { main: productionSets[index * 2]!, sub: productionSets[index * 2 + 1]! };
+      production[spec.key] = {
+        main: productionSets[index * 2]!,
+        sub: productionSets[index * 2 + 1]!,
+      };
     });
 
     return {
@@ -809,10 +996,14 @@ export const rekapMutasiReport: ReportDefinition<PeriodParams, RekapMutasiData> 
         // therefore a left edge. They used to carry their own margins (8px on
         // the summary, none on the input table) and drifted apart.
         const detail: string[] = [];
-        if (section.inputTable) detail.push(renderInputTable(section.inputTable));
-        if (section.performance) detail.push(renderPerformance(section.performance));
+        if (section.inputTable)
+          detail.push(renderInputTable(section.inputTable));
+        if (section.performance)
+          detail.push(renderPerformance(section.performance));
         if (detail.length > 0) {
-          parts.push(`<div class="section-detail">\n    ${detail.join("\n    ")}\n  </div>`);
+          parts.push(
+            `<div class="section-detail">\n    ${detail.join("\n    ")}\n  </div>`,
+          );
         }
         return parts.join("\n  ");
       })

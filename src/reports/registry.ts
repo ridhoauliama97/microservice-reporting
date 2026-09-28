@@ -20,6 +20,11 @@ import { produksiHuluHilirReport } from './wps/produksi-hulu-hilir'
 import { produksiSemuaMesinReport } from './wps/produksi-semua-mesin'
 import { rekapMutasiReport } from './wps/rekap-mutasi'
 import { rekapMutasiCrossTabReport } from './wps/rekap-mutasi-cross-tab'
+import { rekapStockOnHandReport } from './wps/rekap-stock-on-hand'
+import {
+  stockHidupPerNoSpkDiscrepancyReport,
+  stockHidupPerNoSpkReport,
+} from './wps/stock-hidup-per-nospk'
 import { laminatingHidupDetailReport } from './wps/laminating-hidup-detail'
 import { ketahananBarangLaminatingReport } from './wps/ketahanan-barang-laminating'
 import { ketahananBarangMouldingReport } from './wps/ketahanan-barang-moulding'
@@ -118,6 +123,9 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'produksi-semua-mesin': produksiSemuaMesinReport,
   'rekap-mutasi': rekapMutasiReport,
   'rekap-mutasi-cross-tab': rekapMutasiCrossTabReport,
+  'rekap-stock-on-hand': rekapStockOnHandReport,
+  'stock-hidup-per-nospk': stockHidupPerNoSpkReport,
+  'stock-hidup-per-nospk-discrepancy': stockHidupPerNoSpkDiscrepancyReport,
   'laminating-hidup-detail': laminatingHidupDetailReport,
   'ketahanan-barang-laminating': ketahananBarangLaminatingReport,
   'ketahanan-barang-moulding': ketahananBarangMouldingReport,

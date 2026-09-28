@@ -573,6 +573,27 @@ const HASIL_PRODUKSI_MESIN_LEMBUR_CSS = `
   .rangkuman-title { text-align: center; margin: 0 0 8px 0; font-size: 14px; font-weight: bold; }
 `;
 
+const REKAP_STOCK_ON_HAND_CSS = `
+  .section-title { margin: 12px 0 4px 0; font-size: 12px; font-weight: bold; }
+  .compact-note { margin: 0 0 4px 0; font-size: 9px; color: #444; }
+  .report-table { font-size: 10px; }
+  .report-table thead tr.headers-row th { white-space: normal; line-height: 1.15; padding: 3px 3px; }
+  .report-table tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
+  .report-table tbody tr.totals-row td { font-weight: bold; border-top: 1px solid #000 !important; background: #fff !important; }
+  .report-table.soh-summary { margin-top: 4px; }
+`;
+
+const STOCK_HIDUP_PER_NOSPK_CSS = `
+  .section-title { margin: 12px 0 4px 0; font-size: 11px; font-weight: bold; }
+  .summary-title { margin: 12px 0 4px 0; font-size: 11px; font-weight: bold; }
+  .report-table { font-size: 10px; }
+  .report-table thead tr.headers-row th { white-space: normal; line-height: 1.15; padding: 3px 3px; }
+  .report-table tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
+  .report-table tbody tr.totals-row td { font-weight: bold; border-top: 1px solid #000 !important; background: #fff !important; }
+  .summary-table { width: 34%; border-collapse: collapse; margin-top: 4px; }
+  .summary-table td { padding: 2px 4px; }
+`;
+
 const PRODUKSI_SEMUA_MESIN_CSS = `
   .report-table.semua-mesin { table-layout: fixed; font-size: 9px; }
   .report-table.semua-mesin thead th { font-size: 9px; padding: 2px 2px; line-height: 1.1; }
@@ -868,6 +889,8 @@ const WPS_REPORT_STYLES = {
   label_perhari: LABEL_PERHARI_CSS,
   produksi_hulu_hilur: PRODUKSI_HULU_HILIR_CSS,
   produksi_semua_mesin: PRODUKSI_SEMUA_MESIN_CSS,
+  stock_hidup_per_nospk: STOCK_HIDUP_PER_NOSPK_CSS,
+  rekap_stock_on_hand: REKAP_STOCK_ON_HAND_CSS,
   hasil_produksi_mesin_lembur: HASIL_PRODUKSI_MESIN_LEMBUR_CSS,
   discrepancy_rekap_mutasi: DISCREPANCY_REKAP_MUTASI_CSS,
   rekap_mutasi_cross_tab: REKAP_MUTASI_CROSS_TAB_CSS,
