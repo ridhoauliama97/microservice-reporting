@@ -290,6 +290,30 @@ export function buildLemburData(rows: LemburRow[]): LemburData {
   return { groupedRows, summaryRows, grandTotals };
 }
 
+/**
+ * Column widths as percentages of the table.
+ *
+ * The legacy blade gave only Tanggal a width and left the shared table layout
+ * to split the rest equally, so "DOUBLE END CUTTER" wrapped in a column twice
+ * as wide as the man-hour digits it sat next to. These widths give Nama Mesin
+ * room for the longest machine name and take the space back from the TK and HM
+ * columns, which only ever hold one or two digits.
+ */
+const LEMBUR_COLUMN_WIDTHS = [
+  "18%",  // Tanggal / No
+  "20%",  // Nama Mesin
+  "7%",   // Normal TK
+  "7%",   // Normal HM
+  "17%",  // Normal mtr3
+  "7%",   // Lembur TK
+  "7%",   // Lembur HM
+  "17%",  // Lembur mtr3
+];
+
+const LEMBUR_COLGROUP = `<colgroup>
+        ${LEMBUR_COLUMN_WIDTHS.map((width) => `<col style="width: ${width};">`).join("\n        ")}
+      </colgroup>`;
+
 const GROUP_HEADERS = `
         <th colspan="3">Jam Kerja Normal</th>
         <th colspan="3">Jam Kerja Lembur</th>`;
@@ -359,9 +383,10 @@ export const hasilProduksiMesinLemburReport: ReportDefinition<PeriodParams, Lemb
       .join("\n      ");
 
     const bodyHtml = `<table class="report-table lembur-detail">
+    ${LEMBUR_COLGROUP}
     <thead>
       <tr>
-        <th rowspan="2" style="width: 15%;">Tanggal</th>
+        <th rowspan="2">Tanggal</th>
         <th rowspan="2">Nama Mesin</th>${GROUP_HEADERS}
       </tr>
       <tr>${SUB_HEADERS}
@@ -383,9 +408,10 @@ export const hasilProduksiMesinLemburReport: ReportDefinition<PeriodParams, Lemb
   <div class="page-break-before">
     <h2 class="rangkuman-title">Rangkuman</h2>
     <table class="report-table lembur-rangkuman">
+      ${LEMBUR_COLGROUP}
       <thead>
         <tr>
-          <th rowspan="2" style="width: 5%;">No</th>
+          <th rowspan="2">No</th>
           <th rowspan="2">Nama Mesin</th>${GROUP_HEADERS}
         </tr>
         <tr>${SUB_HEADERS}
