@@ -75,13 +75,44 @@ const formatSignedM3 = (value: number): string => {
 };
 
 /** Legacy summary_lines: label (may be blank) plus a reconciliation sentence. */
-const SUMMARY_LINES: Array<{ label: string; text: (t: Record<string, number>) => string }> = [
-  { label: "Kayu Bulat (KB)", text: (t) => `Pembelian - Racip = ${formatSignedTon(t.KBTonBeli! - t.KBRacip!)}` },
-  { label: "Sawn Timber (ST)", text: (t) => `ST Hasil Racip - ST Siap Vaccum Stick = ${formatSignedTon(t.STRacipan! - t.STVacuumStick!)}` },
-  { label: "", text: (t) => `ST Hasil Racip - ST Masuk KD = ${formatSignedTon(t.STRacipan! - t.STKDIn!)}` },
-  { label: "WIP", text: (t) => `ST Keluar KD - ST Pakai di S4S = ${formatSignedTon(t.STKDOut! - t.STm3Input!)}` },
-  { label: "", text: (t) => `WIP Bersih S4S - WIP Pakai di FJ = ${formatSignedM3(t.WIPBersihOutput! - t.WIPFJInput!)}` },
-  { label: "", text: (t) => `WIP Hasil FJ - WIP Moulding = ${formatSignedM3(t.WIPFJOutput! - t.WIPMouldingInput!)}` },
+const SUMMARY_LINES: Array<{
+  label: string;
+  text: (t: Record<string, number>) => string;
+}> = [
+  {
+    label: "Rangkuman :",
+    text: (t) => ``,
+  },
+  {
+    label: "Kayu Bulat (KB)        :",
+    text: (t) =>
+      `Pembelian - Racip = ${formatSignedTon(t.KBTonBeli! - t.KBRacip!)}`,
+  },
+  {
+    label: "Sawn Timber (ST)        :",
+    text: (t) =>
+      `ST Hasil Racip - ST Siap Vaccum Stick = ${formatSignedTon(t.STRacipan! - t.STVacuumStick!)}`,
+  },
+  {
+    label: "",
+    text: (t) =>
+      `ST Hasil Racip - ST Masuk KD = ${formatSignedTon(t.STRacipan! - t.STKDIn!)}`,
+  },
+  {
+    label: "WIP        :",
+    text: (t) =>
+      `ST Keluar KD - ST Pakai di S4S = ${formatSignedTon(t.STKDOut! - t.STm3Input!)}`,
+  },
+  {
+    label: "",
+    text: (t) =>
+      `WIP Bersih S4S - WIP Pakai di FJ = ${formatSignedM3(t.WIPBersihOutput! - t.WIPFJInput!)}`,
+  },
+  {
+    label: "",
+    text: (t) =>
+      `WIP Hasil FJ - WIP Moulding = ${formatSignedM3(t.WIPFJOutput! - t.WIPMouldingInput!)}`,
+  },
 ];
 
 export const flowProduksiPerPeriodeReport: ReportDefinition<
@@ -119,7 +150,10 @@ export const flowProduksiPerPeriodeReport: ReportDefinition<
   render(data, meta) {
     const bodyRows = data.rows
       .map(
-        (row, index) => `<tr class="data-row ${index % 2 === 0 ? "row-odd" : "row-even"}">
+        (
+          row,
+          index,
+        ) => `<tr class="data-row ${index % 2 === 0 ? "row-odd" : "row-even"}">
         <td class="center">${row.no}</td>
         <td class="label">${escapeHtml(row.group)}</td>
         ${FLOW_KEYS.map((key) => `<td class="number">${escapeHtml(fmt(row.values[key] ?? 0))}</td>`).join("\n        ")}
@@ -127,9 +161,10 @@ export const flowProduksiPerPeriodeReport: ReportDefinition<
       )
       .join("\n      ");
 
-    const totalCells = FLOW_KEYS
-      .map((key) => `<td class="number">${escapeHtml(fmt(data.totals[key] ?? 0))}</td>`)
-      .join("\n        ");
+    const totalCells = FLOW_KEYS.map(
+      (key) =>
+        `<td class="number">${escapeHtml(fmt(data.totals[key] ?? 0))}</td>`,
+    ).join("\n        ");
 
     const summaryHtml = SUMMARY_LINES.map(
       (line) => `<tr>
@@ -143,9 +178,10 @@ export const flowProduksiPerPeriodeReport: ReportDefinition<
     <tr class="headers-row">
       <th style="width: 3%;">No</th>
       <th style="width: 7.46%;">Group Kayu</th>
-      ${FLOW_COLUMNS
-        .map((column) => `<th style="width: 7.46%;">${escapeHtml(column.label)}<br>(${escapeHtml(column.unit)})</th>`)
-        .join("\n      ")}
+      ${FLOW_COLUMNS.map(
+        (column) =>
+          `<th style="width: 7.46%;">${escapeHtml(column.label)}<br>(${escapeHtml(column.unit)})</th>`,
+      ).join("\n      ")}
     </tr>
   </thead>
   <tbody>
