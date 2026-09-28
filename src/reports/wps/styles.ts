@@ -514,14 +514,19 @@ const REKAP_MUTASI_CSS = `
 `;
 
 const DASHBOARD_RU_CSS = `
-  .report-table.dashboard-ru { table-layout: fixed; font-size: 8px; }
-  .report-table.dashboard-ru thead th { font-size: 8px; padding: 2px 2px; line-height: 1.1; border-bottom: 1px solid #000; border-left: 1px solid #000; }
+  .report-table.dashboard-ru { table-layout: fixed; font-size: 7px; border: 1px solid #000; }
+  .report-table.dashboard-ru thead th { font-size: 7px; padding: 2px 1px; line-height: 1.1; border-top: 1px solid #000; border-bottom: 1px solid #000; }
+  /* "th + th" rather than a border on every th: the first cell (No) has no left
+     border of its own, so the table's outer box is what closes its left edge.
+     Without the explicit top border above, the header row had none at all and
+     the No cell read as borderless. */
+  .report-table.dashboard-ru thead th + th { border-left: 1px solid #000; }
   .report-table.dashboard-ru thead th.no-column { border-right: 2px solid #000 !important; }
   .report-table.dashboard-ru thead th.group-start,
   .report-table.dashboard-ru thead th.stock-type-start { border-left: 2px solid #000 !important; }
   .report-table.dashboard-ru thead tr:first-child th { border-bottom: 0; }
   .report-table.dashboard-ru thead tr.sub-header th { border-top: 1px solid #000; }
-  .report-table.dashboard-ru tbody td { padding: 1px 2px; border-left: 1px solid #000; border-top: 0; border-bottom: 0; white-space: nowrap; }
+  .report-table.dashboard-ru tbody td { padding: 1px 1px; border-left: 1px solid #000; border-top: 0; border-bottom: 0; white-space: nowrap; }
   .report-table.dashboard-ru tbody td.no-column { border-right: 2px solid #000 !important; }
   .report-table.dashboard-ru tbody td.group-start,
   .report-table.dashboard-ru tbody td.stock-type-start { border-left: 2px solid #000 !important; }

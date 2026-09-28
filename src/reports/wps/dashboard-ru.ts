@@ -3,7 +3,6 @@ import {
   escapeHtml,
   formatNumber,
   formatPrintedAt,
-  formatTanggalId,
 } from "../../templates/html";
 import { z } from "zod";
 import type { ReportDefinition, RenderMeta } from "../types";
@@ -81,10 +80,34 @@ const KILN_GROUP_SOURCE = "Kiln & Dryer";
 const STOCK_NON_PULAI_KEY = `${STOCK_GROUP_SOURCE}::RB`;
 const FOOTER_LABELS = ["G.T.", "AVG"] as const;
 
+/**
+ * Sub-column width in relative units, per group. The legacy blade used a flat
+ * 48px for every sub-column, which was too narrow for the groups that carry a
+ * longer value or header: the single "ST PBL Hidup" column holds a full
+ * balance, the Kiln & Dryer cells hold "JTG-38" or ">RB-44", and Sawmill
+ * Bansaw's third header is "-/+MJ". The No column is sized separately below.
+ */
+const GROUP_SUB_WIDTH: Record<string, number> = {
+  "Penerimaan Kayu Bulat": 48,
+  "Saldo ST PBL Hidup": 64,
+  "Stock Kayu Bulat Hidup": 48,
+  "Kiln & Dryer": 54,
+  "Sawmill Bansaw": 52,
+  "Sawmill SLP": 48,
+  "Sawmill SLP 1": 48,
+  "Vacuum Tube 1": 48,
+  "Vacuum Tube 2": 48,
+};
+
+/** Wide enough for the G.T. and AVG labels that legacy's 28px clipped. */
+const NO_COLUMN_WIDTH = 56;
+
 interface SubColumn {
   key: string;
   groupSource: string;
   label: string;
+  /** Relative width, used to build the colgroup. */
+  width: number;
 }
 
 interface RuRow extends Record<string, unknown> {
@@ -263,7 +286,12 @@ export function buildDashboardRuData(rows: RuRow[]): DashboardRuData {
   for (const group of GROUP_DEFINITIONS) {
     groupStartIndexes.add(subColumns.length);
     for (const sub of group.subs) {
-      subColumns.push({ key: `${group.source}::${sub}`, groupSource: group.source, label: sub });
+      subColumns.push({
+        key: `${group.source}::${sub}`,
+        groupSource: group.source,
+        label: sub,
+        width: GROUP_SUB_WIDTH[group.source] ?? 48,
+      });
     }
   }
 
@@ -320,8 +348,6 @@ export function buildDashboardRuData(rows: RuRow[]): DashboardRuData {
 /** Legacy formatSummaryDecimal: two decimals and no thousands separator. */
 const formatSummaryDecimal = (value: number): string => value.toFixed(2);
 
-const formatTanggalIdShort = (iso: string): string => formatTanggalId(iso);
-
 export const dashboardRuReport: ReportDefinition<{ tgl: string }, DashboardRuData> = {
   type: "dashboard-ru",
   title: "Laporan Dashboard RU",
@@ -337,17 +363,17 @@ export const dashboardRuReport: ReportDefinition<{ tgl: string }, DashboardRuDat
   },
 
   render(data, meta: RenderMeta<{ tgl: string }>) {
-    // The No column is wider than the legacy 28px so the "G.T." and "AVG" row
-    // labels are not clipped: 28px scales to about 1.3% of the page, which cut
-    // them to "G." and "AV".
-    const NO_WIDTH = 56;
-    const COLUMN_WIDTH = 48;
-    const totalWidth = NO_WIDTH + data.subColumns.length * COLUMN_WIDTH;
-    const pct = (px: number): string => `${((px / totalWidth) * 100).toFixed(4)}%`;
+    // Each sub-column carries its own relative width (see GROUP_SUB_WIDTH), so
+    // the colgroup is built from the column list rather than a flat ratio.
+    const totalWidth =
+      NO_COLUMN_WIDTH + data.subColumns.reduce((sum, column) => sum + column.width, 0);
+    const pct = (units: number): string => `${((units / totalWidth) * 100).toFixed(4)}%`;
 
     const colgroup = `<colgroup>
-      <col style="width: ${pct(NO_WIDTH)};">
-      ${data.subColumns.map(() => `<col style="width: ${pct(COLUMN_WIDTH)};">`).join("\n      ")}
+      <col style="width: ${pct(NO_COLUMN_WIDTH)};">
+      ${data.subColumns
+        .map((column) => `<col style="width: ${pct(column.width)};">`)
+        .join("\n      ")}
     </colgroup>`;
 
     const groupHeader = GROUP_DEFINITIONS.map(
@@ -417,8 +443,10 @@ export const dashboardRuReport: ReportDefinition<{ tgl: string }, DashboardRuDat
       : `${MONTHS_FULL_ID[parsed.getMonth()]} ${parsed.getFullYear()}`;
 
     return renderWpsReportPage({
+      // Title only. The legacy blade rendered an empty subtitle element, and the
+      // month/year in the heading already says which period this is. Omitting it
+      // makes the template give the heading its own bottom gap instead.
       title: `Laporan Dashboard RU ${periodLabel}`,
-      subtitle: `Periode ${formatTanggalIdShort(meta.params.tgl)}`,
       bodyHtml,
       style: "dashboard_ru",
       // The legacy blade prints 44 sub-columns on A4 portrait at 7px. Landscape
