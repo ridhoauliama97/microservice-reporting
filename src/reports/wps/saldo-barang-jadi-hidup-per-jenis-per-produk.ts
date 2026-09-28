@@ -17,7 +17,7 @@ import type { ReportDefinition } from "../types";
  * Live snapshot (the SP takes no parameters). Rows are grouped per Jenis, then
  * per NamaBarangJadi: each product gets a small Tebal / Lebar / Panjang / Pcs
  * / M3 table closed by a "Subtotal <product>" row, and every Jenis ends with a
- * "Total (M3) Per-Jenis <jenis>" band.
+ * "Total (m3) Per-Jenis <jenis>" band.
  */
 
 interface SaldoProdukRow extends Record<string, unknown> {
@@ -63,7 +63,6 @@ const fmtPcs = (value: unknown): string => {
 const fmtM3 = (value: unknown): string =>
   formatNumber(toFloat(value), 4, { blankWhenZero: true });
 
-
 function groupRows(rows: SaldoProdukRow[]): JenisGroup[] {
   const jenisMap = new Map<string, Map<string, ProductGroup>>();
 
@@ -88,7 +87,10 @@ function groupRows(rows: SaldoProdukRow[]): JenisGroup[] {
   // Legacy: ksort($groups) and ksort(products) with SORT_NATURAL |
   // SORT_FLAG_CASE, then rows sorted by Tebal / Lebar / Panjang.
   const naturalCompare = (left: string, right: string): number =>
-    left.localeCompare(right, undefined, { numeric: true, sensitivity: "base" });
+    left.localeCompare(right, undefined, {
+      numeric: true,
+      sensitivity: "base",
+    });
 
   return [...jenisMap.entries()]
     .sort(([left], [right]) => naturalCompare(left, right))
@@ -105,14 +107,20 @@ function groupRows(rows: SaldoProdukRow[]): JenisGroup[] {
           return {
             ...group,
             rows: sortedRows,
-            totalPcs: sortedRows.reduce((sum, row) => sum + toFloat(row.Pcs), 0),
+            totalPcs: sortedRows.reduce(
+              (sum, row) => sum + toFloat(row.Pcs),
+              0,
+            ),
             totalM3: sortedRows.reduce((sum, row) => sum + toFloat(row.M3), 0),
           };
         });
       return {
         name: jenis,
         products: sortedProducts,
-        totalM3: sortedProducts.reduce((sum, product) => sum + product.totalM3, 0),
+        totalM3: sortedProducts.reduce(
+          (sum, product) => sum + product.totalM3,
+          0,
+        ),
       };
     });
 }
@@ -120,7 +128,10 @@ function groupRows(rows: SaldoProdukRow[]): JenisGroup[] {
 const buildProductTable = (group: ProductGroup): string => {
   const bodyRows = group.rows
     .map(
-      (row, index) => `<tr class="data-row ${index % 2 === 0 ? "row-odd" : "row-even"}">
+      (
+        row,
+        index,
+      ) => `<tr class="data-row ${index % 2 === 0 ? "row-odd" : "row-even"}">
         <td class="center">${index + 1}</td>
         <td class="number">${fmtPcs(row.Tebal)}</td>
         <td class="number">${fmtPcs(row.Lebar)}</td>
@@ -175,12 +186,14 @@ const buildBodyHtml = (rows: SaldoProdukRow[], generatedAt: Date): string => {
 
   return groupRows(rows)
     .map(
-      (jenisGroup) => `<div class="section-title">${escapeHtml(jenisGroup.name)}</div>
+      (
+        jenisGroup,
+      ) => `<div class="section-title">${escapeHtml(jenisGroup.name)}</div>
   ${jenisGroup.products.map(buildProductTable).join("\n  ")}
   <table class="report-table-summary">
     <tbody>
       <tr class="totals-row">
-        <td class="blank">Total (M3) Per-Jenis ${escapeHtml(jenisGroup.name)}</td>
+        <td class="blank">Total (m3) Per-Jenis ${escapeHtml(jenisGroup.name)}</td>
         <td class="number" style="width: 29.75%;">${fmtM3(jenisGroup.totalM3)}</td>
       </tr>
     </tbody>
@@ -206,8 +219,9 @@ export const saldoBarangJadiHidupPerJenisPerProdukReport: ReportDefinition<
 
   render(rows, meta) {
     // Legacy subtitle: "Per <generation date>" in d-M-y (2-digit year).
-    const generatedDate = formatTanggalId(meta.generatedAt.toISOString().slice(0, 10))
-      .replace(/\d{4}$/, (year) => year.slice(-2));
+    const generatedDate = formatTanggalId(
+      meta.generatedAt.toISOString().slice(0, 10),
+    ).replace(/\d{4}$/, (year) => year.slice(-2));
     return renderWpsReportPage({
       title: "Laporan Saldo Barang Jadi Hidup Per-Jenis Per-Produk",
       subtitle: `Per ${generatedDate}`,
