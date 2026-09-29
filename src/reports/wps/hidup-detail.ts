@@ -86,9 +86,10 @@ const toNumber = (value: unknown): number => {
   let normalized = value.trim().replaceAll(" ", "");
   if (normalized === "") return 0;
   if (normalized.includes(",") && normalized.includes(".")) {
-    normalized = normalized.lastIndexOf(",") > normalized.lastIndexOf(".")
-      ? normalized.replaceAll(".", "").replaceAll(",", ".")
-      : normalized.replaceAll(",", "");
+    normalized =
+      normalized.lastIndexOf(",") > normalized.lastIndexOf(".")
+        ? normalized.replaceAll(".", "").replaceAll(",", ".")
+        : normalized.replaceAll(",", "");
   } else if (normalized.includes(",")) {
     normalized = /^-?\d{1,3}(?:,\d{3})+$/.test(normalized)
       ? normalized.replaceAll(",", "")
@@ -161,7 +162,10 @@ export function createHidupDetailReport(
       const conn = await pool;
       const result = await conn.request().execute(options.storedProcedure);
       return sortHidupRows(
-        normalizeHidupRows((result.recordset ?? []) as Array<Record<string, unknown>>, options),
+        normalizeHidupRows(
+          (result.recordset ?? []) as Array<Record<string, unknown>>,
+          options,
+        ),
       );
     },
 
@@ -193,7 +197,10 @@ export function createPeriodHidupDetailReport(
         .input("EndDate", sql.Date, params.tglAkhir)
         .execute(options.storedProcedure);
       return sortHidupRows(
-        normalizeHidupRows((result.recordset ?? []) as Array<Record<string, unknown>>, options),
+        normalizeHidupRows(
+          (result.recordset ?? []) as Array<Record<string, unknown>>,
+          options,
+        ),
       );
     },
 
@@ -220,11 +227,14 @@ function renderHidupBody(
   meta: { requestedBy: string; generatedAt: Date },
   subtitle: string,
 ) {
-      const totalM3 = rows.reduce((sum, row) => sum + toNumber(row.m3), 0);
+  const totalM3 = rows.reduce((sum, row) => sum + toNumber(row.m3), 0);
 
-      const bodyRows = rows
-        .map(
-          (row, index) => `<tr class="data-row ${index % 2 === 0 ? "row-odd" : "row-even"}">
+  const bodyRows = rows
+    .map(
+      (
+        row,
+        index,
+      ) => `<tr class="data-row ${index % 2 === 0 ? "row-odd" : "row-even"}">
         <td class="center">${index + 1}</td>
         <td class="center">${escapeHtml(toText(row.no))}</td>
         <td class="center">${escapeHtml(fmtDate(row.tanggal))}</td>
@@ -237,12 +247,12 @@ function renderHidupBody(
         <td class="number" style="font-weight: bold;">${escapeHtml(fmtM3(row.m3))}</td>
         <td class="center">${escapeHtml(toText(row.lokasi))}</td>
       </tr>`,
-        )
-        .join("\n    ");
+    )
+    .join("\n    ");
 
-      const w = options.widths;
-      const l = options.labels;
-      const bodyHtml = `<table class="report-table">
+  const w = options.widths;
+  const l = options.labels;
+  const bodyHtml = `<table class="report-table">
   <thead>
     <tr class="headers-row">
       <th style="width: ${w.no};">No</th>
@@ -272,12 +282,12 @@ function renderHidupBody(
   </tbody>
 </table>`;
 
-      return renderWpsReportPage({
-        title: options.title,
-        subtitle,
-        bodyHtml,
-        style: options.style,
-        printedBy: meta.requestedBy,
-        printedAt: formatPrintedAt(meta.generatedAt),
-      });
+  return renderWpsReportPage({
+    title: options.title,
+    subtitle,
+    bodyHtml,
+    style: options.style,
+    printedBy: meta.requestedBy,
+    printedAt: formatPrintedAt(meta.generatedAt),
+  });
 }

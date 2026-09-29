@@ -18,7 +18,7 @@ export const crossCutAkhirHidupDetailReport = createHidupDetailReport({
   storedProcedure: "SP_LapCCAkhirHidupDetail",
   numberColumn: "NoCCAkhir",
   volumeColumn: "Kubik",
-  labels: { number: "No CCAkhir", spk: "No SPK", batang: "Jumlah Batang" },
+  labels: { number: "No CC Akhir", spk: "No SPK", batang: "Jumlah Batang" },
   widths: {
     no: "32px",
     number: "84px",

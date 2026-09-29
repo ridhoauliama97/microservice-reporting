@@ -1,7 +1,7 @@
 import { createKetahananReport } from "./ketahanan";
 
 /**
- * SP_LapKetahananBarangCCAkhir — "Laporan Ketahanan Barang Dagang CCAkhir"
+ * SP_LapKetahananBarangCCAkhir — "Laporan Ketahanan Barang Dagang CC Akhir"
  * (the user-facing name is "Laporan Ketahanan Barang Dagang Cross Cut Akhir").
  * Ported from open-api-report's
  * KetahananBarangDagangCrossCutAkhirReportService +
@@ -10,6 +10,6 @@ import { createKetahananReport } from "./ketahanan";
 
 export const ketahananBarangCcAkhirReport = createKetahananReport({
   type: "ketahanan-barang-cc-akhir",
-  title: "Laporan Ketahanan Barang Dagang CCAkhir",
+  title: "Laporan Ketahanan Barang Dagang CC Akhir",
   storedProcedure: "SP_LapKetahananBarangCCAkhir",
 });

@@ -296,12 +296,14 @@ const buildMainTable = (
   </thead>
   <tbody>
     ${bodyRows || buildEmptyTableRow(20)}
-    ${rows.length > 0
-      ? `<tr class="totals-row">
+    ${
+      rows.length > 0
+        ? `<tr class="totals-row">
       <td colspan="2" class="blank">Total</td>
       ${totalsHtml}
     </tr>`
-      : ""}
+        : ""
+    }
   </tbody>
 </table>`,
     totals,
@@ -366,19 +368,20 @@ const buildSubTable = (rows: SubMutasiRow[]): string => {
     </thead>
     <tbody>
       ${bodyRows || buildEmptyTableRow(10)}
-      ${rows.length > 0
-        ? `<tr class="totals-row">
+      ${
+        rows.length > 0
+          ? `<tr class="totals-row">
         <td colspan="2" class="blank">Total</td>
         ${totalCells}
       </tr>`
-        : ""}
+          : ""
+      }
     </tbody>
   </table>`;
 };
 
 const formatTanggalPendek = (iso: string): string =>
   formatTanggalId(iso).replace(/\d{4}$/, (year) => year.slice(-2));
-
 
 export const mutasiCrossCutAkhirReport: ReportDefinition<
   PeriodParams,
