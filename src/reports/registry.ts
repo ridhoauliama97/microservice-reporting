@@ -25,6 +25,15 @@ import {
 import { timelineRekapPenjualanPerProdukReport } from './wps/timeline-rekap-penjualan-per-produk'
 import { koordinatTanahReport } from './wps/koordinat-tanah'
 import { penjualanBarangJadiM3Report } from './wps/penjualan-barang-jadi-m3'
+import {
+  ProduksiCcAkhirPerNomorProduksiReport,
+  produksiFjPerNomorProduksiReport,
+  produksiLaminatingPerNomorProduksiReport,
+  produksiMouldingPerNomorProduksiReport,
+  produksiPackingPerNomorProduksiReport,
+  produksiS4SPerNomorProduksiReport,
+  produksiSandingPerNomorProduksiReport,
+} from './wps/produksi-per-nomor-produksi'
 import { suratJalanReport } from './wps/surat-jalan'
 import { produksiHuluHilirReport } from './wps/produksi-hulu-hilir'
 import { produksiSemuaMesinReport } from './wps/produksi-semua-mesin'
@@ -140,6 +149,14 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'koordinat-tanah': koordinatTanahReport,
   'penjualan-barang-jadi-m3': penjualanBarangJadiM3Report,
   'surat-jalan': suratJalanReport,
+  'produksi-fj-per-nomor-produksi': produksiFjPerNomorProduksiReport,
+  'produksi-laminating-per-nomor-produksi':
+    produksiLaminatingPerNomorProduksiReport,
+  'produksi-moulding-per-nomor-produksi': produksiMouldingPerNomorProduksiReport,
+  'produksi-packing-per-nomor-produksi': produksiPackingPerNomorProduksiReport,
+  'produksi-s4s-per-nomor-produksi': produksiS4SPerNomorProduksiReport,
+  'produksi-sanding-per-nomor-produksi': produksiSandingPerNomorProduksiReport,
+  'produksi-cc-akhir-per-nomor-produksi': ProduksiCcAkhirPerNomorProduksiReport,
   'produksi-hulu-hilir': produksiHuluHilirReport,
   'produksi-semua-mesin': produksiSemuaMesinReport,
   'rekap-mutasi': rekapMutasiReport,

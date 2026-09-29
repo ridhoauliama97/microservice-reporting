@@ -731,6 +731,65 @@ const TIMELINE_PENJUALAN_CSS = `
   .report-table.summary-table { width: 92%; }
 `;
 
+// The seven "Produksi Per Nomor Produksi" reports: a two-pane header block,
+// then the Input and Output tables one above the other, each full width.
+//
+// They are stacked rather than side by side because the two sides rarely have
+// the same number of lines — the S4S report runs to 26 input rows against 6
+// output rows. Side by side, the shorter table's total row lands halfway down
+// the page and leaves a column of empty white beside the longer table's
+// remaining rows. Stacked, each table is exactly as tall as its own data.
+const PRODUKSI_PER_NOMOR_PRODUKSI_CSS = `
+  body { font-size: 10px; line-height: 1.15; }
+  .report-title { margin: 0 0 10px 0; text-align: center; font-size: 15px; font-weight: bold; }
+  .meta-grid { margin-bottom: 10px; border-collapse: collapse; }
+  .meta-grid td { border: 0 !important; padding: 0; vertical-align: top; }
+  .meta-pane-left { width: 50%; }
+  .meta-pane-right { width: 26%; }
+  .meta-table { border-collapse: collapse; }
+  .meta-table td { border: 0 !important; padding: 2px 0; font-size: 10px; vertical-align: top; }
+  .meta-label { width: 72px; }
+  .meta-sep { width: 10px; text-align: center; }
+
+  .section-heading { margin: 10px 0 3px 0; font-size: 12px; font-weight: bold; }
+  /* Input and Output sit side by side, but not touching. At a plain 50/50 the
+     two tables' outer rules met and the pair read as one twelve-column table.
+     Each table now takes 49% and the leftover 2% is an empty spacer column,
+     so each keeps its own box and its own height (vertical-align: top) while
+     still sitting across from its counterpart. */
+  .split-grid { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  /* Scoped to the grid's OWN cells with a child combinator. A bare
+     ".split-grid td" also matches every td inside the nested detail table, and
+     with !important that beat ".detail-table td" outright — which is why the
+     data rows came out with no rules at all while the header, whose cells are
+     th rather than td, kept its box. */
+  .split-grid > tbody > tr > td { border: 0 !important; padding: 0; vertical-align: top; }
+  .split-grid .left-pane { width: 49%; }
+  .split-grid .right-pane { width: 49%; }
+  .split-grid .gutter { width: 2%; }
+  /* Keeps a heading, its table and the Rendemen line on the same page so the
+     line is never orphaned onto a page of its own. Chromium still splits a
+     block that is taller than the page, so a long table still paginates. */
+  .report-block { break-inside: avoid; page-break-inside: avoid; }
+  /* Every cell is fully boxed: the column rules AND the rules between data rows.
+     The legacy stylesheet dropped the horizontal ones, which left the tables
+     reading as loose vertical stripes with no row structure at all. */
+  .detail-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .detail-table th, .detail-table td { border: 1px solid #000; padding: 3px 4px; font-size: 10px; }
+  .detail-table thead th { text-align: center; font-weight: bold; background: #fff; }
+  .detail-table tbody td { vertical-align: middle; }
+  .detail-table tbody tr.row-odd td { background: #eef2f8; }
+  .detail-table tbody tr.row-even td { background: #cfd8e6; }
+  .detail-table td.number { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; }
+  .detail-table tfoot td { font-weight: bold; font-size: 11px; background: #fff; }
+  .detail-table .total-label { text-align: center; }
+  /* A table that does span a page repeats its header band and keeps its zebra
+     counting from the top, so the two pages read as one table. */
+  .detail-table thead { display: table-header-group; }
+  .detail-table tr { page-break-inside: avoid; }
+  .rendemen-line { margin: 8px 0 0 0; font-size: 11px; }
+`;
+
 // Rekap Penjualan (Per-Produk, Per-Produk & Per-Buyer, Per-Buyer & Per-Produk).
 // The three blades are the same stylesheet, so they share one preset; the inner
 // section title is called .group-title because the legacy class name flipped
@@ -1068,6 +1127,7 @@ const WPS_REPORT_STYLES = {
   label_perhari: LABEL_PERHARI_CSS,
   penjualan_lokal: PENJUALAN_LOKAL_CSS,
   rekap_penjualan: REKAP_PENJUALAN_CSS,
+  produksi_per_nomor_produksi: PRODUKSI_PER_NOMOR_PRODUKSI_CSS,
   timeline_penjualan: TIMELINE_PENJUALAN_CSS,
   koordinat_tanah: KOORDINAT_TANAH_CSS,
   penjualan_barang_jadi_m3: PENJUALAN_BARANG_JADI_M3_CSS,
