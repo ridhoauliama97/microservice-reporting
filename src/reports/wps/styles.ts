@@ -26,7 +26,7 @@ const DASHBOARD_BARANG_JADI_CSS = `
     border-left: 0;
   }
   td.number {
-    font-family: Calibri, "DejaVu Sans", sans-serif;
+    font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
   td.label { white-space: nowrap; }
@@ -52,7 +52,7 @@ const DASHBOARD_CROSS_CUT_AKHIR_CSS = `
     border-left: 0;
   }
   td.number {
-    font-family: Calibri, "DejaVu Sans", sans-serif;
+    font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
   td.label { white-space: nowrap; }
@@ -81,7 +81,7 @@ const DASHBOARD_REPROSES_CSS = `
     font-size: 9px;
   }
   .dashboard-reproses-table td.number {
-    font-family: Calibri, "DejaVu Sans", sans-serif;
+    font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums;
     font-size: 8.5px;
     white-space: nowrap;
   }
@@ -181,7 +181,7 @@ const PENERIMAAN_KAYU_BULAT_KG_CSS = `
   .report-table th { text-align: center; font-weight: bold; background: #ffffff; }
   .report-table td { vertical-align: middle; }
   .report-table td.center { text-align: center; }
-  .report-table td.number { text-align: right; white-space: nowrap; font-family: "Calibri", "DejaVu Sans", sans-serif; }
+  .report-table td.number { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
   .report-table tbody tr.data-row td { border-top: 0; border-bottom: 0; border-left: 0; border-right: 1px solid #000; }
   .report-table tbody tr.totals-row td { background: #fff !important; font-weight: bold; font-size: 11px; border-top: 1px solid #000; border-right: 1px solid #000; border-bottom: 0; border-left: 0; }
 
@@ -189,14 +189,14 @@ const PENERIMAAN_KAYU_BULAT_KG_CSS = `
   .grand-total-table { width: 200px; margin: 0 0 14px; border-collapse: collapse; }
   .grand-total-table td { padding: 0; font-size: 11px; font-weight: bold; vertical-align: top; border: 0 !important; background: #fff !important; }
   .grand-total-label { width: 58px; text-align: left; }
-  .grand-total-value { text-align: right; white-space: nowrap; font-family: "Calibri", "DejaVu Sans", sans-serif; }
+  .grand-total-value { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
 
   .signature-table { margin-top: 14px; table-layout: fixed; }
   .signature-table td { width: 14.28%; text-align: center; vertical-align: top; padding: 0 2px; border: 0 !important; background: #fff !important; }
   .signature-label-row td { padding-bottom: 18px; }
   .signature-placeholder-row td { padding-top: 50px; }
   .signature-placeholder-table { width: 100%; border-collapse: collapse; }
-  .signature-placeholder-table td { padding: 0; font-family: "Calibri", "DejaVu Sans", sans-serif; font-size: 11px; font-weight: normal; text-align: center; border: 0 !important; background: #fff !important; }
+  .signature-placeholder-table td { padding: 0; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; font-size: 11px; font-weight: normal; text-align: center; border: 0 !important; background: #fff !important; }
   .signature-bracket { width: 100px; }
   .signature-space { width: 100px; }
 `;
@@ -313,7 +313,7 @@ const REKAP_PENERIMAAN_ST_SAWMILL_COSTING_RAMBUNG_CSS = `
   .money-divider-row td { padding: 1px 0 2px 0; }
   .money-divider-line { border-top: 1px solid #000; height: 0; margin-left: 82px; }
   .money-label { width: 68px; font-weight: bold; text-align: left; white-space: nowrap; }
-  .money-value { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; width: 150px; font-weight: bold; }
+  .money-value { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; width: 150px; font-weight: bold; }
   .money-flag-attachment { font-weight: bold; white-space: nowrap; padding-left: 10px; text-align: left; width: 60px; }
   .btul-box { width: 100%; font-size: 11px; padding-left: 26px; }
   .btul-title { font-weight: normal; text-align: left; margin: 0; line-height: 1.15; width: 96px; white-space: normal; word-break: normal; overflow-wrap: normal; }
@@ -326,7 +326,7 @@ const REKAP_PENERIMAAN_ST_SAWMILL_COSTING_RAMBUNG_CSS = `
   .mini-table th { text-align: center; font-weight: bold; }
   .mini-table td.label { text-align: left; }
   .mini-table td.label-total { text-align: right; font-weight: bold; }
-  .mini-table td.num { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; }
+  .mini-table td.num { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
   .diagram-section { margin-top: 10px; }
   .diagram-frame { width: 100%; border: 0; border-collapse: collapse; table-layout: fixed; margin: 0; }
   .diagram-frame td { border: 0; padding: 6px 10px; vertical-align: top; background: #fff; font-size: 10px; }
@@ -341,12 +341,12 @@ const REKAP_PENERIMAAN_ST_SAWMILL_COSTING_RAMBUNG_CSS = `
   .rendemen-total-table td { border: 0; padding: 0; text-align: center; background: transparent; }
   .rendemen-total-label-cell { font-weight: bold; font-size: 12px; text-transform: uppercase; padding-bottom: 4px; }
   .rendemen-total-label-cell h2 { margin: 0; font-size: 18px; }
-  .rendemen-total-value-cell { font-size: 24px; font-weight: bold; font-family: Calibri, "DejaVu Sans", sans-serif; border: 2px solid #000; padding: 4px 30px; background: #fff; }
+  .rendemen-total-value-cell { font-size: 24px; font-weight: bold; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; border: 2px solid #000; padding: 4px 30px; background: #fff; }
   .rendemen-total-value-cell h1 { margin: 0; font-size: 24px; }
   .diagram-kategori-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 10px; margin: 0; }
   .diagram-kategori-table th, .diagram-kategori-table td { border: 1px solid #000; padding: 4px 6px; }
   .diagram-kategori-table th { background: #1a3a5c; color: #fff; font-weight: bold; text-align: center; font-size: 11px; }
-  .diagram-kategori-table td.num { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; }
+  .diagram-kategori-table td.num { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
   .diagram-kategori-table td.left { text-align: left; }
   .diagram-kategori-table td.total-row { font-weight: bold; border-top: 1px solid #1a3a5c; background: #eef2f8; }
   .category-swatch { border-radius: 50%; width: 4px; height: 4px; vertical-align: middle; }
@@ -380,7 +380,7 @@ const REKAP_PENERIMAAN_ST_SAWMILL_COSTING_RAMBUNG_CSS = `
   .group-summary-table th, .group-summary-table td { border: 1px solid #000; padding: 3px 5px; }
   .group-summary-table th { text-align: center; font-weight: bold; }
   .group-summary-table td:first-child { text-align: left; }
-  .group-summary-table td.num { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; }
+  .group-summary-table td.num { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
   .group-summary-total td { font-weight: bold; }
 `;
 
@@ -424,7 +424,7 @@ const REKAP_PRODUKSI_BARANG_JADI_CONSOLIDATED_CSS = `
   .production-table td.number {
     text-align: right;
     white-space: nowrap;
-    font-family: Calibri, "DejaVu Sans", sans-serif;
+    font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums;
   }
   .production-table .row-odd td { background: #c9d1df; }
   .production-table .row-even td { background: #eef2f8; }
@@ -654,7 +654,7 @@ const PENJUALAN_BARANG_JADI_M3_CSS = `
   .total-line { width: 240px; margin: 0 0 12px auto; border-collapse: collapse; }
   .total-line td { border: 0; padding: 1px 4px; vertical-align: top; }
   .total-line .total-label { text-align: right; white-space: nowrap; }
-  .total-line .total-value { text-align: right; white-space: nowrap; font-weight: bold; font-family: Calibri, "DejaVu Sans", sans-serif; }
+  .total-line .total-value { text-align: right; white-space: nowrap; font-weight: bold; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
   .total-line.grand-total { margin-top: 6px; margin-bottom: 0; }
 `;
 
@@ -780,7 +780,7 @@ const PRODUKSI_PER_NOMOR_PRODUKSI_CSS = `
   .detail-table tbody td { vertical-align: middle; }
   .detail-table tbody tr.row-odd td { background: #eef2f8; }
   .detail-table tbody tr.row-even td { background: #cfd8e6; }
-  .detail-table td.number { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; }
+  .detail-table td.number { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
   .detail-table tfoot td { font-weight: bold; font-size: 11px; background: #fff; }
   .detail-table .total-label { text-align: center; }
   /* A table that does span a page repeats its header band and keeps its zebra
@@ -906,7 +906,7 @@ const REKAP_PRODUKSI_CROSS_CUT_AKHIR_CONSOLIDATED_CSS = `
   .production-table th { text-align: center; font-weight: bold; font-size: 11px; border-bottom: 1px solid #000; background: #fff; }
   .production-table tbody td { border-top: 0; border-bottom: 0; }
   .production-table td, .production-table th { white-space: nowrap; }
-  .production-table td.number { text-align: right; font-family: Calibri, "DejaVu Sans", sans-serif; }
+  .production-table td.number { text-align: right; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
   .production-table tbody tr.row-odd td { background: #c9d1df; }
   .production-table tbody tr.row-even td { background: #eef2f8; }
   .production-table .totals-row td { font-weight: bold; font-size: 11px; border-top: 1px solid #000; border-bottom: 1px solid #000; background: #fff; }
@@ -972,7 +972,7 @@ const SALDO_HIDUP_KAYU_BULAT_KG_CSS = `
 const STOCK_OPNAME_KB_CSS = `
   .rangkuman-list { margin: 0 0 10px 18px; padding: 0; font-size: 10px; list-style: none; }
   .rangkuman-list li { margin-bottom: 2px; }
-  .rangkuman-list strong { font-family: Calibri, "DejaVu Sans", sans-serif; }
+  .rangkuman-list strong { font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
 `;
 
 const STOCK_RACIP_KAYU_LAT_CSS = `
@@ -1093,14 +1093,14 @@ const DASHBOARD_S4S_CSS = `
   .dashboard-s4s-table thead { display: table-header-group; }
   .dashboard-s4s-table tbody tr { page-break-inside: avoid; }
   .dashboard-s4s-table td.center { text-align: center; }
-  .dashboard-s4s-table td.number, .dashboard-s4s-table td.label { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; }
+  .dashboard-s4s-table td.number, .dashboard-s4s-table td.label { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
   .dashboard-s4s-table td.label { text-align: left; }
   .dashboard-s4s-table tfoot td { font-weight: bold; background: #fff; }
   .dashboard-s4s-table td.empty-cell { text-align: center; font-style: italic; }
 
   .summary-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
   .summary-table td { border: 1px solid #000; padding: 2px 4px; font-size: 10px; }
-  .summary-table td.number { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; }
+  .summary-table td.number { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
   .summary-table td.label { text-align: left; }
   .summary-table tr.totals-row td { font-weight: bold; background: #fff; }
 `;
@@ -1116,11 +1116,11 @@ const GRADE_ABC_HARIAN_CSS = `
   .grade-abc-table thead { display: table-header-group; }
   .grade-abc-table tbody tr { page-break-inside: avoid; }
   .grade-abc-table td.center { text-align: center; }
-  /* Figures inherit the body font on purpose. An override here used to pick
-     Calibri, which resolves to Carlito in the Gotenberg image: a narrow
-     humanist sans with a small x-height, so at 9px the digits read lighter than
-     the serif labels beside them and the table looked like two documents. */
-  .grade-abc-table td.number { text-align: right; white-space: nowrap; }
+  /* Figures take Noto Sans rather than the serif body font. The serif digits ran
+     together at 9px, and an earlier override asked for Calibri, which fontconfig
+     silently resolves to Carlito in this image: a narrow humanist sans with a
+     small x-height, so the numbers read lighter than the labels beside them. */
+  .grade-abc-table td.number { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
   .grade-abc-table td.percent { color: #333; }
   .grade-abc-table tfoot td { font-weight: bold; background: #fff; }
   .grade-abc-table td.empty-cell { text-align: center; font-style: italic; }
@@ -1150,7 +1150,7 @@ const LABEL_S4S_HIDUP_CSS = `
   .report-table tbody tr { page-break-inside: avoid; }
   .report-table td.center { text-align: center; }
   .report-table td.label { text-align: left; }
-  .report-table td.number { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; }
+  .report-table td.number { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
   .report-table td.empty-cell { text-align: center; font-style: italic; }
   .report-table tr.totals-row td { font-weight: bold; background: #fff; }
   /* The Jenis heading, and the product heading under it, each stay with the
@@ -1172,7 +1172,7 @@ const OUTPUT_S4S_PER_GRADE_CSS = `
   .output-s4s-table thead { display: table-header-group; }
   .output-s4s-table tbody tr { page-break-inside: avoid; }
   .output-s4s-table td.center { text-align: center; }
-  .output-s4s-table td.number { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; }
+  .output-s4s-table td.number { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
   /* A grade cell holds the day's output and its share of the Jns total. They
      need real separation: as bare inline spans the two runs touch, and the
      result reads as one run-together number ("0.9" + "5.2%" -> "0.95.2"). */
@@ -1190,17 +1190,17 @@ const OUTPUT_S4S_PER_GRADE_CSS = `
  */
 const REKAP_PRODUKSI_S4S_RAMBUNG_CSS = `
   .rambung-per-grade-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-  .rambung-per-grade-table th, .rambung-per-grade-table td { border: 1px solid #000; padding: 2px 3px; font-size: 9px; }
+  .rambung-per-grade-table th, .rambung-per-grade-table td { border: 1px solid #000; padding: 2px 3px; font-size: 10px; }
   .rambung-per-grade-table thead th { text-align: center; font-weight: bold; background: #fff; }
   .rambung-per-grade-table thead { display: table-header-group; }
   .rambung-per-grade-table tbody tr { page-break-inside: avoid; }
   .rambung-per-grade-table td.center { text-align: center; }
-  .rambung-per-grade-table td.number { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; }
+  .rambung-per-grade-table td.number { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
   .rambung-per-grade-table tfoot td { font-weight: bold; background: #fff; }
   .rambung-per-grade-table td.empty-cell { text-align: center; font-style: italic; }
   .summary-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
   .summary-table td { border: 1px solid #000; padding: 2px 4px; font-size: 10px; }
-  .summary-table td.number { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; }
+  .summary-table td.number { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
   .summary-table td.label { text-align: left; }
   .summary-table tr.totals-row td { font-weight: bold; background: #fff; }
 `;
@@ -1211,10 +1211,11 @@ const REKAP_PRODUKSI_S4S_RAMBUNG_CSS = `
  * pinned and every column is a share of the text column, sized from
  * measurement rather than declared in px.
  *
- * The figures take the body font. They used to ask for Calibri, which resolves
- * to Carlito in the container, and at 9px across thirteen columns the digits ran
- * together and were hard to read. This matches what the Produksi Per SPK yield
- * table does.
+ * The figures take the body font. An earlier override asked for Calibri, which
+ * fontconfig silently resolves to Carlito in this image rather than to the face
+ * that was named, and at 9px across thirteen columns the digits ran together and
+ * were hard to read. tests/wps-rendemen.test.ts guards this rule, so changing
+ * the face here means changing that test on purpose.
  */
 const REKAP_RENDEMEN_CSS = `
   .rekap-rendemen-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
@@ -1241,7 +1242,7 @@ const RENDEMEN_SEMUA_PROSES_CSS = `
   .rendemen-pivot thead { display: table-header-group; }
   .rendemen-pivot tbody tr { page-break-inside: avoid; }
   .rendemen-pivot td.center { text-align: center; }
-  .rendemen-pivot td.number { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; }
+  .rendemen-pivot td.number { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
   .rendemen-pivot td.rendemen-cell { font-weight: bold; }
   .rendemen-pivot td.empty-cell { text-align: center; font-style: italic; }
   .rendemen-pivot tr.totals-row td { font-weight: bold; font-size: 10px; background: #fff; }
@@ -1250,7 +1251,7 @@ const RENDEMEN_SEMUA_PROSES_CSS = `
   .rangkuman-title { margin-bottom: 6px; font-size: 12px; font-weight: bold; }
   .rangkuman-table { border-collapse: collapse; }
   .rangkuman-table td { border: 0; padding: 1px 4px 1px 0; font-size: 11px; }
-  .rangkuman-table td.number { text-align: left; font-weight: bold; font-family: Calibri, "DejaVu Sans", sans-serif; }
+  .rangkuman-table td.number { text-align: left; font-weight: bold; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
 `;
 
 /**
@@ -1284,10 +1285,13 @@ const PRODUKSI_PER_SPK_CSS = `
   .report-table thead { display: table-header-group; }
   .report-table tbody tr { page-break-inside: avoid; }
   .report-table td.center { text-align: center; }
-  .report-table td.number { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; }
+  .report-table td.number { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
   /* Input / Output / Rend keep the body font, the same as Tebal and Lebar, and
-     only take the right alignment. The Calibri face used elsewhere made the two
-     tables on this page look like they came from different reports. */
+     only take the right alignment: both tables share this page, so giving these
+     cells their own face would make them look like separate reports. The
+     thirteen-column yield table is a different case, its figures do take Noto
+     Sans because there the readability problem is the column count, not the
+     pairing. */
   .report-table td.rend-value { text-align: right; white-space: nowrap; }
   .report-table td.empty-cell { text-align: center; font-style: italic; }
   .report-table tr.label-total td { font-weight: bold; background: #fff; }
