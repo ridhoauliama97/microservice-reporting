@@ -1082,6 +1082,130 @@ const UMUR_KAYU_BULAT_RAMBUNG_CSS = `
 `;
 
 /**
+ * The S4S dashboards. A daily movement grid with one column pair per group, and
+ * v1 can carry five groups on an A4 landscape page while v2 carries fifteen, so
+ * the figures are kept small and every cell fully boxed.
+ */
+const DASHBOARD_S4S_CSS = `
+  .dashboard-s4s-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .dashboard-s4s-table th, .dashboard-s4s-table td { border: 1px solid #000; padding: 1px 3px; font-size: 8px; }
+  .dashboard-s4s-table thead th { text-align: center; font-weight: bold; background: #fff; }
+  .dashboard-s4s-table thead { display: table-header-group; }
+  .dashboard-s4s-table tbody tr { page-break-inside: avoid; }
+  .dashboard-s4s-table td.center { text-align: center; }
+  .dashboard-s4s-table td.number, .dashboard-s4s-table td.label { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; }
+  .dashboard-s4s-table td.label { text-align: left; }
+  .dashboard-s4s-table tfoot td { font-weight: bold; background: #fff; }
+  .dashboard-s4s-table td.empty-cell { text-align: center; font-style: italic; }
+
+  .summary-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+  .summary-table td { border: 1px solid #000; padding: 2px 4px; font-size: 10px; }
+  .summary-table td.number { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; }
+  .summary-table td.label { text-align: left; }
+  .summary-table tr.totals-row td { font-weight: bold; background: #fff; }
+`;
+
+/**
+ * Grade ABC Harian. Four grades, each split into a piece count and its share of
+ * the day, so eight figure columns plus a total.
+ */
+const GRADE_ABC_HARIAN_CSS = `
+  .grade-abc-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .grade-abc-table th, .grade-abc-table td { border: 1px solid #000; padding: 2px 4px; font-size: 9px; }
+  .grade-abc-table thead th { text-align: center; font-weight: bold; background: #fff; }
+  .grade-abc-table thead { display: table-header-group; }
+  .grade-abc-table tbody tr { page-break-inside: avoid; }
+  .grade-abc-table td.center { text-align: center; }
+  /* Figures inherit the body font on purpose. An override here used to pick
+     Calibri, which resolves to Carlito in the Gotenberg image: a narrow
+     humanist sans with a small x-height, so at 9px the digits read lighter than
+     the serif labels beside them and the table looked like two documents. */
+  .grade-abc-table td.number { text-align: right; white-space: nowrap; }
+  .grade-abc-table td.percent { color: #333; }
+  .grade-abc-table tfoot td { font-weight: bold; background: #fff; }
+  .grade-abc-table td.empty-cell { text-align: center; font-style: italic; }
+`;
+
+/**
+ * Mutasi S4S shares the mutasi shape: fifteen figure columns across a Masuk and
+ * a Keluar band, which only fits on a landscape page. The sub table underneath
+ * is the same report the Laminating and Moulding versions produce.
+ */
+const MUTASI_S4S_CSS = LAMINATING_TABLE_CSS + `
+  .sub-report-table { margin-top: 14px; }
+  .report-table tbody tr.totals-row td { font-weight: bold; background: #fff; }
+  .report-table td.blank { background: #fff; }
+`;
+
+/**
+ * The two live-label reports. One table per grade inside a Jenis, then a summary
+ * table per Jenis, so the section title has to stay with its tables.
+ */
+const LABEL_S4S_HIDUP_CSS = `
+  .label-detail-table { width: 100%; margin-bottom: 6px; }
+  .label-summary-table { width: 100%; margin-bottom: 16px; }
+  .report-table th, .report-table td { border: 1px solid #000; padding: 2px 4px; font-size: 10px; }
+  .report-table thead th { text-align: center; font-weight: bold; background: #fff; }
+  .report-table thead { display: table-header-group; }
+  .report-table tbody tr { page-break-inside: avoid; }
+  .report-table td.center { text-align: center; }
+  .report-table td.label { text-align: left; }
+  .report-table td.number { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; }
+  .report-table td.empty-cell { text-align: center; font-style: italic; }
+  .report-table tr.totals-row td { font-weight: bold; background: #fff; }
+  /* The Jenis heading, and the product heading under it, each stay with the
+     table they introduce instead of being stranded at the foot of a page. */
+  .group-title { margin: 14px 0 6px 0; font-size: 12px; font-weight: bold; break-after: avoid; page-break-after: avoid; }
+  .product-title { margin: 8px 0 4px 0; font-size: 11px; font-weight: bold; break-after: avoid; page-break-after: avoid; }
+  .section-title { margin: 14px 0 6px 0; font-size: 12px; font-weight: bold; break-after: avoid; page-break-after: avoid; }
+`;
+
+/**
+ * Output Produksi S4S Per Grade. One section per machine, and inside each a
+ * Target/Output pair per grade grouped under the Jns label, so the header is
+ * two rows deep and the table runs wide.
+ */
+const OUTPUT_S4S_PER_GRADE_CSS = `
+  .output-s4s-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-bottom: 14px; }
+  .output-s4s-table th, .output-s4s-table td { border: 1px solid #000; padding: 1px 3px; font-size: 8px; }
+  .output-s4s-table thead th { text-align: center; font-weight: bold; background: #fff; }
+  .output-s4s-table thead { display: table-header-group; }
+  .output-s4s-table tbody tr { page-break-inside: avoid; }
+  .output-s4s-table td.center { text-align: center; }
+  .output-s4s-table td.number { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; }
+  /* A grade cell holds the day's output and its share of the Jns total. They
+     need real separation: as bare inline spans the two runs touch, and the
+     result reads as one run-together number ("0.9" + "5.2%" -> "0.95.2"). */
+  .cell-split { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+  .cell-left { text-align: left; }
+  .cell-right { text-align: right; }
+  .output-s4s-table tfoot td { font-weight: bold; background: #fff; }
+  .output-s4s-table td.empty-cell { text-align: center; font-style: italic; }
+  .section-title { margin: 12px 0 6px 0; font-size: 12px; font-weight: bold; }
+`;
+
+/**
+ * Rekap Produksi S4S Rambung Per Grade. Three header rows: Tanggal, then Input
+ * and Output, each with a Total/Ratio pair per grade.
+ */
+const REKAP_PRODUKSI_S4S_RAMBUNG_CSS = `
+  .rambung-per-grade-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .rambung-per-grade-table th, .rambung-per-grade-table td { border: 1px solid #000; padding: 2px 3px; font-size: 9px; }
+  .rambung-per-grade-table thead th { text-align: center; font-weight: bold; background: #fff; }
+  .rambung-per-grade-table thead { display: table-header-group; }
+  .rambung-per-grade-table tbody tr { page-break-inside: avoid; }
+  .rambung-per-grade-table td.center { text-align: center; }
+  .rambung-per-grade-table td.number { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; }
+  .rambung-per-grade-table tfoot td { font-weight: bold; background: #fff; }
+  .rambung-per-grade-table td.empty-cell { text-align: center; font-style: italic; }
+  .summary-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+  .summary-table td { border: 1px solid #000; padding: 2px 4px; font-size: 10px; }
+  .summary-table td.number { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; }
+  .summary-table td.label { text-align: left; }
+  .summary-table tr.totals-row td { font-weight: bold; background: #fff; }
+`;
+
+/**
  * Rekap Rendemen Rambung / Non Rambung. One row per month and thirteen figure
  * columns, so the whole width has to go to the numbers: the row number is
  * pinned and every column is a share of the text column, sized from
@@ -1227,6 +1351,13 @@ const WPS_REPORT_STYLES = {
   rekap_rendemen: REKAP_RENDEMEN_CSS,
   rendemen_semua_proses: RENDEMEN_SEMUA_PROSES_CSS,
   produksi_per_spk: PRODUKSI_PER_SPK_CSS,
+  dashboard_s4s: DASHBOARD_S4S_CSS,
+  dashboard_s4s_v2: DASHBOARD_S4S_CSS,
+  grade_abc_harian: GRADE_ABC_HARIAN_CSS,
+  mutasi_s4s: MUTASI_S4S_CSS,
+  label_s4s_hidup: LABEL_S4S_HIDUP_CSS,
+  output_s4s_per_grade: OUTPUT_S4S_PER_GRADE_CSS,
+  rekap_produksi_s4s_rambung: REKAP_PRODUKSI_S4S_RAMBUNG_CSS,
   timeline_penjualan: TIMELINE_PENJUALAN_CSS,
   koordinat_tanah: KOORDINAT_TANAH_CSS,
   penjualan_barang_jadi_m3: PENJUALAN_BARANG_JADI_M3_CSS,

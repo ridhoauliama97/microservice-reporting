@@ -41,6 +41,16 @@ import {
 } from './wps/rekap-rendemen'
 import { rendemenSemuaProsesReport } from './wps/rendemen-semua-proses'
 import { produksiPerSpkReport } from './wps/produksi-per-spk'
+import { dashboardS4SReport, dashboardS4SV2Report } from './wps/dashboard-s4s'
+import { gradeAbcHarianReport } from './wps/grade-abc-harian'
+import { ketahananBarangS4sReport } from './wps/ketahanan-barang-s4s'
+import {
+  labelS4SHidupPerJenisKayuReport,
+  labelS4SHidupPerProdukPerJenisKayuReport,
+} from './wps/label-s4s-hidup'
+import { mutasiS4sReport } from './wps/mutasi-s4s'
+import { outputProduksiS4SPerGradeReport } from './wps/output-produksi-s4s-per-grade'
+import { rekapProduksiS4SRambungPerGradeReport } from './wps/rekap-produksi-s4s-rambung'
 import { produksiHuluHilirReport } from './wps/produksi-hulu-hilir'
 import { produksiSemuaMesinReport } from './wps/produksi-semua-mesin'
 import { rekapMutasiReport } from './wps/rekap-mutasi'
@@ -167,6 +177,15 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'rekap-rendemen-non-rambung': rekapRendemenNonRambungReport,
   'rekap-rendemen-rambung': rekapRendemenRambungReport,
   'rendemen-semua-proses': rendemenSemuaProsesReport,
+  'dashboard-s4s': dashboardS4SReport,
+  'dashboard-s4s-v2': dashboardS4SV2Report,
+  'grade-abc-harian': gradeAbcHarianReport,
+  'ketahanan-barang-s4s': ketahananBarangS4sReport,
+  'label-s4s-hidup-per-jenis-kayu': labelS4SHidupPerJenisKayuReport,
+  'label-s4s-hidup-per-produk-per-jenis-kayu': labelS4SHidupPerProdukPerJenisKayuReport,
+  'mutasi-s4s': mutasiS4sReport,
+  'output-produksi-s4s-per-grade': outputProduksiS4SPerGradeReport,
+  'rekap-produksi-s4s-rambung-per-grade': rekapProduksiS4SRambungPerGradeReport,
   'produksi-hulu-hilir': produksiHuluHilirReport,
   'produksi-semua-mesin': produksiSemuaMesinReport,
   'rekap-mutasi': rekapMutasiReport,
