@@ -1081,6 +1081,101 @@ const UMUR_KAYU_BULAT_RAMBUNG_CSS = `
   .group-note .right { text-align: right; }
 `;
 
+/**
+ * Rekap Rendemen Rambung / Non Rambung. One row per month and thirteen figure
+ * columns, so the whole width has to go to the numbers: the row number is
+ * pinned and every column is a share of the text column, sized from
+ * measurement rather than declared in px.
+ *
+ * The figures take the body font. They used to ask for Calibri, which resolves
+ * to Carlito in the container, and at 9px across thirteen columns the digits ran
+ * together and were hard to read. This matches what the Produksi Per SPK yield
+ * table does.
+ */
+const REKAP_RENDEMEN_CSS = `
+  .rekap-rendemen-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .rekap-rendemen-table th, .rekap-rendemen-table td { border: 1px solid #000; padding: 2px 3px; font-size: 9px; }
+  .rekap-rendemen-table thead th { text-align: center; font-weight: bold; background: #fff; }
+  .rekap-rendemen-table thead { display: table-header-group; }
+  .rekap-rendemen-table tbody tr { page-break-inside: avoid; }
+  .rekap-rendemen-table td.center { text-align: center; }
+  .rekap-rendemen-table td.number { text-align: right; white-space: nowrap; }
+  .rekap-rendemen-table td.empty-cell { text-align: center; font-style: italic; }
+`;
+
+/**
+ * Rendemen Semua Proses. The pivot is one row per date with a three-column
+ * block per process, so it is the one WPS report that runs landscape: eight
+ * processes would need 24 figure columns, which cannot hold a readable number
+ * each on an A4 portrait page.
+ */
+const RENDEMEN_SEMUA_PROSES_CSS = `
+  body { font-size: 9px; }
+  .rendemen-pivot { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .rendemen-pivot th, .rendemen-pivot td { border: 1px solid #000; padding: 2px 3px; font-size: 9px; }
+  .rendemen-pivot thead th { text-align: center; font-weight: bold; background: #fff; }
+  .rendemen-pivot thead { display: table-header-group; }
+  .rendemen-pivot tbody tr { page-break-inside: avoid; }
+  .rendemen-pivot td.center { text-align: center; }
+  .rendemen-pivot td.number { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; }
+  .rendemen-pivot td.rendemen-cell { font-weight: bold; }
+  .rendemen-pivot td.empty-cell { text-align: center; font-style: italic; }
+  .rendemen-pivot tr.totals-row td { font-weight: bold; font-size: 10px; background: #fff; }
+
+  .rangkuman { margin-top: 10px; }
+  .rangkuman-title { margin-bottom: 6px; font-size: 12px; font-weight: bold; }
+  .rangkuman-table { border-collapse: collapse; }
+  .rangkuman-table td { border: 0; padding: 1px 4px 1px 0; font-size: 11px; }
+  .rangkuman-table td.number { text-align: left; font-weight: bold; font-family: Calibri, "DejaVu Sans", sans-serif; }
+`;
+
+/**
+ * Produksi Per SPK. The two header tables sit side by side at 49% each with a
+ * 2% spacer, and each is only as tall as its own data. The label tables below
+ * run the full width.
+ */
+const PRODUKSI_PER_SPK_CSS = `
+  .meta-grid { margin-bottom: 10px; border-collapse: collapse; }
+  .meta-grid td { border: 0 !important; padding: 0; vertical-align: top; }
+  .meta-pane-left { width: 50%; }
+  .meta-pane-right { width: 26%; }
+  .meta-table { border-collapse: collapse; }
+  .meta-table td { border: 0 !important; padding: 2px 0; font-size: 10px; vertical-align: top; }
+  .meta-label { width: 72px; }
+  .meta-sep { width: 10px; text-align: center; }
+
+  .spk-dimension-table, .spk-rendemen-table { width: 100%; }
+
+  /* Two header tables side by side: 49% each with a 2% spacer between them, the
+     same split the Produksi Per Nomor Produksi reports use. The reset is
+     scoped with a child combinator so it cannot reach the nested tables. */
+  .split-grid { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .split-grid > tbody > tr > td { border: 0 !important; padding: 0; vertical-align: top; }
+  .split-grid .left-pane { width: 49%; }
+  .split-grid .right-pane { width: 49%; }
+  .split-grid .gutter { width: 2%; }
+
+  .report-table th, .report-table td { border: 1px solid #000; padding: 2px 4px; font-size: 10px; }
+  .report-table thead th { text-align: center; font-weight: bold; background: #fff; }
+  .report-table thead { display: table-header-group; }
+  .report-table tbody tr { page-break-inside: avoid; }
+  .report-table td.center { text-align: center; }
+  .report-table td.number { text-align: right; white-space: nowrap; font-family: Calibri, "DejaVu Sans", sans-serif; }
+  /* Input / Output / Rend keep the body font, the same as Tebal and Lebar, and
+     only take the right alignment. The Calibri face used elsewhere made the two
+     tables on this page look like they came from different reports. */
+  .report-table td.rend-value { text-align: right; white-space: nowrap; }
+  .report-table td.empty-cell { text-align: center; font-style: italic; }
+  .report-table tr.label-total td { font-weight: bold; background: #fff; }
+
+  .rendemen-global { margin: 4px 0 10px 0; font-size: 11px; font-weight: bold; text-align: right; }
+  .section-title { margin: 12px 0 6px 0; font-size: 12px; font-weight: bold; }
+  .section-subtitle { margin: 6px 0 4px 0; font-size: 11px; font-weight: bold; }
+  /* A category heading belongs to its table: without this the heading can sit
+     alone at the foot of a page with the table pushed overleaf. */
+  .label-group { break-inside: avoid; page-break-inside: avoid; margin-bottom: 8px; }
+`;
+
 const REPROSES_HIDUP_DETAIL_CSS = `
   .report-table th:nth-child(1) { width: 32px; }
   .report-table th:nth-child(2) { width: 92px; }
@@ -1128,6 +1223,10 @@ const WPS_REPORT_STYLES = {
   penjualan_lokal: PENJUALAN_LOKAL_CSS,
   rekap_penjualan: REKAP_PENJUALAN_CSS,
   produksi_per_nomor_produksi: PRODUKSI_PER_NOMOR_PRODUKSI_CSS,
+  // Non Rambung and Rambung are the same table, so they share one preset.
+  rekap_rendemen: REKAP_RENDEMEN_CSS,
+  rendemen_semua_proses: RENDEMEN_SEMUA_PROSES_CSS,
+  produksi_per_spk: PRODUKSI_PER_SPK_CSS,
   timeline_penjualan: TIMELINE_PENJUALAN_CSS,
   koordinat_tanah: KOORDINAT_TANAH_CSS,
   penjualan_barang_jadi_m3: PENJUALAN_BARANG_JADI_M3_CSS,

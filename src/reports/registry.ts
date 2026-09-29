@@ -35,6 +35,12 @@ import {
   produksiSandingPerNomorProduksiReport,
 } from './wps/produksi-per-nomor-produksi'
 import { suratJalanReport } from './wps/surat-jalan'
+import {
+  rekapRendemenNonRambungReport,
+  rekapRendemenRambungReport,
+} from './wps/rekap-rendemen'
+import { rendemenSemuaProsesReport } from './wps/rendemen-semua-proses'
+import { produksiPerSpkReport } from './wps/produksi-per-spk'
 import { produksiHuluHilirReport } from './wps/produksi-hulu-hilir'
 import { produksiSemuaMesinReport } from './wps/produksi-semua-mesin'
 import { rekapMutasiReport } from './wps/rekap-mutasi'
@@ -157,6 +163,10 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'produksi-s4s-per-nomor-produksi': produksiS4SPerNomorProduksiReport,
   'produksi-sanding-per-nomor-produksi': produksiSandingPerNomorProduksiReport,
   'produksi-cc-akhir-per-nomor-produksi': ProduksiCcAkhirPerNomorProduksiReport,
+  'produksi-per-spk': produksiPerSpkReport,
+  'rekap-rendemen-non-rambung': rekapRendemenNonRambungReport,
+  'rekap-rendemen-rambung': rekapRendemenRambungReport,
+  'rendemen-semua-proses': rendemenSemuaProsesReport,
   'produksi-hulu-hilir': produksiHuluHilirReport,
   'produksi-semua-mesin': produksiSemuaMesinReport,
   'rekap-mutasi': rekapMutasiReport,
