@@ -82,6 +82,26 @@ Job hanya bisa diakses pemiliknya; job milik user lain dibalas **404** (keberada
 | `mutasi-kayu-bulat` | `{ tglAwal: "YYYY-MM-DD", tglAkhir: "YYYY-MM-DD" }` (`tglAkhir` ≥ `tglAwal`) | Stored procedure `dbo.SP_Mutasi_KayuBulat` |
 | `mutasi-barang-jadi` | `{ tglAwal: "YYYY-MM-DD", tglAkhir: "YYYY-MM-DD" }` (`tglAkhir` ≥ `tglAwal`) | Stored procedure `dbo.SP_Mutasi_BarangJadi` + `dbo.SP_SubMutasi_BarangJadi` (landscape, 2 bagian) |
 
+### Laporan S4S & Sanding
+
+Parameter `periode` = `{ tglAwal, tglAkhir }` berformat `YYYY-MM-DD` (`tglAkhir` ≥ `tglAwal`).
+
+| type | Parameter | Stored procedure |
+|---|---|---|
+| `rekap-produksi-s4s-consolidated` | periode | `SP_LapRekapProduksiS4SConsolidated` |
+| `rekap-produksi-s4s-per-jenis-per-grade` | periode | `SP_LapRekapProduksiS4SPerJenisPerGrade` |
+| `s4s-hidup-detail` | tanpa params (snapshot) | `SP_LapS4SHidupDetail` |
+| `umur-s4s-detail` | `{ umur1?, umur2?, umur3?, umur4? }` (default 15/30/60/90, harus naik) | `SP_LapUmurS4S` |
+| `dashboard-sanding` | periode | `SPWps_LapDashboardSanding` |
+| `ketahanan-barang-sanding` | periode | `SP_LapKetahananBarangSanding` |
+| `mutasi-sanding` | periode | `SP_Mutasi_Sanding` + `SP_SubMutasi_Sanding` (landscape, 2 bagian) |
+| `rekap-produksi-sanding-consolidated` | periode | `SP_LapRekapProduksiSandingConsolidated` |
+| `rekap-produksi-sanding-per-jenis-per-grade` | periode | `SP_LapRekapProduksiSandingPerJenisPerGrade` |
+| `sanding-hidup-detail` | tanpa params (snapshot) | `SP_LapSandingHidupDetail` |
+| `umur-sanding-detail` | `{ umur1?, umur2?, umur3?, umur4? }` | `SP_LapUmurSanding` |
+
+> Nama kolom dalam 4 SP consolidated/per-jenis (S4S & Sanding), kolom `NoS4S`/`Kubik` pada laporan hidup, dan urutan kolom dashboard Sanding masih **asumsi** — diambil dari laporan sekelas karena belum ada referensi SP aslinya. Kalau ternyata berbeda, yang perlu diubah hanya konstanta di header file laporan tersebut. `SP_Mutasi_Sanding` sudah terverifikasi dari `rekap-mutasi.ts`.
+
 Contoh:
 
 ```sh
@@ -168,6 +188,6 @@ bun run scripts/ws-test.ts <jobId> <token>   # klien WebSocket manual
 
 ## Lingkup & batas saat ini
 
-- Laporan tersedia: `example` (dummy) dan `mutasi-kayu-bulat` (SP `dbo.SP_Mutasi_KayuBulat`).
+- Nama kolom dalam 4 SP consolidated/per-jenis (S4S & Sanding), `NoS4S`/`Kubik` pada laporan hidup, dan urutan kolom dashboard Sanding masih **asumsi** — belum diverifikasi terhadap SP asli di SQL Server.
 - Nama field username di payload JWT WPS (`JWT_USERNAME_CLAIM`) dan algoritma JWT (`JWT_ALG`) masih default dan **belum dikonfirmasi** terhadap token WPS asli.
 - Kredensial SQL Server production belum diisi; semua pengujian memakai laporan `example`.

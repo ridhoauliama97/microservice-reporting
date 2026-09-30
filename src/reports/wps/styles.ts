@@ -1415,6 +1415,25 @@ const WPS_REPORT_STYLES = {
     REKAP_PRODUKSI_MOULDING_PER_JENIS_PER_GRADE_CSS,
   rekap_produksi_packing_per_jenis_per_grade:
     REKAP_PRODUKSI_PACKING_PER_JENIS_PER_GRADE_CSS,
+  // Same machine-per-table layout as the Laminating consolidated report, and the
+  // same per-jenis grade layout as the Moulding one, so both S4S and Sanding
+  // reuse those blocks under their own names.
+  rekap_produksi_s4s_consolidated: REKAP_PRODUKSI_LAMINATING_CONSOLIDATED_CSS,
+  rekap_produksi_sanding_consolidated: REKAP_PRODUKSI_LAMINATING_CONSOLIDATED_CSS,
+  rekap_produksi_s4s_per_jenis_per_grade:
+    REKAP_PRODUKSI_MOULDING_PER_JENIS_PER_GRADE_CSS,
+  rekap_produksi_sanding_per_jenis_per_grade:
+    REKAP_PRODUKSI_MOULDING_PER_JENIS_PER_GRADE_CSS,
+  // The mutasi tables share one block: Laminating, Moulding and Sanding all lay
+  // out the same Masuk/Keluar column groups.
+  mutasi_sanding: MUTASI_LAMINATING_CSS,
+  // Eleven-column live-stock and ageing tables, same as the Laminating detail.
+  s4s_hidup_detail: LAMINATING_TABLE_CSS,
+  sanding_hidup_detail: LAMINATING_TABLE_CSS,
+  umur_s4s_detail: LAMINATING_TABLE_CSS,
+  umur_sanding_detail: LAMINATING_TABLE_CSS,
+  // Same movement grid as the Cross Cut Akhir dashboard.
+  dashboard_sanding: DASHBOARD_CROSS_CUT_AKHIR_CSS,
   rekap_rendemen_rambung_per_supplier: REKAP_RENDEMEN_RAMBUNG_PER_SUPPLIER_CSS,
   saldo_barang_jadi_hidup_per_jenis_per_produk:
     SALDO_BARANG_JADI_HIDUP_PER_JENIS_PER_PRODUK_CSS,

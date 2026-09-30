@@ -130,6 +130,17 @@ import { timelineKbBulananKgReport } from './wps/timeline-kb-bulanan-rambung-kg'
 import { timelineKbHarianKgReport } from './wps/timeline-kb-harian-rambung-kg'
 import { umurKayuBulatReport } from './wps/umur-kayu-bulat-non-rambung'
 import { umurKayuBulatRambungReport } from './wps/umur-kayu-bulat-rambung'
+import { s4sHidupDetailReport } from './wps/s4s-hidup-detail'
+import { umurS4SDetailReport } from './wps/umur-s4s-detail'
+import { rekapProduksiS4SConsolidatedReport } from './wps/rekap-produksi-s4s-consolidated'
+import { rekapProduksiS4SPerJenisPerGradeReport } from './wps/rekap-produksi-s4s-per-jenis-per-grade'
+import { dashboardSandingReport } from './wps/dashboard-sanding'
+import { ketahananBarangSandingReport } from './wps/ketahanan-barang-sanding'
+import { mutasiSandingReport } from './wps/mutasi-sanding'
+import { rekapProduksiSandingConsolidatedReport } from './wps/rekap-produksi-sanding-consolidated'
+import { rekapProduksiSandingPerJenisPerGradeReport } from './wps/rekap-produksi-sanding-per-jenis-per-grade'
+import { sandingHidupDetailReport } from './wps/sanding-hidup-detail'
+import { umurSandingDetailReport } from './wps/umur-sanding-detail'
 import type { ReportDefinition } from './types'
 
 // The single allowed `any` in the codebase (AGENTS.md 7.9): each report has
@@ -261,4 +272,17 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'timeline-kb-harian-rambung-kg': timelineKbHarianKgReport,
   'umur-kayu-bulat-non-rambung': umurKayuBulatReport,
   'umur-kayu-bulat-rambung': umurKayuBulatRambungReport,
+  's4s-hidup-detail': s4sHidupDetailReport,
+  'umur-s4s-detail': umurS4SDetailReport,
+  'rekap-produksi-s4s-consolidated': rekapProduksiS4SConsolidatedReport,
+  'rekap-produksi-s4s-per-jenis-per-grade':
+    rekapProduksiS4SPerJenisPerGradeReport,
+  'dashboard-sanding': dashboardSandingReport,
+  'ketahanan-barang-sanding': ketahananBarangSandingReport,
+  'mutasi-sanding': mutasiSandingReport,
+  'rekap-produksi-sanding-consolidated': rekapProduksiSandingConsolidatedReport,
+  'rekap-produksi-sanding-per-jenis-per-grade':
+    rekapProduksiSandingPerJenisPerGradeReport,
+  'sanding-hidup-detail': sandingHidupDetailReport,
+  'umur-sanding-detail': umurSandingDetailReport,
 }
