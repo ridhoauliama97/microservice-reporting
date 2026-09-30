@@ -126,6 +126,22 @@ Detail yang tidak terlihat dari nama kolom saja:
 
 Kalau kapasitas atau rendemen plants berubah, ubah konstanta di `src/reports/wps/kapasitas-racip-kayu-bulat-hidup.ts`.
 
+### Laporan Sawn Timber
+
+Ketiganya **diport dari `D:\Projects\open-api-report`**, lalu diverifikasi ke database dengan `sys.parameters` + eksekusi langsung.
+
+| type | Params body | Stored procedure |
+|---|---|---|
+| `mutasi-sawn-timber-ton` | periode | `SP_Mutasi_ST` |
+| `mutasi-kd` | periode | `SP_LapMutasiKD` |
+| `dashboard-sawn-timber` | periode | `SPWps_LapDashboardSawnTimber` |
+
+Tiga hal yang tidak terlihat dari nama kolom:
+
+- **Mutasi Sawn Timber (Ton)** — empat header diganti seperti di reference: `AdjustmentPlus` → Adjust (+), `AdjustmentMinus` → Adjust (-), `BongkarSusunPlus` → B.Susun (+), `BongkarSusunMinus` → B.Susun (-). Semua kolom numerik dijumlahkan di baris Total. Sub-report opsional di reference **tidak** ikut, karena nama sub-procedure-nya kosong secara default (`MUTASI_ST_SUB_REPORT_PROCEDURE`).
+- **Mutasi KD** — satu tabel per ruang KD, urut angka (bukan string, supaya KD 10 tidak mendahului KD 2), isi tabel urut `TglMasuk`. **`Jumlah Hari` bersifat bertanda** (`TglKeluar - TglMasuk`) dan 0 kalau salah satu tanggal kosong — reference memang meminta diff non-absolut, jadi lot yang belum keluar atau keluar sebelum masuk tidak direkayasa jadi angka. **SP ini memakai `@StartDate`/`@EndDate`, bukan `@TglAwal`/`@TglAkhir` seperti periode laporan lain.**
+- **Dashboard Sawn Timber** — kolom yang dipakai **bukan** yang mengira. SP mengembalikan 17 kolom dan reference memilihnya dengan exact match sambil berjalan di urutan key, sehingga hasilnya: `DATE`, `Jenis`, **`Masuk`** (bukan `MasukALL`), **`Keluar`** (bukan `KeluarALL`), **`Akhir`** (bukan `Akhir2`), `CTR`. Dipilihnya keliru mengubah angkanya: untuk Agustus 2026 `Masuk` per jenis berjumlah 5,8728 t sedangkan `MasukALL` 5,9279 t. Kolom `CTR` ada, jadi pembagi 75 hanyacadangan. `NamaGrade` sengaja **tidak ada** di SP ini, makanya kolom dashboard dikunci `Jenis` saja.
+
 Contoh:
 
 ```sh
@@ -134,11 +150,7 @@ curl.exe -X POST http://localhost:5003/reports -H "Authorization: Bearer <token>
 
 ## Menambah laporan baru
 
-Salin `src/reports/example.ts`, sesuaikan, lalu daftarkan di `src/reports/registry.ts`. Tipe interface ada di `src/reports/types.ts` (`ReportDefinition`).
-
-**Penempatan file:** laporan yang menyentuh database WPS diletakkan di `src/reports/wps/` (mis. `src/reports/wps/mutasi-kayu-bulat.ts`); laporan umum/tanpa DB tetap di `src/reports/`.
-
-## Menambah laporan baru
+**Penempatan file:** laporan yang menyentuh database WPS diletakkan di `src/reports/wps/` (mis. `src/reports/wps/mutasi-kayu-bulat.ts`); laporan umum/tanpa DB tetap di `src/reports/`. Tipe interface ada di `src/reports/types.ts` (`ReportDefinition`).
 
 **Standar: laporan 1 stored procedure (tabel tunggal)** — pakai factory `createSingleTableReport` dari `src/reports/wps/template.ts`. File laporan **tanpa styling**; judul, subtitle periode, tabel (zebra rows, baris Total opsional), footer, dan orientasi otomatis dari template:
 
@@ -212,11 +224,11 @@ bun run scripts/ws-test.ts <jobId> <token>   # klien WebSocket manual
 
 ## Lingkup & batas saat ini
 
-Bentuk `params` pada `POST /reports` dipetakan otomatis dari registry, jadi spesifikasinya tidak mungkin melenceng dari kode. Satu request body dipetakan lewat `anyOf` per **bentuk** parameter, bukan per laporan: 138 laporan hanya jadi 16 cabang, dan tiap cabang mencantumkan laporan mana yang memakainya. Bentuk `params` yang ada:
+Bentuk `params` pada `POST /reports` dipetakan otomatis dari registry, jadi spesifikasinya tidak mungkin melenceng dari kode. Satu request body dipetakan lewat `anyOf` per **bentuk** parameter, bukan per laporan: 141 laporan hanya jadi 16 cabang, dan tiap cabang mencantumkan laporan mana yang memakainya. Bentuk `params` yang ada:
 
 | Bentuk | Jumlah laporan | Isi `params` |
 |---|---|---|
-| `PeriodParams` | 85 | `tglAwal` + `tglAkhir` (wajib) |
+| `PeriodParams` | 88 | `tglAwal` + `tglAkhir` (wajib) |
 | `NoParams` | 12 | kosong / `{}` |
 | `AsOfDateParams` | 8 | `tglAkhir` saja |
 | `ParamsUmurLaminatingDetail` | 8 | `umur1`..`umur4` (ada default) |

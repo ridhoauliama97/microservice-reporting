@@ -25,7 +25,12 @@ import { buildEmptyTable, buildEmptyTableRow, renderWpsReportPage } from "./temp
 export interface DashboardRow extends Record<string, unknown> {
   DATE: Date | string | null;
   Jenis: string | null;
-  NamaGrade: string | null;
+  /**
+   * Optional: the m3 dashboards key their columns on Jenis + NamaGrade, but
+   * SPWps_LapDashboardSawnTimber has no grade column and keys on Jenis alone.
+   * A missing grade contributes an empty token, so the key is just the Jenis.
+   */
+  NamaGrade?: string | null;
 }
 
 export interface DashboardCell {
@@ -71,6 +76,13 @@ export interface DashboardReportOptions {
   /** Legacy `ctr_divisor`, only used when the SP has no CTR column. */
   ctrDivisor: number;
   style: Parameters<typeof renderWpsReportPage>[0]["style"];
+  /**
+   * Landscape for the wide variants. The m3 dashboards carry 8-13 product
+   * columns and fit portrait; the Sawn Timber dashboard has ten ST types, so 21
+   * columns land in portrait only just inside the page and the figures get
+   * cramped.
+   */
+  landscape?: boolean;
 }
 
 const compareText = (left: string, right: string): number =>
@@ -351,6 +363,7 @@ export function createDashboardPivotReport(
         subtitle,
         bodyHtml,
         style: options.style,
+        landscape: options.landscape,
         printedBy: meta.requestedBy || "sistem",
         printedAt: formatPrintedAt(meta.generatedAt),
       });

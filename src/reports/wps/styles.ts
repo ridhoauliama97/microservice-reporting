@@ -1418,6 +1418,24 @@ const KAPASITAS_RACIP_KAYU_BULAT_HIDUP_CSS = `
   }
 `;
 
+/**
+ * Mutasi KD: a chamber heading per table, with the chamber's ton totals and day
+ * count in a tfoot. The tfoot rules have to be restated because the shared
+ * totals-row rule suppresses the bottom edge, which is meant for a row closing
+ * the table, not one sitting above it.
+ */
+const MUTASI_KD_CSS = `
+  .section-title { margin: 12px 0 4px 0; font-size: 12px; font-weight: bold; }
+  .report-table { font-size: 11px; }
+  .report-table td.number { white-space: nowrap; }
+  .kd-table { margin-bottom: 14px; }
+  .report-table tfoot .totals-row td {
+    font-weight: bold; font-size: 11px; background: #fff;
+    border-top: 1px solid #000; border-right: 1px solid #000;
+    border-bottom: 1px solid #000; border-left: 0;
+  }
+`;
+
 const WPS_REPORT_STYLES = {
   dashboard_barang_jadi: DASHBOARD_BARANG_JADI_CSS,
   dashboard_cross_cut_akhir: DASHBOARD_CROSS_CUT_AKHIR_CSS,
@@ -1537,6 +1555,10 @@ const WPS_REPORT_STYLES = {
   umur_sanding_detail: LAMINATING_TABLE_CSS,
   // Same movement grid as the Cross Cut Akhir dashboard.
   dashboard_sanding: DASHBOARD_CROSS_CUT_AKHIR_CSS,
+  // Same movement grid, eleven ST types instead of the m3 product families.
+  dashboard_sawn_timber: DASHBOARD_CROSS_CUT_AKHIR_CSS,
+  // Mutasi KD: one table per drying chamber, its totals in a tfoot.
+  mutasi_kd: MUTASI_KD_CSS,
   rekap_rendemen_rambung_per_supplier: REKAP_RENDEMEN_RAMBUNG_PER_SUPPLIER_CSS,
   saldo_barang_jadi_hidup_per_jenis_per_produk:
     SALDO_BARANG_JADI_HIDUP_PER_JENIS_PER_PRODUK_CSS,

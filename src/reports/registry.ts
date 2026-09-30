@@ -141,6 +141,9 @@ import { rekapProduksiSandingConsolidatedReport } from './wps/rekap-produksi-san
 import { rekapProduksiSandingPerJenisPerGradeReport } from './wps/rekap-produksi-sanding-per-jenis-per-grade'
 import { sandingHidupDetailReport } from './wps/sanding-hidup-detail'
 import { umurSandingDetailReport } from './wps/umur-sanding-detail'
+import { mutasiSawnTimberTonReport } from './wps/mutasi-sawn-timber'
+import { mutasiKdReport } from './wps/mutasi-kd'
+import { dashboardSawnTimberReport } from './wps/dashboard-sawn-timber'
 import { bahanTerpakaiReport } from './wps/bahan-terpakai'
 import { bahanYangDihasilkanReport } from './wps/bahan-yang-dihasilkan'
 import { labelNyangkutReport } from './wps/label-nyangkut'
@@ -297,4 +300,7 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'rangkuman-bongkar-susun': rangkumanBongkarSusunReport,
   'rangkuman-jumlah-label-input': rangkumanJumlahLabelInputReport,
   'kapasitas-racip-kayu-bulat-hidup': kapasitasRacipKayuBulatHidupReport,
+  'mutasi-sawn-timber-ton': mutasiSawnTimberTonReport,
+  'mutasi-kd': mutasiKdReport,
+  'dashboard-sawn-timber': dashboardSawnTimberReport,
 }
