@@ -100,7 +100,31 @@ Parameter `periode` = `{ tglAwal, tglAkhir }` berformat `YYYY-MM-DD` (`tglAkhir`
 | `sanding-hidup-detail` | tanpa params (snapshot) | `SP_LapSandingHidupDetail` |
 | `umur-sanding-detail` | `{ umur1?, umur2?, umur3?, umur4? }` | `SP_LapUmurSanding` |
 
-> Nama kolom dalam 4 SP consolidated/per-jenis (S4S & Sanding), kolom `NoS4S`/`Kubik` pada laporan hidup, dan urutan kolom dashboard Sanding masih **asumsi** — diambil dari laporan sekelas karena belum ada referensi SP aslinya. Kalau ternyata berbeda, yang perlu diubah hanya konstanta di header file laporan tersebut. `SP_Mutasi_Sanding` sudah terverifikasi dari `rekap-mutasi.ts`.
+> Nama kolom 4 SP consolidated/per-jenis (S4S & Sanding) **sudah diverifikasi ke database** dan ternyata berbeda dari tebakan awal: blok input S4S adalah `CCAkhir / Reproses / S4S / ST / WIP` (bukan FJ/MLD), blok input Sanding adalah `CCAkhir / FJ / Moulding / Reproses / Wip / BJ`, dan tidak ada kolom `Sanding` pada keduanya. Yang masih **asumsi**: kolom `NoS4S`/`Kubik` pada laporan hidup, urutan kolom dashboard Sanding, dan `Period1-5` pada laporan umur. Kalau ternyata berbeda, yang perlu diubah hanya konstanta di header file laporan tersebut. `SP_Mutasi_Sanding` sudah terverifikasi dari `rekap-mutasi.ts`.
+
+### Laporan Rangkuman Bahan, Label, dan Kapasitas
+
+Keenam laporan ini **diport dari `D:\Projects\open-api-report`** (service + blade), bukan ditebak dari laporan sekelas. Nama kolom diverifikasi ke database **dan** dicocokkan dengan implementasi reference.
+
+| type | Params body | Stored procedure |
+|---|---|---|
+| `bahan-terpakai` | `{ tglAkhir }` (dikirim ke `@TglAwal`) | `SPWps_LapBahanTerpakai` + `SPWps_LapSubBahanTerpakai` |
+| `bahan-yang-dihasilkan` | `{ tglAkhir }` (dikirim ke `@TglAwal`) | `SPWps_LapBahanYangDihasilkan` |
+| `label-nyangkut` | tanpa params | `SPWps_LapLabelNyangkut` |
+| `rangkuman-bongkar-susun` | `{ tglAkhir }` (dikirim ke `@TglAwal`) | `SPWps_LapRangkumanBongkarSusun` |
+| `rangkuman-jumlah-label-input` | periode | `SPWps_LapRangkumanJlhLabelInput` |
+| `kapasitas-racip-kayu-bulat-hidup` | periode | 4 procedure (lihat di bawah) |
+
+Detail yang tidak terlihat dari nama kolom saja:
+
+- **Bahan Terpakai** — sub-laporan (Ton) tampil **duluan**, lalu laporan utama (m3). Kolom m3 di sub-laporan tidak ada di SP: itu `Ton x 1.416` (`$tonToM3Factor`).
+- **Bahan Yang Dihasilkan** — urutan proses tetap `S4S, FJ, MLD, LMT, CCAKHIR, SND, PCK` (bukan alfabetis), ditutup tabel **Rangkuman** + Grand Total.
+- **Label Nyangkut** — dikelompokkan per kolom `Ket`; **satuan kolom Total ditentukan per kelompok** (`ST` → Ton, lainnya → m3). Subtitle memakai tanggal *generate*, bukan periode, karena SP-nya tanpa parameter.
+- **Rangkuman Jumlah Label Input** — menambah kolom **Rendemen** = `KubikOut / KubikIN x 100` (tidak ada di SP), tanpa baris total. Baris dengan semua kolom NULL tetap dihitung agar penomoran tidak bergeser.
+- **Rangkuman Bongkar Susun** — kategori `S4S, FJ, MLD, LMT, CCA, SND, BJ` + tabel Rangkuman.
+- **Kapasitas Racip** — dua konstanta dari reference: `TOTAL_TON_CAPACITY = 323.7837` (ton/hari kapasitas sawmill, **tidak ada di SP mana pun**) dan rendemen **85%** non-Rambung / **20%** Rambung. Laporan ini menghitung *hari kerja yang dibutuhkan*, bukan sekadar `Ton / HK`.
+
+Kalau kapasitas atau rendemen plants berubah, ubah konstanta di `src/reports/wps/kapasitas-racip-kayu-bulat-hidup.ts`.
 
 Contoh:
 
@@ -188,6 +212,19 @@ bun run scripts/ws-test.ts <jobId> <token>   # klien WebSocket manual
 
 ## Lingkup & batas saat ini
 
-- Nama kolom dalam 4 SP consolidated/per-jenis (S4S & Sanding), `NoS4S`/`Kubik` pada laporan hidup, dan urutan kolom dashboard Sanding masih **asumsi** — belum diverifikasi terhadap SP asli di SQL Server.
+Bentuk `params` pada `POST /reports` dipetakan otomatis dari registry, jadi spesifikasinya tidak mungkin melenceng dari kode. Satu request body dipetakan lewat `anyOf` per **bentuk** parameter, bukan per laporan: 138 laporan hanya jadi 16 cabang, dan tiap cabang mencantumkan laporan mana yang memakainya. Bentuk `params` yang ada:
+
+| Bentuk | Jumlah laporan | Isi `params` |
+|---|---|---|
+| `PeriodParams` | 85 | `tglAwal` + `tglAkhir` (wajib) |
+| `NoParams` | 12 | kosong / `{}` |
+| `AsOfDateParams` | 8 | `tglAkhir` saja |
+| `ParamsUmurLaminatingDetail` | 8 | `umur1`..`umur4` (ada default) |
+| `ParamsProduksiFjPerNomorProduksi` | 7 | `noProduksi` |
+| sisanya | 1–4 per bentuk | khusus — lihat komponen di `/docs/openapi.json` |
+
+
+- Nama kolom `NoS4S`/`Kubik` pada laporan hidup S4S & Sanding, urutan kolom `dashboard-sanding`, dan kolom `Period1-5` pada laporan umur masih **asumsi** — belum diverifikasi terhadap SP asli di SQL Server. (Column mapping 4 SP consolidated/per-jenis sudah diverifikasi dan dikoreksi; `mutasi-sanding` juga sudah, lewat `rekap-mutasi.ts`.)
+- Kapasitas Racip memakai konstanta kapasitas sawmill `323.7837` ton/hari dan rendemen 85% / 20% yang diambil dari `open-api-report`, bukan dari SP. Kalau angka plants berubah, kedua konstanta itu perlu ditinjau.
 - Nama field username di payload JWT WPS (`JWT_USERNAME_CLAIM`) dan algoritma JWT (`JWT_ALG`) masih default dan **belum dikonfirmasi** terhadap token WPS asli.
 - Kredensial SQL Server production belum diisi; semua pengujian memakai laporan `example`.

@@ -18,13 +18,17 @@ import { buildEmptyTableRow, renderWpsReportPage } from "./template";
  * are computed in the service step, the averaging and the machine grouping in
  * the controller step, as in the reference reports.
  *
- * Assumptions, because no reference layout for this procedure exists in the
- * repo yet — both are the two constants below:
- *   - the input block is BJ / CCAkhir / FJ / Moulding / Sanding / TOTAL, the
- *     five sources the SP_SubMutasi_Sanding breakdown (rekap-mutasi.ts)
- *     reports for Sanding production;
- *   - a single output column, OutputSanding, following the OutputLaminating /
- *     OutputCCAkhir / OutputMoulding naming of the sibling reports.
+ * Column names are verified against the live database: the procedure returns
+ * NoProduksi, Tanggal, Shift, NamaMesin, JamKerja, JmlhAnggota, CCAkhir, FJ,
+ * Moulding, Reproses, Wip, OutputSanding and BJ. The input block is therefore
+ * CCAkhir / FJ / Moulding / Reproses / Wip / BJ, and the single output column
+ * is OutputSanding.
+ *
+ * An earlier draft guessed BJ / CCAkhir / FJ / Moulding / Sanding from the
+ * sibling reports and from the SP_SubMutasi_Sanding breakdown. The Sanding
+ * column in particular does not exist on this procedure, so that draft showed
+ * a permanently empty column and dropped Reproses and Wip entirely. Note the
+ * procedure spells the column "Wip" here, not "WIP".
  */
 
 interface ConsolidatedRow extends Record<string, unknown> {
@@ -33,16 +37,17 @@ interface ConsolidatedRow extends Record<string, unknown> {
   NamaMesin: string | null;
   JamKerja: number | string | null;
   JmlhAnggota: number | string | null;
-  BJ: number | string | null;
   CCAkhir: number | string | null;
   FJ: number | string | null;
   Moulding: number | string | null;
-  Sanding: number | string | null;
+  Reproses: number | string | null;
+  Wip: number | string | null;
+  BJ: number | string | null;
   OutputSanding: number | string | null;
 }
 
-/** Input columns, in legacy display order. */
-const INPUT_KEYS = ["BJ", "CCAkhir", "FJ", "Moulding", "Sanding"] as const;
+/** Input columns, in the procedure's own order. */
+const INPUT_KEYS = ["CCAkhir", "FJ", "Moulding", "Reproses", "Wip", "BJ"] as const;
 type InputKey = (typeof INPUT_KEYS)[number];
 
 interface NormalizedRow {
@@ -128,11 +133,12 @@ const compareText = (left: string, right: string): number =>
 export function normalizeSandingRows(rows: ConsolidatedRow[]): NormalizedRow[] {
   const normalized = rows.map((row) => {
     const inputs: Record<InputKey, number> = {
-      BJ: toFloat(row.BJ),
       CCAkhir: toFloat(row.CCAkhir),
       FJ: toFloat(row.FJ),
       Moulding: toFloat(row.Moulding),
-      Sanding: toFloat(row.Sanding),
+      Reproses: toFloat(row.Reproses),
+      Wip: toFloat(row.Wip),
+      BJ: toFloat(row.BJ),
     };
     const output = toFloatOrNull(row.OutputSanding);
     const jam = toFloatOrNull(row.JamKerja);
@@ -180,11 +186,12 @@ export function normalizeSandingRows(rows: ConsolidatedRow[]): NormalizedRow[] {
 /** Controller step: ratios are averaged over the rows, not summed. */
 export function computeSandingTotals(rows: NormalizedRow[]): Totals {
   const inputs: Record<InputKey, number> = {
-    BJ: 0,
     CCAkhir: 0,
     FJ: 0,
     Moulding: 0,
-    Sanding: 0,
+    Reproses: 0,
+    Wip: 0,
+    BJ: 0,
   };
   let totalInput = 0;
   let output = 0;
@@ -266,12 +273,12 @@ const countNonZero = (rows: NormalizedRow[], key: InputKey | "output"): number =
     return Math.abs(value) > EPS ? count + 1 : count;
   }, 0);
 
-const COLUMN_COUNT = 13;
+const COLUMN_COUNT = 14;
 
 const HEADERS = `<tr class="headers-row">
         <th rowspan="2" style="width: 58px;">Tanggal</th>
         <th rowspan="2" style="width: 40px;">Shift</th>
-        <th colspan="6">Input</th>
+        <th colspan="7">Input</th>
         <th rowspan="2" style="width: 58px;">Output<br>Sanding</th>
         <th rowspan="2" style="width: 44px;">Jam</th>
         <th rowspan="2" style="width: 44px;">Org</th>
@@ -280,11 +287,12 @@ const HEADERS = `<tr class="headers-row">
         <th rowspan="2" style="width: 49px;">Rend<br>(%)</th>
       </tr>
       <tr class="headers-row">
-        <th style="width: 49px;">BJ</th>
         <th style="width: 49px;">CCAkhir</th>
         <th style="width: 49px;">FJ</th>
         <th style="width: 49px;">Moulding</th>
-        <th style="width: 49px;">Sanding</th>
+        <th style="width: 49px;">Reproses</th>
+        <th style="width: 49px;">Wip</th>
+        <th style="width: 49px;">BJ</th>
         <th style="width: 49px;">TOTAL</th>
       </tr>`;
 

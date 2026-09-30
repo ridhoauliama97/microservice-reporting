@@ -141,6 +141,12 @@ import { rekapProduksiSandingConsolidatedReport } from './wps/rekap-produksi-san
 import { rekapProduksiSandingPerJenisPerGradeReport } from './wps/rekap-produksi-sanding-per-jenis-per-grade'
 import { sandingHidupDetailReport } from './wps/sanding-hidup-detail'
 import { umurSandingDetailReport } from './wps/umur-sanding-detail'
+import { bahanTerpakaiReport } from './wps/bahan-terpakai'
+import { bahanYangDihasilkanReport } from './wps/bahan-yang-dihasilkan'
+import { labelNyangkutReport } from './wps/label-nyangkut'
+import { rangkumanBongkarSusunReport } from './wps/rangkuman-bongkar-susun'
+import { rangkumanJumlahLabelInputReport } from './wps/rangkuman-jumlah-label-input'
+import { kapasitasRacipKayuBulatHidupReport } from './wps/kapasitas-racip-kayu-bulat-hidup'
 import type { ReportDefinition } from './types'
 
 // The single allowed `any` in the codebase (AGENTS.md 7.9): each report has
@@ -285,4 +291,10 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
     rekapProduksiSandingPerJenisPerGradeReport,
   'sanding-hidup-detail': sandingHidupDetailReport,
   'umur-sanding-detail': umurSandingDetailReport,
+  'bahan-terpakai': bahanTerpakaiReport,
+  'bahan-yang-dihasilkan': bahanYangDihasilkanReport,
+  'label-nyangkut': labelNyangkutReport,
+  'rangkuman-bongkar-susun': rangkumanBongkarSusunReport,
+  'rangkuman-jumlah-label-input': rangkumanJumlahLabelInputReport,
+  'kapasitas-racip-kayu-bulat-hidup': kapasitasRacipKayuBulatHidupReport,
 }

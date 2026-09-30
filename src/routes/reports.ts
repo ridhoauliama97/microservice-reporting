@@ -3,14 +3,12 @@ import { z } from 'zod'
 import { errorBody, fileExpiredError, notFoundError, reportNotReadyError, unknownReportTypeError, validationError } from '../lib/errors'
 import { authMiddleware } from '../middleware/auth'
 import { JOB_NAME, reportQueue, type ReportJobResult } from '../queue/report.queue'
+import { buildCreateReportBodySchema, paramShapeSummary } from '../reports/openapi-params'
 import { reports } from '../reports/registry'
 import { getReportFile } from '../services/storage'
 import type { AppEnv } from '../types'
 
-const createReportBodySchema = z.object({
-  type: z.string(),
-  params: z.unknown().optional(),
-})
+const createReportBodySchema = buildCreateReportBodySchema()
 
 const createReportResponseSchema = z.object({
   jobId: z.string().uuid(),
@@ -48,6 +46,11 @@ const paramsSchema = z.object({
 const createReportRoute = createRoute({
   method: 'post',
   path: '/reports',
+  description:
+    'Membuat job laporan. Bentuk `params` mengikuti `type`:\n\n' +
+    paramShapeSummary() +
+    '\n\nSnapshot tanpa parameter boleh memakai `params: {}` atau menghilangkan field `params`. ' +
+    'Mengirim `params` yang tidak cocok dengan `type` dijawab 400 `VALIDATION_ERROR` dengan rincian field yang tidak dikenal.',
   request: {
     body: {
       content: { 'application/json': { schema: createReportBodySchema } },
@@ -162,7 +165,12 @@ export function registerReportsRoutes(app: OpenAPIHono<AppEnv>): void {
   app.use('/reports/*', authMiddleware())
 
   app.openapi(createReportRoute, async (c) => {
-    const { type, params } = c.req.valid('json')
+    // The body is a oneOf over the reports' own param schemas, so the validated
+    // value is that union; narrow it to the { type, params } shape the handler
+    // actually uses. The fallback branch keeps the same two fields.
+    const body = c.req.valid('json') as { type: string; params?: unknown }
+
+    const { type, params } = body
 
     const definition = reports[type]
     if (!definition) {

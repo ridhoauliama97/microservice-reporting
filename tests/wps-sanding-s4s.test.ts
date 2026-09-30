@@ -108,6 +108,8 @@ describe('registry', () => {
 })
 
 describe('Rekap Produksi S4S Consolidated', () => {
+  // The input block mirrors the live column set: CCAkhir / Reproses / S4S /
+  // ST / WIP.
   const rows = normalizeS4SRows([
     {
       Tanggal: '2026-08-01',
@@ -115,10 +117,11 @@ describe('Rekap Produksi S4S Consolidated', () => {
       NamaMesin: 'S4S LINE 1',
       JamKerja: 8,
       JmlhAnggota: 4,
-      FJ: 1,
-      MLD: 2,
+      CCAkhir: 1,
+      Reproses: 2,
       S4S: 3,
       ST: 4,
+      WIP: 0,
       OutputS4S: 8,
     },
     {
@@ -127,10 +130,11 @@ describe('Rekap Produksi S4S Consolidated', () => {
       NamaMesin: 'S4S LINE 1',
       JamKerja: 8,
       JmlhAnggota: 4,
-      FJ: 1,
-      MLD: 1,
+      CCAkhir: 1,
+      Reproses: 1,
       S4S: 1,
       ST: 2,
+      WIP: 0,
       OutputS4S: 4,
     },
     {
@@ -139,15 +143,16 @@ describe('Rekap Produksi S4S Consolidated', () => {
       NamaMesin: 'MULTI RIPSAW',
       JamKerja: 0,
       JmlhAnggota: 0,
-      FJ: 0,
-      MLD: 0,
+      CCAkhir: 0,
+      Reproses: 0,
       S4S: 5,
       ST: 0,
+      WIP: 0,
       OutputS4S: 5,
     },
   ])
 
-  test('input total is the sum of the four input columns', () => {
+  test('input total is the sum of the five input columns', () => {
     const byName = (name: string) =>
       rows.filter((row) => row.namaMesin === name)
     expect(byName('S4S LINE 1').map((row) => row.totalInput)).toEqual([10, 5])
@@ -279,6 +284,8 @@ describe('Rekap Produksi S4S Consolidated', () => {
 })
 
 describe('Rekap Produksi Sanding Consolidated', () => {
+  // The live column set: CCAkhir / FJ / Moulding / Reproses / Wip / BJ. There
+  // is no "Sanding" input column, and the procedure spells it "Wip".
   const rows = normalizeSandingRows([
     {
       Tanggal: '2026-08-01',
@@ -286,28 +293,32 @@ describe('Rekap Produksi Sanding Consolidated', () => {
       NamaMesin: 'SANDING 1',
       JamKerja: 8,
       JmlhAnggota: 2,
-      BJ: 1,
       CCAkhir: 0,
       FJ: 2,
       Moulding: 3,
-      Sanding: 4,
+      Reproses: 1,
+      Wip: 0,
+      BJ: 1,
       OutputSanding: 9,
     },
   ])
 
-  test('input total is the sum of the five input columns', () => {
-    expect(rows[0]!.totalInput).toBe(10)
+  test('input total is the sum of the six input columns', () => {
+    expect(rows[0]!.totalInput).toBe(7)
     expect(rows[0]!.inputs.Moulding).toBe(3)
   })
 
   test('Rend is output over total input', () => {
-    expect(rows[0]!.rend).toBe(90)
+    // 9 out of 7 is over 100%: the reference report shows that rather than
+    // clamping it, because a yield above 100% is itself the finding.
+    expect(rows[0]!.rend).toBeCloseTo((9 / 7) * 100, 6)
   })
 
   test('grand totals sum the input and output columns of every row', () => {
     const totals = computeSandingTotals(rows)
-    expect(totals.inputs.Sanding).toBe(4)
-    expect(totals.totalInput).toBe(10)
+    expect(totals.inputs.Moulding).toBe(3)
+    expect(totals.inputs.Wip).toBe(0)
+    expect(totals.totalInput).toBe(7)
     expect(totals.output).toBe(9)
   })
 
@@ -328,29 +339,27 @@ describe('Rekap Produksi Sanding Consolidated', () => {
 })
 
 describe('Rekap Produksi Per-Jenis & Per-Grade', () => {
-  const gradeRows = [
-    { Jenis: 'JABON', NamaGrade: 'A/A', FJ: 1, MLD: 2, S4S: 3, ST: 4, Output: 8 },
-    { Jenis: 'JABON', NamaGrade: 'C/C', FJ: 0, MLD: 1, S4S: 1, ST: 0, Output: 1 },
-    {
-      Jenis: 'PULAI',
-      NamaGrade: 'NISOBO',
-      BJ: 5,
-      CCAkhir: 0,
-      FJ: 0,
-      Moulding: 1,
-      Sanding: 2,
-      Output: 6,
-    },
+  // Live column sets: S4S is ST / S4S / WIP / Reproses, Sanding is
+  // FJ / Moulding / CCAkhir / WIP / Reproses.
+  const s4sRows = [
+    { Jenis: 'JABON', NamaGrade: 'A/A', ST: 1, S4S: 2, WIP: 3, Reproses: 4, Output: 8 },
+    { Jenis: 'JABON', NamaGrade: 'C/C', ST: 0, S4S: 1, WIP: 1, Reproses: 0, Output: 1 },
+    { Jenis: 'PULAI', NamaGrade: 'NISOBO', ST: 5, S4S: 0, WIP: 0, Reproses: 0, Output: 6 },
+  ]
+  const sandingRows = [
+    { Jenis: 'JABON', NamaGrade: 'A/A', FJ: 1, Moulding: 2, CCAkhir: 3, WIP: 4, Reproses: 5, Output: 8 },
+    { Jenis: 'PULAI', NamaGrade: 'NISOBO', FJ: 0, Moulding: 1, CCAkhir: 0, WIP: 0, Reproses: 0, Output: 6 },
   ]
 
   test('the S4S variant renders a group per Jenis with a closing Total', () => {
     const html = renderWith(
       reports['rekap-produksi-s4s-per-jenis-per-grade']!,
-      gradeRows as never,
+      s4sRows as never,
     )
     expect(html).toContain('JABON')
     expect(html).toContain('PULAI')
     expect(html).toContain('In S4S')
+    expect(html).toContain('In WIP')
     expect(html).toContain('Grand Total')
     // Two Jenis groups, each closing with a Total row, plus the grand total.
     expect(html.match(/<tr class="totals-row">/g)?.length).toBe(3)
@@ -359,20 +368,33 @@ describe('Rekap Produksi Per-Jenis & Per-Grade', () => {
   test('the S4S grand total is the sum of its rows, not the last one', () => {
     const html = renderWith(
       reports['rekap-produksi-s4s-per-jenis-per-grade']!,
-      gradeRows as never,
+      s4sRows as never,
     )
-    // FJ 1 + 0 + 5 = 6, Output 8 + 1 + 6 = 15.
+    // ST 1 + 0 + 5 = 6, Output 8 + 1 + 6 = 15.
     expect(html).toContain('15.0000')
     expect(html).toContain('6.0000')
+  })
+
+  test('the S4S variant has no FJ or MLD column, which the procedure lacks', () => {
+    const html = renderWith(
+      reports['rekap-produksi-s4s-per-jenis-per-grade']!,
+      s4sRows as never,
+    )
+    expect(html).not.toContain('In FJ')
+    expect(html).not.toContain('In MLD')
   })
 
   test('the Sanding variant renders its own input columns', () => {
     const html = renderWith(
       reports['rekap-produksi-sanding-per-jenis-per-grade']!,
-      gradeRows as never,
+      sandingRows as never,
     )
-    expect(html).toContain('In Sanding')
     expect(html).toContain('In Moulding')
+    expect(html).toContain('In WIP')
+    expect(html).toContain('In Reproses')
+    // Neither BJ nor Sanding exists on this procedure.
+    expect(html).not.toContain('In BJ')
+    expect(html).not.toContain('In Sanding')
     expect(html).toContain('Laporan Rekap Produksi Sanding Per-Jenis &amp; Per-Grade (m3)')
   })
 

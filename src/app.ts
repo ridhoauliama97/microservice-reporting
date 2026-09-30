@@ -10,6 +10,7 @@ import {
   validationError,
 } from './lib/errors'
 import { registerReportsRoutes } from './routes/reports'
+import { reportParamComponents, reportTypeEnum } from './reports/openapi-params'
 import { registerWsRoutes } from './routes/ws'
 import type { AppEnv } from './types'
 import { registerHealthRoutes } from './routes/health'
@@ -67,12 +68,34 @@ registerWsRoutes(app)
 
 // --- OpenAPI docs (AGENTS.md 7.13) ---
 
-app.doc('/docs/openapi.json', {
-  openapi: '3.1.0',
+// The spec is built by hand rather than via app.doc() because the components
+// block has to carry the 138 reports' param schemas, and the generator's config
+// type does not accept one. The document is otherwise the standard output.
+const openApiConfig = {
+  openapi: '3.1.0' as const,
   info: {
     title: 'Report Service API',
     version: '1.0.0',
+    description:
+      `Membuat laporan PDF secara asynchronous. Ada ${reportTypeEnum.length} jenis laporan. ` +
+      'Bentuk `params` berbeda-beda per jenis; `POST /reports` memetakannya lewat `oneOf`, ' +
+      'dan tiap cabang mencantumkan laporan mana yang memakai bentuk itu.',
   },
+}
+
+app.get('/docs/openapi.json', (c) => {
+  const document = app.getOpenAPI31Document(openApiConfig) as unknown as Record<string, unknown>
+  return c.json({
+    ...document,
+    components: {
+      ...(document.components as Record<string, unknown> | undefined),
+      schemas: {
+        ...((document.components as { schemas?: Record<string, unknown> } | undefined)
+          ?.schemas ?? {}),
+        ...reportParamComponents(),
+      },
+    },
+  })
 })
 
 // Swagger UI served as static HTML from a CDN — no extra npm package needed.

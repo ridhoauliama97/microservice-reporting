@@ -18,13 +18,14 @@ import { buildEmptyTableRow, renderWpsReportPage } from "./template";
  * Rend) come from the service step, the averaging and the machine grouping
  * from the controller step, exactly as in the reference reports.
  *
- * Assumptions, because no reference layout for this procedure exists in the
- * repo yet — they are all in the two constants below, so a corrected procedure
- * is a one-line change:
- *   - the input block is FJ / MLD / S4S / ST / TOTAL, i.e. the sources the
- *     SP_SubMutasi_S4S breakdown (rekap-mutasi.ts) reports for S4S production;
- *   - a single output column, OutputS4S, following the OutputLaminating /
- *     OutputCCAkhir / OutputMoulding naming of the sibling reports.
+ * Column names are verified against the live database: the procedure returns
+ * NoProduksi, Tanggal, Shift, NamaMesin, JamKerja, JmlhAnggota, CCAkhir,
+ * Reproses, S4S, ST, WIP and OutputS4S. The input block is therefore
+ * CCAkhir / Reproses / S4S / ST / WIP, and the single output column is
+ * OutputS4S. An earlier draft of this file guessed FJ / MLD / S4S / ST from
+ * the sibling reports, which left the FJ and MLD columns permanently empty and
+ * pushed the real figures into ST; the input list below is what the procedure
+ * actually returns.
  */
 
 interface ConsolidatedRow extends Record<string, unknown> {
@@ -33,15 +34,16 @@ interface ConsolidatedRow extends Record<string, unknown> {
   NamaMesin: string | null;
   JamKerja: number | string | null;
   JmlhAnggota: number | string | null;
-  FJ: number | string | null;
-  MLD: number | string | null;
+  CCAkhir: number | string | null;
+  Reproses: number | string | null;
   S4S: number | string | null;
   ST: number | string | null;
+  WIP: number | string | null;
   OutputS4S: number | string | null;
 }
 
-/** Input columns, in legacy display order. */
-const INPUT_KEYS = ["FJ", "MLD", "S4S", "ST"] as const;
+/** Input columns, in the procedure's own order. */
+const INPUT_KEYS = ["CCAkhir", "Reproses", "S4S", "ST", "WIP"] as const;
 type InputKey = (typeof INPUT_KEYS)[number];
 
 interface NormalizedRow {
@@ -127,10 +129,11 @@ const compareText = (left: string, right: string): number =>
 export function normalizeS4SRows(rows: ConsolidatedRow[]): NormalizedRow[] {
   const normalized = rows.map((row) => {
     const inputs: Record<InputKey, number> = {
-      FJ: toFloat(row.FJ),
-      MLD: toFloat(row.MLD),
+      CCAkhir: toFloat(row.CCAkhir),
+      Reproses: toFloat(row.Reproses),
       S4S: toFloat(row.S4S),
       ST: toFloat(row.ST),
+      WIP: toFloat(row.WIP),
     };
     const output = toFloatOrNull(row.OutputS4S);
     const jam = toFloatOrNull(row.JamKerja);
@@ -177,7 +180,13 @@ export function normalizeS4SRows(rows: ConsolidatedRow[]): NormalizedRow[] {
 
 /** Controller step: ratios are averaged over the rows, not summed. */
 export function computeS4STotals(rows: NormalizedRow[]): Totals {
-  const inputs: Record<InputKey, number> = { FJ: 0, MLD: 0, S4S: 0, ST: 0 };
+  const inputs: Record<InputKey, number> = {
+    CCAkhir: 0,
+    Reproses: 0,
+    S4S: 0,
+    ST: 0,
+    WIP: 0,
+  };
   let totalInput = 0;
   let output = 0;
   let jam = 0;
@@ -258,12 +267,12 @@ const countNonZero = (rows: NormalizedRow[], key: InputKey | "output"): number =
     return Math.abs(value) > EPS ? count + 1 : count;
   }, 0);
 
-const COLUMN_COUNT = 12;
+const COLUMN_COUNT = 13;
 
 const HEADERS = `<tr class="headers-row">
         <th rowspan="2" style="width: 58px;">Tanggal</th>
         <th rowspan="2" style="width: 40px;">Shift</th>
-        <th colspan="5">Input</th>
+        <th colspan="6">Input</th>
         <th rowspan="2" style="width: 58px;">Output<br>S4S</th>
         <th rowspan="2" style="width: 44px;">Jam</th>
         <th rowspan="2" style="width: 44px;">Org</th>
@@ -272,10 +281,11 @@ const HEADERS = `<tr class="headers-row">
         <th rowspan="2" style="width: 49px;">Rend<br>(%)</th>
       </tr>
       <tr class="headers-row">
-        <th style="width: 49px;">FJ</th>
-        <th style="width: 49px;">MLD</th>
+        <th style="width: 49px;">CCAkhir</th>
+        <th style="width: 49px;">Reproses</th>
         <th style="width: 49px;">S4S</th>
         <th style="width: 49px;">ST</th>
+        <th style="width: 49px;">WIP</th>
         <th style="width: 49px;">TOTAL</th>
       </tr>`;
 

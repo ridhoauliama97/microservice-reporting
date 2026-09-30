@@ -1328,6 +1328,96 @@ const UMUR_REPROSES_DETAIL_CSS = `
   .report-table td.total-cell { font-weight: bold; }
 `;
 
+/**
+ * Bahan Terpakai and Bahan Yang Dihasilkan: one table per process, the group
+ * total in a tfoot above the body, and the tfoot rules the shared WPS CSS puts
+ * on a bottom totals row do not fit here.
+ */
+const BAHAN_TERPAKAI_CSS = `
+  .group-title { margin: 10px 0 4px 0; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+  .report-table { font-size: 11px; }
+  .report-table td.number, .report-table td.label { white-space: nowrap; }
+  /* The group total sits in a tfoot, so it must not carry the bottom-edge
+     suppression the shared totals-row rule applies to a trailing tbody row. */
+  .report-table tfoot .totals-row td, .report-table tfoot .total-row td {
+    font-weight: bold; font-size: 11px; background: #fff;
+    border-top: 1px solid #000; border-right: 1px solid #000;
+    border-bottom: 0; border-left: 0;
+  }
+  .report-table tbody tr.total-row td { font-weight: bold; font-size: 11px; background: #fff; border-top: 1px solid #000; }
+  .summary-table { width: auto; min-width: 420px; }
+`;
+
+/** Rangkuman Jumlah Label Input: process tables with no totals row. */
+const RANGKUMAN_LABEL_INPUT_CSS = `
+  .group-title { margin: 10px 0 4px 0; font-size: 12px; font-weight: bold; }
+  .report-table { font-size: 11px; }
+  .report-table td.number, .report-table td.label { white-space: nowrap; }
+  .report-table thead tr.headers-row th { white-space: normal; line-height: 1.15; }
+`;
+
+/** Rangkuman Bongkar Susun: numbered category tables plus a Rangkuman block. */
+const RANGKUMAN_BONGKAR_SUSUN_CSS = `
+  .section-title { margin: 12px 0 4px 0; font-size: 12px; font-weight: bold; }
+  .report-table { font-size: 11px; }
+  .report-table td.number { white-space: nowrap; }
+  .report-table tbody tr.total-row td { font-weight: bold; font-size: 11px; background: #fff; border-top: 1px solid #000; }
+  .summary-table { width: auto; min-width: 420px; }
+`;
+
+/** Label Nyangkut: the Total column carries a unit, so it must not wrap. */
+const LABEL_NYANGKUT_CSS = `
+  .report-table { font-size: 11px; }
+  .report-table thead tr.headers-row th { white-space: normal; line-height: 1.15; }
+  .report-table td.number { white-space: nowrap; }
+  .report-table tbody tr.totals-row td { background: #fff !important; font-weight: bold; font-size: 11px; border-top: 1px solid #000; border-bottom: 1px solid #000; }
+`;
+
+/**
+ * Kapasitas Racip: two balance tables, then the sawmill metrics and the
+ * rendemen conclusion. The metrics list and the Rangkuman row are borderless
+ * label/value blocks rather than tables, so the shared table rules have to be
+ * switched off for them: the shared CSS gives every table a left and bottom
+ * border, which is what put a rule down the left of the metrics and a box
+ * around the Rangkuman row.
+ */
+const KAPASITAS_RACIP_KAYU_BULAT_HIDUP_CSS = `
+  .section-block { margin-bottom: 18px; }
+  .section-title { margin: 12px 0 4px 0; font-size: 12px; font-weight: bold; }
+  .report-table { font-size: 11px; }
+  .report-table td.number { white-space: nowrap; }
+
+  /* Borderless label/value list: no cell borders, no table borders either. */
+  .metrics-table {
+    width: auto;
+    margin: 0 0 8px 0;
+    border: 0 !important;
+    border-collapse: collapse;
+  }
+  .metrics-table td { border: 0 !important; padding: 1px 4px; }
+  .metrics-table .metrics-label { width: 150px; }
+  .metrics-table .metrics-sep { width: 12px; text-align: center; }
+
+  .equation { font-size: 11px; margin: 8px 0 6px 0; }
+  .conclusion { margin-top: 6px; font-size: 11px; }
+  .conclusion-title { font-weight: bold; }
+
+  /* The Rangkuman line is the report's closing answer, so it is set a step
+     above the body text: 12px against the 11px everything else uses here. */
+  .summary-table {
+    width: auto;
+    border: 0 !important;
+    border-collapse: collapse;
+    margin-bottom: 0;
+  }
+  .summary-table td {
+    border: 0 !important;
+    padding: 1px 4px;
+    font-size: 12px;
+    line-height: 1.35;
+  }
+`;
+
 const WPS_REPORT_STYLES = {
   dashboard_barang_jadi: DASHBOARD_BARANG_JADI_CSS,
   dashboard_cross_cut_akhir: DASHBOARD_CROSS_CUT_AKHIR_CSS,
@@ -1424,6 +1514,19 @@ const WPS_REPORT_STYLES = {
     REKAP_PRODUKSI_MOULDING_PER_JENIS_PER_GRADE_CSS,
   rekap_produksi_sanding_per_jenis_per_grade:
     REKAP_PRODUKSI_MOULDING_PER_JENIS_PER_GRADE_CSS,
+  // The Bahan Terpakai / Bahan Yang Dihasilkan blocks: a process sub-heading
+  // above each detail table, then a process total.
+  bahan_terpakai: BAHAN_TERPAKAI_CSS,
+  bahan_yang_dihasilkan: BAHAN_TERPAKAI_CSS,
+  // Per-process tables, no totals row, and the computed Rendemen column.
+  rangkuman_label_input: RANGKUMAN_LABEL_INPUT_CSS,
+  // Per-category tables with a Rangkuman block underneath.
+  rangkuman_bongkar_susun: RANGKUMAN_BONGKAR_SUSUN_CSS,
+  // Grouped by Ket, with the per-group unit stamped on the Total column.
+  label_nyangkut: LABEL_NYANGKUT_CSS,
+  // Two balance sections, each with the sawmill capacity metrics and a
+  // conclusion block.
+  kapasitas_racip_kayu_bulat_hidup: KAPASITAS_RACIP_KAYU_BULAT_HIDUP_CSS,
   // The mutasi tables share one block: Laminating, Moulding and Sanding all lay
   // out the same Masuk/Keluar column groups.
   mutasi_sanding: MUTASI_LAMINATING_CSS,

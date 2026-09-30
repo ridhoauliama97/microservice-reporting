@@ -17,24 +17,26 @@ import { buildEmptyTableRow, renderWpsReportPage } from "./template";
  * NamaGrade, one table per Jenis closing with a "Total" row, and a grand-total
  * table after the last group.
  *
- * Assumed columns, because no reference layout for this procedure exists in the
- * repo yet: the flow columns are In FJ / In MLD / In S4S / In ST / Output, i.e.
- * the sources the SP_SubMutasi_S4S breakdown (rekap-mutasi.ts) reports for S4S
- * production plus the SP's own Output. Change the two constants below if the
- * procedure spells them differently.
+ * Column names are verified against the live database: the procedure returns
+ * Jenis, NamaGrade, ST, S4S, WIP, Reproses and Output. The flow columns are
+ * therefore In ST / In S4S / In WIP / In Reproses / Output.
+ *
+ * An earlier draft guessed In FJ / In MLD / In S4S / In ST from the sibling
+ * reports; FJ and MLD do not exist on this procedure, so that draft left two
+ * permanently empty columns and never showed WIP or Reproses.
  */
 
 interface ProduksiGradeRow extends Record<string, unknown> {
   Jenis: string | null;
   NamaGrade: string | null;
-  FJ: number | string | null;
-  MLD: number | string | null;
-  S4S: number | string | null;
   ST: number | string | null;
+  S4S: number | string | null;
+  WIP: number | string | null;
+  Reproses: number | string | null;
   Output: number | string | null;
 }
 
-const FLOW_KEYS = ["InFJ", "InMLD", "InS4S", "InST", "Output"] as const;
+const FLOW_KEYS = ["InST", "InS4S", "InWIP", "InReproses", "Output"] as const;
 type FlowKey = (typeof FLOW_KEYS)[number];
 
 const toFloat = (value: unknown): number => {
@@ -65,18 +67,18 @@ const compareText = (left: string, right: string): number =>
   left < right ? -1 : left > right ? 1 : 0;
 
 const readFlows = (row: ProduksiGradeRow): Record<FlowKey, number> => ({
-  InFJ: toFloat(row.FJ),
-  InMLD: toFloat(row.MLD),
-  InS4S: toFloat(row.S4S),
   InST: toFloat(row.ST),
+  InS4S: toFloat(row.S4S),
+  InWIP: toFloat(row.WIP),
+  InReproses: toFloat(row.Reproses),
   Output: toFloat(row.Output),
 });
 
 const emptyFlows = (): Record<FlowKey, number> => ({
-  InFJ: 0,
-  InMLD: 0,
-  InS4S: 0,
   InST: 0,
+  InS4S: 0,
+  InWIP: 0,
+  InReproses: 0,
   Output: 0,
 });
 
@@ -86,10 +88,10 @@ const HEADERS = `
         <th style="width: 4%;">No</th>
         <th style="width: 12%;">Jenis Kayu</th>
         <th style="width: 12%;">Nama Grade</th>
-        <th style="width: 10%;">In FJ</th>
-        <th style="width: 10%;">In MLD</th>
-        <th style="width: 10%;">In S4S</th>
         <th style="width: 10%;">In ST</th>
+        <th style="width: 10%;">In S4S</th>
+        <th style="width: 10%;">In WIP</th>
+        <th style="width: 10%;">In Reproses</th>
         <th style="width: 10%;">Output</th>`;
 
 const buildGroupTable = (jenis: string, rows: ProduksiGradeRow[]): string => {
