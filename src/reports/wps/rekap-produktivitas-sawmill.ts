@@ -124,9 +124,9 @@ export function mapJenisToColumn(jenis: string): number | null {
   const norm = jenis.toLowerCase().replace(/[^a-z0-9]+/g, '');
   if (norm === 'jabon' || norm.includes('jabon')) return 0;
   if (norm.includes('rambung') && (norm.includes('kayulat') || norm.includes('kayul'))) return 1;
-  if (norm.includes('rambang') && norm.includes('mc1')) return 2;
-  if (norm.includes('rambang') && norm.includes('mc2')) return 3;
-  if (norm.includes('rambang') && norm.includes('std')) return 4;
+  if (norm.includes('rambung') && norm.includes('mc1')) return 2;
+  if (norm.includes('rambung') && norm.includes('mc2')) return 3;
+  if (norm.includes('rambung') && norm.includes('std')) return 4;
   return null;
 }
 

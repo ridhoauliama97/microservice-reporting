@@ -187,6 +187,16 @@ export function buildBoronganData(main: SpRow[], sub: SpRow[]): BoronganData {
     const key = keyOf(row);
     const line = toLine(row);
     const namaMeja = text(row.NamaMeja) || `Meja ${Math.trunc(toFloat(row.NoMeja))}`;
+    // ACCUMULATE, never overwrite. The procedure returns one row per board
+    // spec, so several rows share a chamber, date, type, thickness, width and
+    // unit. Assigning would keep only the last one and quietly understate the
+    // chamber by every board but one.
+    const existing = buckets.get(key);
+    if (existing) {
+      existing.tonRacip += line.tonRacip;
+      existing.sm += line.sm;
+      continue;
+    }
     buckets.set(key, {
       ...line,
       noMeja: Math.trunc(toFloat(row.NoMeja)),
@@ -195,11 +205,24 @@ export function buildBoronganData(main: SpRow[], sub: SpRow[]): BoronganData {
     });
   }
 
-  // The sub report supplies SM and the measurement behind the tonnage.
+  // The sub report supplies SM and the measurement behind the tonnage. A sub
+  // row with no matching main row still becomes a line of its own: a day with a
+  // measurement but no reported tonnage is still a day that ran, and dropping it
+  // would leave the SM total short of the sheet.
   for (const row of sub) {
     const key = keyOf(row);
     const existing = buckets.get(key);
-    if (existing) existing.sm = toFloat(row.SM);
+    if (existing) {
+      existing.sm += toFloat(row.SM);
+      continue;
+    }
+    const namaMeja = text(row.NamaMeja) || `Meja ${Math.trunc(toFloat(row.NoMeja))}`;
+    buckets.set(key, {
+      ...toLine(row),
+      noMeja: Math.trunc(toFloat(row.NoMeja)),
+      namaMeja,
+      tanggal: toDateKey(row.TglSawmill),
+    });
   }
 
   const byMeja = new Map<number, { namaMeja: string; byDate: Map<string, Bucket[]> }>();
