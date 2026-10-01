@@ -21,8 +21,13 @@ import type { ReportDefinition } from "../types";
 
 interface KetahananRow extends Record<string, unknown> {
   Jenis: string | null;
-  Stockm3: number | null;
-  m3: number | null;
+  /**
+   * The two source measures. Optional because their names are configurable:
+   * the m3 reports read Stockm3 and m3, Sawn Timber reads StockTon and Ton.
+   * Indexed by `stockField` / `salesField` at build time.
+   */
+  Stockm3?: number | null;
+  m3?: number | null;
   /** Optional: the SP may omit it, in which case Penjualan is used. */
   AvgPenjualan?: number | null;
   /** Optional: derived as Stock / Avg Penjualan when the SP omits it. */
@@ -41,6 +46,14 @@ export interface KetahananOptions {
   type: string;
   title: string;
   storedProcedure: string;
+  /**
+   * Source column for Stock. Default "Stockm3" (the m3 reports). Sawn Timber
+   * returns the same measure as "StockTon" - the reference resolves it by
+   * candidate match and lands on StockTon, not Stock.
+   */
+  stockField?: string;
+  /** Source column for Penjualan. Default "m3"; Sawn Timber returns "Ton". */
+  salesField?: string;
 }
 
 const toFloat = (value: unknown): number => {
@@ -64,10 +77,14 @@ const fmt2OrBlank = (value: number | null): string => {
 const fmtTanggalPendek = (iso: string): string =>
   formatTanggalId(iso).replace(/\d{4}$/, (year) => year.slice(-2));
 
-export function buildKetahananView(rows: KetahananRow[]): KetahananView[] {
+export function buildKetahananView(
+  rows: KetahananRow[],
+  stockField = "Stockm3",
+  salesField = "m3",
+): KetahananView[] {
   return rows.map((row) => {
-    const stock = toFloat(row.Stockm3);
-    const penjualan = toFloat(row.m3);
+    const stock = toFloat(row[stockField]);
+    const penjualan = toFloat(row[salesField]);
     const avgPenjualan =
       row.AvgPenjualan === null || row.AvgPenjualan === undefined
         ? penjualan
@@ -92,6 +109,8 @@ export function buildKetahananView(rows: KetahananRow[]): KetahananView[] {
 export function createKetahananReport(
   options: KetahananOptions,
 ): ReportDefinition<PeriodParams, KetahananView[]> {
+  const stockField = options.stockField ?? "Stockm3";
+  const salesField = options.salesField ?? "m3";
   return {
     type: options.type,
     title: options.title,
@@ -104,7 +123,11 @@ export function createKetahananReport(
         .input("StartDate", sql.Date, params.tglAwal)
         .input("EndDate", sql.Date, params.tglAkhir)
         .execute(options.storedProcedure);
-      return buildKetahananView((result.recordset ?? []) as KetahananRow[]);
+      return buildKetahananView(
+        (result.recordset ?? []) as KetahananRow[],
+        stockField,
+        salesField,
+      );
     },
 
     render(rows, meta) {

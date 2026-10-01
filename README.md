@@ -142,6 +142,48 @@ Tiga hal yang tidak terlihat dari nama kolom:
 - **Mutasi KD** — satu tabel per ruang KD, urut angka (bukan string, supaya KD 10 tidak mendahului KD 2), isi tabel urut `TglMasuk`. **`Jumlah Hari` bersifat bertanda** (`TglKeluar - TglMasuk`) dan 0 kalau salah satu tanggal kosong — reference memang meminta diff non-absolut, jadi lot yang belum keluar atau keluar sebelum masuk tidak direkayasa jadi angka. **SP ini memakai `@StartDate`/`@EndDate`, bukan `@TglAwal`/`@TglAkhir` seperti periode laporan lain.**
 - **Dashboard Sawn Timber** — kolom yang dipakai **bukan** yang mengira. SP mengembalikan 17 kolom dan reference memilihnya dengan exact match sambil berjalan di urutan key, sehingga hasilnya: `DATE`, `Jenis`, **`Masuk`** (bukan `MasukALL`), **`Keluar`** (bukan `KeluarALL`), **`Akhir`** (bukan `Akhir2`), `CTR`. Dipilihnya keliru mengubah angkanya: untuk Agustus 2026 `Masuk` per jenis berjumlah 5,8728 t sedangkan `MasukALL` 5,9279 t. Kolom `CTR` ada, jadi pembagi 75 hanyacadangan. `NamaGrade` sengaja **tidak ada** di SP ini, makanya kolom dashboard dikunci `Jenis` saja.
 
+### Laporan Sawn Timber (batch kedua: KD, kitten, dan Sawmill)
+
+Sembilan lagi dari keluarga ST, semuanya **diport dari `open-api-report`** lalu diverifikasi ke database. Nama kolom diambil dari `sys.dm_exec_describe_first_result_set_for_object` (bukan eksekusi), jadi tetap dapat untuk SP yang mengembalikan 0 baris.
+
+| type | Params body | Stored procedure |
+|---|---|---|
+| `kd-keluar-masuk` | periode + `{ noRuangKd? }` | `SP_LapKDKeluarMasuk` |
+| `kd-upah-per-customer` | tanpa params | `SP_LapKDUpahPerCutomer` |
+| `kd-upah-per-no-proc-kd-detail` | `{ noProcKd }` | `SP_LapKDUpahPerNoProcKDPerCustomerDetail` |
+| `ketahanan-barang-st` | periode | `SP_LapKetahananBarangST` |
+| `label-st-hidup-detail` | tanpa params | `SP_LapLabelSTHidupDetail` |
+| `lembar-perhitungan-upah-borongan-sawmill` | `{ noProduksi }` | `SPWps_LapUpahSawmill` |
+| `pemakaian-obat-vacuum` | periode | `SP_LapPemakaianObatVacuum` |
+| `pembelian-st-per-supplier-ton` | periode | `SP_LapPembelianSTPerSupplier` |
+| `pembelian-st-timeline-ton` | periode | `SP_LapPembelianSTTimeline` |
+| `penerimaan-st-sawmill-kg` | periode | `SPWps_LapRekapPenerimaanSawmilRp` |
+
+Yang tidak kelihatan dari nama kolom atau dari nama parameternya:
+
+- **Nama parameter SP tidak seragam.** `SP_LapKDKeluarMasuk`, `SP_LapKetahananBarangST`, `SP_LapPembelianSTPerSupplier`, dan `SP_LapPembelianSTTimeline` memakai `@StartDate`/`@EndDate`, bukan `@TglAwal`/`@TglAkhir`. Yang lain pakai `@TglAwal`/`@TglAkhir`. Salah nama parameter → error "expects parameter '@StartDate'".
+- **`Avg Penjualan` bukan penjualan dibagi hari.** `SP_LapKetahananBarangST` tidak punya kolom rata-rata, jadi reference memakai nilai `Penjualan` itu sendiri (ada komentar eksplisit di sana). Membagi dengan jumlah hari akan membaca nama kolom dengan benar dan menghasilkan angka yang salah.
+- **`KD (Keluar - Masuk)` membuang Group di luar daftar enam kolom.** Tonnage-nya tidak masuk kolom manapun **dan tidak masuk Total baris**. Effectif, Total baris bisa lebih kecil dari `Ton` milik SP. Group juga dinormalisasi dulu: `JABON TGI`/`JABON TANGGUNG` → `JABON TG`, `RAMBUNG MC 1` → `RAMBUNG MC1`.
+- **Baris "masih" (belum keluar) selalu diurutkan terakhir**, apa pun tanggalnya, lalu diurutkan `TglKeluar`/`TglMasuk`. Mengurutkan murni tanggal akan mencampur dua seksi dan totalnya tidak akan cocok.
+- **`Pemakaian Obat Vacuum` footer bukan penjumlahan kolom.** Tiap rasio dihitung ulang dari angka yang sudah dijumlahkan (`sumBorax / sumSTTon`), satu-satunya cara benar menjumlahkan rasio. Menjumlahkan persentase harian menghasilkan angka yang tidak bermakna.
+- **`Upah Sawmill` mengulang hitungan berat, dan itu menentukan.** `Berat` dari SP bernilai **0** untuk baris yang dimensi penuhnya ada — barcode `D.040749`çontohnya. Yang dicetak adalah berat hasil hitung ulang dari `Tebal × Lebar × Panjang × JmlhBatang`, dengan pembagi取决于 `IdUOMTblLebar`/`IdUOMPanjang`; cabang inch/ft membagi 1.416 (faktor m3→ton). Pakai `Berat` apa adanya = lembar upah semua nol.
+- **`Penerimaan ST` harus mengisi ulang nama supplier.** Baris `InOut=0` (OUTPUT) tidak punya `NmSupplier` — namanya ada di `NmSupplier3`. Jadi baris `InOut=1` jadi sumber supplier kanonik untuk satu nomor penerimaan. Tanpa itu semua baris OUTPUT akan tercatat "Tanpa Supplier".
+- **Grade input dan output tidak bisa dipasangkan baris per baris.** `RAMBUNG - AFKIR-100` masuk, `AFKIR` keluar. Jadi masing-masing sisi dijumlahkan sendiri dan dibandingkan lewat `RENDEMEN` = ST total / KB total.
+
+### ⚠️ Dua hal yang perlu kamu tahu
+
+**1. PDF reference untuk `Penerimaan ST Dari Sawmill` itu rusak.** Blade-nya membaca `$inputRows`, `$outputRows`, `$totalInputKb`, `$totalOutputSt`, dan `$rendemen`, tapi `PenerimaanStSawmillKgController` cuma mengirim `rows`, `groupedRows`, `summary`, dan dua nama kolom. Kelima variabel itu tidak pernah dikirim, jadi blade selalu masuk cabang "tidak ada data" dan PDF reference **cuma berisi "Tidak ada data."** apa pun isi prosedurnya. Tidak ada output reference yang functioning untuk dicocokkan, jadi tabel di laporan ini mengikuti kemauan blade-nya (blok INPUT/OUTPUT, KB vs ST, persentase, RENDEMEN) dengan semua angka dari kolom yang sudah diverifikasi. Kalau ada versi reference yang sudah jalan, kirimkan — bandingkan.
+
+**2. `@Supplier` di `SPWps_LapRekapPenerimaanSawmilRp` tidak di-expose.** Reference tidak pernah mengirimnya (`parameter_count` = 2, cuma dua tanggal yang lewat) dan default prosedurenya mengembalikan semua supplier. Dicoba mengikat nama — `ABI`, `AHONG`, wildcard `%` — semuanya **0 baris**, sementara default tanpa ikatan mengembalikan **23.857 baris**. Jadi parameter itu sengaja tidak dipakai.
+
+### ⚠️ Tiga asumsi yang belum diverifikasi
+
+| Yang | Status |
+|---|---|
+| Pemboran pembagi `7200.8` di `Upah Sawmill` (pasangan cm/ft) | Angka reference. **Bukan** tonase yang masuk akal secara fisik, dan pasangan itu tidak pernah muncul di data — satu-satunya pasangan yang terjadi adalah `1/4` (inch/ft), yang hasilnya 0.0097 t dan masuk akal. Dibawa apa adanya, tidak "diperbaiki". |
+| `PREFERRED_JENIS` di `pembelian-st-per-supplier-ton` | Reference menulis `RAMBUNG STD` (tanpa strip), SP mengembalikan `RAMBUNG - STD` (dengan strip). Jadi kolom itu tidak pernah kena slot preferensi dan jatuh di ekor alfabetis. Dibawa apa adanya; ubah satu baris di `pembelian-st-per-supplier.ts` kalau urutan yang dimaksud memang punya Rambung STD di depan. |
+| Lebar kolom razor di dua cross-tab Pembelian ST | Reference pad ke 16 karakter monospace, yang assumes kolom cukup lebar. Di setting 9px project ini angkanya meluber ke sel sebelah dan saling tabrakan, jadi penyelarasan persen pakai flexbox. Tampilan sama, tidak bergantung lebar. |
+
 Contoh:
 
 ```sh
@@ -224,11 +266,11 @@ bun run scripts/ws-test.ts <jobId> <token>   # klien WebSocket manual
 
 ## Lingkup & batas saat ini
 
-Bentuk `params` pada `POST /reports` dipetakan otomatis dari registry, jadi spesifikasinya tidak mungkin melenceng dari kode. Satu request body dipetakan lewat `anyOf` per **bentuk** parameter, bukan per laporan: 141 laporan hanya jadi 16 cabang, dan tiap cabang mencantumkan laporan mana yang memakainya. Bentuk `params` yang ada:
+Bentuk `params` pada `POST /reports` dipetakan otomatis dari registry, jadi spesifikasinya tidak mungkin melenceng dari kode. Satu request body dipetakan lewat `anyOf` per **bentuk** parameter, bukan per laporan: 151 laporan hanya jadi 16 cabang, dan tiap cabang mencantumkan laporan mana yang memakainya. Bentuk `params` yang ada:
 
 | Bentuk | Jumlah laporan | Isi `params` |
 |---|---|---|
-| `PeriodParams` | 88 | `tglAwal` + `tglAkhir` (wajib) |
+| `PeriodParams` | 92 | `tglAwal` + `tglAkhir` (wajib) |
 | `NoParams` | 12 | kosong / `{}` |
 | `AsOfDateParams` | 8 | `tglAkhir` saja |
 | `ParamsUmurLaminatingDetail` | 8 | `umur1`..`umur4` (ada default) |

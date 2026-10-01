@@ -1431,6 +1431,106 @@ const MUTASI_KD_CSS = `
   }
 `;
 
+/**
+ * Shared by the three KD report files. They all need a per-group tfoot that
+ * closes the table rather than opening a new one, a meta table for the batch
+ * header, and a volume line under a group.
+ */
+const KD_UPAH_CSS = `
+  .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+  .meta-table td { border: 1px solid #000; padding: 2px 4px; font-size: 10px; }
+  .meta-table .meta-label { font-weight: bold; background: #f2f2f2; white-space: nowrap; }
+  .meta-table .meta-separator { width: 10px; text-align: center; }
+  .meta-table .meta-value { overflow-wrap: anywhere; }
+  .report-table tfoot .totals-row td {
+    font-weight: bold; font-size: 11px; background: #fff;
+    border-top: 1px solid #000; border-right: 1px solid #000;
+    border-bottom: 1px solid #000; border-left: 0;
+  }
+  .kd-upah-table { margin-bottom: 14px; }
+  .kd-detail-table { margin-bottom: 4px; }
+  .group-volume { font-size: 10px; text-align: right; margin-bottom: 12px; }
+  .report-table.summary-table { width: auto; margin-left: auto; }
+  .kd-keluar-masuk-table { font-size: 10px; }
+  .kd-keluar-masuk-table .section-line td { border: 0; height: 8px; }
+`;
+
+/**
+ * The two "Pembelian ST" cross-tabs. A cell holds the tonnage and, right-aligned
+ * in the same monospace span, its share of the column - so the shares line up in
+ * a vertical column instead of drifting with the digit count.
+ */
+const PEMBELIAN_ST_CSS = `
+  .pembelian-st-table { table-layout: fixed; }
+  .pembelian-st-table td.data-cell, .pembelian-st-table th { font-size: 9px; padding: 2px 2px; }
+  .pembelian-st-table th { overflow-wrap: anywhere; }
+  /* Tonnage left, share right, both monospace so the shares line up. */
+  .pembelian-st-table .cell-pre {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: 3px; font-family: "Noto Sans Mono", "DejaVu Sans Mono", monospace;
+    font-size: 9px; font-variant-numeric: tabular-nums;
+  }
+  .pembelian-st-table .cell-ton { white-space: nowrap; overflow: hidden; }
+  .pembelian-st-table .cell-pct { white-space: nowrap; flex: 0 0 auto; }
+`;
+
+/** Pemakaian Obat Vacuum: nineteen columns, so 8px type and a wide page. */
+const OBAT_VACUUM_CSS = `
+  .obat-vacuum-table { font-size: 9px; }
+  .obat-vacuum-table th, .obat-vacuum-table td { padding: 2px 3px; }
+  .obat-vacuum-table .number { font-variant-numeric: tabular-nums; }
+  .obat-vacuum-table .totals-row td { font-weight: bold; }
+`;
+
+/**
+ * Penerimaan ST: the INPUT/OUTPUT category cell spans its whole block, and the
+ * rendemen line sits under the table as a headline figure rather than a cell.
+ */
+const PENERIMAAN_ST_SAWMILL_CSS = `
+  .penerimaan-st-table .section-cell {
+    font-weight: bold; text-align: center; vertical-align: middle;
+    background: #eef2f8; white-space: nowrap;
+  }
+  .penerimaan-st-table .grade-output { font-weight: bold; }
+  .rendemen-row { font-size: 12px; font-weight: bold; margin-top: 6px; }
+`;
+
+/**
+ * Lembar Perhitungan Upah Borongan Sawmill. The distinguishing piece is the
+ * two-column split: the tally is laid out as two half-width tables side by side
+ * so a long sheet reads as two columns instead of running off the page.
+ */
+const UPAH_SAWMILL_CSS = `
+  .meta-layout { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+  .meta-layout > tbody > tr > td { vertical-align: top; }
+  .meta-block { width: 100%; border-collapse: collapse; }
+  .meta-block td { padding: 1px 2px; font-size: 10px; }
+  .meta-block .meta-label { font-weight: bold; white-space: nowrap; }
+  .meta-block .meta-separator { width: 10px; text-align: center; }
+  .meta-block .meta-value { overflow-wrap: anywhere; }
+  .split-gap { width: 10px; }
+  .split-tally { display: flex; gap: 10px; align-items: flex-start; }
+  .split-half { flex: 1 1 0; min-width: 0; }
+  .tally-table { width: 100%; table-layout: fixed; }
+  .tally-table th, .tally-table td { padding: 0 3px; font-size: 9px; line-height: 1.15; }
+  .tally-table .number { text-align: right; font-variant-numeric: tabular-nums; }
+  .tally-table .emphasis { font-weight: bold; }
+  .summary-layout { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  .summary-layout > tbody > tr > td { vertical-align: top; padding: 0 6px 6px 0; }
+  .summary-block { width: 100%; border-collapse: collapse; }
+  .summary-block .summary-title { font-size: 10px; font-weight: bold; padding: 2px 0; }
+  .summary-block .summary-label { font-size: 10px; white-space: nowrap; }
+  .summary-block .summary-separator { width: 10px; text-align: center; font-size: 10px; }
+  .summary-block .summary-value { font-size: 10px; font-variant-numeric: tabular-nums; }
+  .signatures { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 10px; }
+  .signatures > tbody > tr > td { width: 25%; vertical-align: top; padding-top: 4px; }
+  .signature-total-cell { width: 25%; }
+  .signature-total-block { width: 100%; border-collapse: collapse; }
+  .signature-total-block .summary-label { font-size: 10px; white-space: nowrap; }
+  .signature-total-block .summary-separator { width: 10px; text-align: center; font-size: 10px; }
+  .signature-total-block .summary-value { font-size: 10px; font-variant-numeric: tabular-nums; }
+`;
+
 const WPS_REPORT_STYLES = {
   dashboard_barang_jadi: DASHBOARD_BARANG_JADI_CSS,
   dashboard_cross_cut_akhir: DASHBOARD_CROSS_CUT_AKHIR_CSS,
@@ -1554,6 +1654,16 @@ const WPS_REPORT_STYLES = {
   dashboard_sawn_timber: DASHBOARD_CROSS_CUT_AKHIR_CSS,
   // Mutasi KD: one table per drying chamber, its totals in a tfoot.
   mutasi_kd: MUTASI_KD_CSS,
+  // Sawn Timber KD family: meta tables, per-group tfoots, volume lines.
+  kd_upah: KD_UPAH_CSS,
+  // The two Pembelian ST cross-tabs.
+  pembelian_st: PEMBELIAN_ST_CSS,
+  // Pemakaian Obat Vacuum: nineteen columns.
+  obat_vacuum: OBAT_VACUUM_CSS,
+  // Penerimaan ST Dari Sawmill: INPUT/OUTPUT blocks plus the rendemen line.
+  penerimaan_st_sawmill: PENERIMAAN_ST_SAWMILL_CSS,
+  // Lembar Perhitungan Upah Borongan Sawmill: two-column split tally.
+  upah_sawmill: UPAH_SAWMILL_CSS,
   rekap_rendemen_rambung_per_supplier: REKAP_RENDEMEN_RAMBUNG_PER_SUPPLIER_CSS,
   saldo_barang_jadi_hidup_per_jenis_per_produk:
     SALDO_BARANG_JADI_HIDUP_PER_JENIS_PER_PRODUK_CSS,

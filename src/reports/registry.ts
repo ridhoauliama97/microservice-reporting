@@ -144,6 +144,16 @@ import { umurSandingDetailReport } from './wps/umur-sanding-detail'
 import { mutasiSawnTimberTonReport } from './wps/mutasi-sawn-timber'
 import { mutasiKdReport } from './wps/mutasi-kd'
 import { dashboardSawnTimberReport } from './wps/dashboard-sawn-timber'
+import { kdKeluarMasukReport } from './wps/kd-keluar-masuk'
+import { kdUpahPerCustomerReport } from './wps/kd-upah-per-customer'
+import { kdUpahPerNoProcKdDetailReport } from './wps/kd-upah-per-no-proc-kd-detail'
+import { ketahananBarangStReport } from './wps/ketahanan-barang-st'
+import { labelStHidupDetailReport } from './wps/label-st-hidup-detail'
+import { lembarPerhitunganUpahBoronganSawmillReport } from './wps/lembar-upah-borongan-sawmill'
+import { pemakaianObatVacuumReport } from './wps/pemakaian-obat-vacuum'
+import { pembelianStPerSupplierReport } from './wps/pembelian-st-per-supplier'
+import { pembelianStTimelineReport } from './wps/pembelian-st-timeline'
+import { penerimaanStSawmillKgReport } from './wps/penerimaan-st-sawmill-kg'
 import { bahanTerpakaiReport } from './wps/bahan-terpakai'
 import { bahanYangDihasilkanReport } from './wps/bahan-yang-dihasilkan'
 import { labelNyangkutReport } from './wps/label-nyangkut'
@@ -303,4 +313,14 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'mutasi-sawn-timber-ton': mutasiSawnTimberTonReport,
   'mutasi-kd': mutasiKdReport,
   'dashboard-sawn-timber': dashboardSawnTimberReport,
+  'kd-keluar-masuk': kdKeluarMasukReport,
+  'kd-upah-per-customer': kdUpahPerCustomerReport,
+  'kd-upah-per-no-proc-kd-detail': kdUpahPerNoProcKdDetailReport,
+  'ketahanan-barang-st': ketahananBarangStReport,
+  'label-st-hidup-detail': labelStHidupDetailReport,
+  'lembar-perhitungan-upah-borongan-sawmill': lembarPerhitunganUpahBoronganSawmillReport,
+  'pemakaian-obat-vacuum': pemakaianObatVacuumReport,
+  'pembelian-st-per-supplier-ton': pembelianStPerSupplierReport,
+  'pembelian-st-timeline-ton': pembelianStTimelineReport,
+  'penerimaan-st-sawmill-kg': penerimaanStSawmillKgReport,
 }

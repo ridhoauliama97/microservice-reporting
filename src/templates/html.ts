@@ -113,12 +113,16 @@ export function formatPrintedAt(date: Date): string {
 export function formatNumber(
   value: number | null | undefined,
   decimals: number,
-  options?: { blankWhenZero?: boolean },
+  options?: { blankWhenZero?: boolean; noSeparator?: boolean },
 ): string {
   const num = typeof value === "number" && Number.isFinite(value) ? value : 0;
   if (options?.blankWhenZero && Math.abs(num) < 0.0000001) return "";
   const [intPart, decPart] = num.toFixed(decimals).split(".");
-  const int = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  // The legacy cross-tabs pad the tonnage in a fixed-width monospace cell, so
+  // a thousands separator would break the column alignment they rely on.
+  const int = options?.noSeparator
+    ? intPart
+    : intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   return decimals > 0 ? `${int}.${decPart}` : int;
 }
 
