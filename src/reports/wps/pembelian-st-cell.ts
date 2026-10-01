@@ -38,17 +38,23 @@ export function formatShare(ton: number, columnTotal: number): string {
 }
 
 const pair = (ton: number, share: string): string =>
-  `<span class="cell-pre"><span class="cell-ton">${escapeHtml(formatTon(ton))}</span><span class="cell-pct">(${escapeHtml(share)})</span></span>`;
+  `<span class="cell-pre"><span class="cell-ton">${escapeHtml(formatTon(ton))}</span>${
+    share === '' ? '' : `<span class="cell-pct">(${escapeHtml(share)})</span>`
+  }</span>`;
 
 /** A data cell, carrying its share of the column total. */
-export function renderPivotCell(ton: number, columnTotal: number): string {
+export function renderPivotCell(
+  ton: number,
+  columnTotal: number,
+  withShare = true,
+): string {
   if (ton <= 0) return '';
-  return pair(ton, formatShare(ton, columnTotal));
+  return pair(ton, withShare ? formatShare(ton, columnTotal) : '');
 }
 
 /** A totals cell, which the reference always marks as 100%. */
-export const renderTotalCell = (ton: number): string =>
-  ton > 0 ? pair(ton, '100%') : '';
+export const renderTotalCell = (ton: number, withShare = true): string =>
+  ton > 0 ? pair(ton, withShare ? '100%' : '') : '';
 
 /** Natural, case-insensitive: "SUP A2" before "SUP A10", lower case not exiled. */
 export const naturalCaseInsensitive = (left: string, right: string): number =>
@@ -59,13 +65,35 @@ export const naturalCaseInsensitive = (left: string, right: string): number =>
  * label columns take their share and what is left is split evenly. Each measure
  * column also gets a floor, because a cross-tab with many months otherwise
  * squeezes the tonnage below the width of its own digits.
+ *
+ * A4 portrait gives about 7.5in of table after margins. Stacked, a measure
+ * column needs roughly 7% to hold "119.6592" in an 8px monospace face, so past
+ * about eleven columns the share has to be dropped by the caller - see
+ * `cellFitsShare`.
  */
 export function pivotColumnWidths(
   measureCount: number,
   labelPercent: number,
-  minimumMeasurePercent = 8,
+  minimumMeasurePercent = 6,
 ): string {
   if (measureCount <= 0) return '0';
   const available = Math.max(0, 100 - labelPercent);
   return Math.max(minimumMeasurePercent, available / measureCount).toFixed(4);
+}
+
+/**
+ * Whether a measure column is wide enough to carry the tonnage AND its share on
+ * A4 portrait. Past this the share is dropped rather than printed over the
+ * figure: a percentage with no tonnage next to it is noise, and a tonnage with
+ * its last digits clipped is a wrong number.
+ */
+export function cellFitsShare(
+  measureCount: number,
+  labelPercent: number,
+  minimumMeasurePercent = 6,
+): boolean {
+  if (measureCount <= 0) return false;
+  return (
+    Number(pivotColumnWidths(measureCount, labelPercent, minimumMeasurePercent)) >= 7
+  );
 }

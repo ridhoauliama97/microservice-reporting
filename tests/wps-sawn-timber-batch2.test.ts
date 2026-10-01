@@ -5,7 +5,7 @@ import { buildCustomerGroups } from '../src/reports/wps/kd-upah-per-customer'
 import { buildDetailData } from '../src/reports/wps/kd-upah-per-no-proc-kd-detail'
 import { orderJenis, buildPerSupplierData } from '../src/reports/wps/pembelian-st-per-supplier'
 import { buildTimelineData, toMonthKey } from '../src/reports/wps/pembelian-st-timeline'
-import { formatShare, renderPivotCell, renderTotalCell } from '../src/reports/wps/pembelian-st-cell'
+import { formatShare, renderPivotCell, renderTotalCell, cellFitsShare } from '../src/reports/wps/pembelian-st-cell'
 import { buildObatData } from '../src/reports/wps/pemakaian-obat-vacuum'
 import { buildPenerimaanData } from '../src/reports/wps/penerimaan-st-sawmill-kg'
 import {
@@ -430,6 +430,19 @@ describe('Pembelian ST Per Supplier (Ton)', () => {
     expect(html).not.toContain('<tfoot>')
     expect(html).toContain('(100%)')
   })
+
+  test('many types drop the share instead of clipping the tonnage', () => {
+    // 14 types plus the Total column: too narrow for the pair on a portrait
+    // page. The tonnage must survive whole.
+    const rows = Array.from({ length: 14 }, (_, i) => ({
+      NmSupplier: 'ABI',
+      Jenis: `JENIS-${i + 1}`,
+      STTon: 11.2303 + i,
+    }))
+    const html = renderWith('pembelian-st-per-supplier-ton', buildPerSupplierData(rows))
+    expect(html).toContain('11.2303')
+    expect(html).not.toContain('(88%)')
+  })
 })
 
 describe('Pembelian ST Timeline (Ton)', () => {
@@ -532,6 +545,42 @@ describe('Pembelian ST cell format', () => {
   test('the tonnage prints without a thousands separator', () => {
     // A separator would break the right-aligned share pairing in a narrow cell.
     expect(renderPivotCell(12345.6789, 100)).toContain('12345.6789')
+  })
+})
+
+describe('narrow cross-tab columns drop the share, never the tonnage', () => {
+  // Both reports print portrait. A measure column is about 13% of the page, and
+  // "11.2303 (100%)" side by side needs roughly 20% - it was being clipped to
+  // "11.23", which is a wrong number rather than a missing label. Past the point
+  // where the pair fits, the share goes and the tonnage stays.
+  test('a narrow measure column is reported as not fitting', () => {
+    expect(cellFitsShare(4, 24)).toBe(true)
+    expect(cellFitsShare(10, 24)).toBe(true)
+    expect(cellFitsShare(11, 24)).toBe(false)
+    expect(cellFitsShare(30, 24)).toBe(false)
+  })
+
+  test('fewer label columns leave more room for the share', () => {
+    expect(cellFitsShare(11, 24)).toBe(false)
+    expect(cellFitsShare(11, 12)).toBe(true)
+  })
+
+  test('a zero measure count is not a fitting column', () => {
+    expect(cellFitsShare(0, 24)).toBe(false)
+  })
+
+  test('withShare=false keeps the full tonnage and drops the share', () => {
+    const withShare = renderPivotCell(11.2303, 11.2303, true)
+    const without = renderPivotCell(11.2303, 11.2303, false)
+    expect(withShare).toContain('11.2303')
+    expect(withShare).toContain('(100%)')
+    expect(without).toContain('11.2303')
+    expect(without).not.toContain('cell-pct')
+  })
+
+  test('a total cell behaves the same way', () => {
+    expect(renderTotalCell(119.6592, false)).toContain('119.6592')
+    expect(renderTotalCell(119.6592, false)).not.toContain('(100%)')
   })
 })
 

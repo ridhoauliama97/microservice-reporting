@@ -99,7 +99,6 @@ export interface PenerimaanData {
   totalOutputSt: number;
   rendemen: number;
   supplier: string;
-  receiptCount: number;
 }
 
 const toFloat = (value: unknown): number => {
@@ -153,12 +152,9 @@ export function buildPenerimaanData(rows: SpRow[]): PenerimaanData {
 
   const inputTally = new Map<string, Tally>();
   const outputTally = new Map<string, Tally>();
-  const receipts = new Set<string>();
   const supplierNames = new Set<string>();
 
   rows.forEach((row, index) => {
-    const receipt = text(row.NoPenerimaanST);
-    if (receipt !== '') receipts.add(receipt);
     const supplier = suppliers.get(index) ?? '';
     if (supplier !== '') supplierNames.add(supplier);
 
@@ -211,7 +207,6 @@ export function buildPenerimaanData(rows: SpRow[]): PenerimaanData {
     totalOutputSt,
     rendemen: totalInputKb > 0 ? (totalOutputSt / totalInputKb) * 100 : 0,
     supplier: supplierNames.size === 1 ? [...supplierNames][0]! : `${supplierNames.size} supplier`,
-    receiptCount: receipts.size,
   };
 }
 
@@ -311,7 +306,9 @@ export const penerimaanStSawmillKgReport: ReportDefinition<PeriodParams, Penerim
     const period = `${formatTanggalId(meta.params.tglAwal).replace(/\d{4}$/, (y) => y.slice(-2))} s/d ${formatTanggalId(meta.params.tglAkhir).replace(/\d{4}$/, (y) => y.slice(-2))}`;
     return renderWpsReportPage({
       title: 'Laporan Penerimaan ST Dari Sawmill - Timbang KG',
-      subtitle: `Periode ${period}${data.receiptCount > 0 ? ` | ${data.receiptCount} penerimaan` : ''}`,
+      // Period only. The reference prints nothing else here, and the receipt
+      // count is a figure I derived rather than one the legacy sheet shows.
+      subtitle: `Periode ${period}`,
       bodyHtml: renderTable(data),
       style: 'penerimaan_st_sawmill',
       // Portrait. Seven columns, and the reference's own layout is portrait

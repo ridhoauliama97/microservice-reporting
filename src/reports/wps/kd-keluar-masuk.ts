@@ -316,13 +316,15 @@ export const kdKeluarMasukReport: ReportDefinition<
   },
 
   render(data, meta) {
-    const filter = meta.params.noRuangKd
-      ? ` | Filter No KD : ${meta.params.noRuangKd}`
+    // The chamber filter is its own line under the title in the reference, not
+    // appended to the period. It only appears when the report was filtered.
+    const filterMeta = meta.params.noRuangKd
+      ? `<p class="report-meta">Filter No KD : <strong>${escapeHtml(meta.params.noRuangKd)}</strong></p>\n  `
       : '';
     return renderWpsReportPage({
       title: 'Laporan KD (Keluar - Masuk)',
-      subtitle: `Periode ${formatTanggalId(meta.params.tglAwal).replace(/\d{4}$/, (y) => y.slice(-2))} s/d ${formatTanggalId(meta.params.tglAkhir).replace(/\d{4}$/, (y) => y.slice(-2))}${filter}`,
-      bodyHtml: renderTable(data),
+      subtitle: `Periode ${formatTanggalId(meta.params.tglAwal).replace(/\d{4}$/, (y) => y.slice(-2))} s/d ${formatTanggalId(meta.params.tglAkhir).replace(/\d{4}$/, (y) => y.slice(-2))}`,
+      bodyHtml: filterMeta + renderTable(data),
       style: 'kd_upah',
       landscape: true,
       printedBy: meta.requestedBy,

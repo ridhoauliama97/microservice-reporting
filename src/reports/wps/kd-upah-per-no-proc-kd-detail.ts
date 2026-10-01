@@ -254,7 +254,9 @@ export const kdUpahPerNoProcKdDetailReport: ReportDefinition<
 
     return renderWpsReportPage({
       title: 'Laporan KD Upah Per-No.Proses KD Per-Cutomer Detail',
-      subtitle: `No.Proses KD : ${meta.params.noProcKd}`,
+      // No subtitle. The reference prints the title and nothing under it - the
+      // process number appears once, in the header block, and repeating it up
+      // here is an extra line the legacy sheet does not have.
       bodyHtml,
       style: 'kd_upah',
       // Portrait. Seven columns, and the batch header is two label/value pairs

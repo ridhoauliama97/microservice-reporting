@@ -1464,16 +1464,20 @@ const KD_UPAH_CSS = `
  */
 const PEMBELIAN_ST_CSS = `
   .pembelian-st-table { table-layout: fixed; }
-  .pembelian-st-table td.data-cell, .pembelian-st-table th { font-size: 9px; padding: 2px 2px; }
+  .pembelian-st-table td.data-cell, .pembelian-st-table th { font-size: 8px; padding: 1px 2px; }
   .pembelian-st-table th { overflow-wrap: anywhere; }
-  /* Tonnage left, share right, both monospace so the shares line up. */
+  /* Tonnage over its share, both right-aligned in a monospace face. Stacked
+     rather than side by side because the sheet is portrait: a measure column
+     is roughly 13% of the page, and "11.2303 (100%)" side by side needs about
+     20% - it was being clipped to "11.23". Stacking the pair needs only the
+     width of the longer of the two. */
   .pembelian-st-table .cell-pre {
-    display: flex; justify-content: space-between; align-items: baseline;
-    gap: 3px; font-family: "Noto Sans Mono", "DejaVu Sans Mono", monospace;
-    font-size: 9px; font-variant-numeric: tabular-nums;
+    display: flex; flex-direction: column; align-items: flex-end;
+    font-family: "Noto Sans Mono", "DejaVu Sans Mono", monospace;
+    font-size: 8px; line-height: 1.1; font-variant-numeric: tabular-nums;
   }
-  .pembelian-st-table .cell-ton { white-space: nowrap; overflow: hidden; }
-  .pembelian-st-table .cell-pct { white-space: nowrap; flex: 0 0 auto; }
+  .pembelian-st-table .cell-ton, .pembelian-st-table .cell-pct { white-space: nowrap; display: block; }
+  .pembelian-st-table .cell-pct { color: #404040; }
 `;
 
 /** Pemakaian Obat Vacuum: nineteen columns, so 8px type and a wide page. */

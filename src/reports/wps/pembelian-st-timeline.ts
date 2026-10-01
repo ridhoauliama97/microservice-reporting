@@ -9,6 +9,7 @@ import { periodParamsSchema, type PeriodParams } from '../period-params'
 import type { ReportDefinition } from '../types'
 import { buildEmptyTableRow, renderWpsReportPage } from './template'
 import {
+  cellFitsShare,
   naturalCaseInsensitive,
   pivotColumnWidths,
   renderPivotCell,
@@ -58,7 +59,8 @@ interface SpRow extends Record<string, unknown> {
 }
 
 const NO_PERIOD = 'Tanpa Periode';
-const LABEL_WIDTH_PERCENT = 22;
+const LABEL_WIDTH_PERCENT = 20;
+const NO_WIDTH_PERCENT = 4;
 
 export interface MonthColumn {
   key: string;
@@ -196,8 +198,10 @@ function renderPivot(data: TimelineData): string {
     return `<table class="report-table pembelian-st-table"><tbody>${buildEmptyTableRow(3)}</tbody></table>`;
   }
 
+  const labelPercent = NO_WIDTH_PERCENT + LABEL_WIDTH_PERCENT;
   const measureCount = data.monthColumns.length + 1;
-  const measureWidth = pivotColumnWidths(measureCount, LABEL_WIDTH_PERCENT);
+  const measureWidth = pivotColumnWidths(measureCount, labelPercent);
+  const withShare = cellFitsShare(measureCount, labelPercent);
 
   // Months with no usable date carry no year, so they would fall outside every
   // year band and shift the whole header out of line with the body. The
@@ -222,9 +226,12 @@ function renderPivot(data: TimelineData): string {
         <td class="center data-cell">${index + 1}</td>
         <td class="data-cell" style="text-align: left">${escapeHtml(row.supplier)}</td>
 ${row.byMonth
-  .map((ton, column) => `        <td class="data-cell">${renderPivotCell(ton, data.totalsByMonth[column]!)}</td>`)
+  .map(
+    (ton, column) =>
+      `        <td class="data-cell">${renderPivotCell(ton, data.totalsByMonth[column]!, withShare)}</td>`,
+  )
   .join('\n')}
-        <td class="data-cell">${renderPivotCell(row.total, data.grandTotal)}</td>
+        <td class="data-cell">${renderPivotCell(row.total, data.grandTotal, withShare)}</td>
       </tr>`,
     )
     .join('\n      ');
@@ -232,14 +239,14 @@ ${row.byMonth
   const totalsRow = `<tr class="totals-row">
         <td class="data-cell supplier" colspan="2">Grand Total</td>
 ${data.totalsByMonth
-  .map((ton) => `        <td class="data-cell">${renderTotalCell(ton)}</td>`)
+  .map((ton) => `        <td class="data-cell">${renderTotalCell(ton, withShare)}</td>`)
   .join('\n')}
-        <td class="data-cell">${renderTotalCell(data.grandTotal)}</td>
+        <td class="data-cell">${renderTotalCell(data.grandTotal, withShare)}</td>
       </tr>`;
 
   return `<table class="report-table pembelian-st-table">
     <colgroup>
-      <col style="width: 4%;">
+      <col style="width: ${NO_WIDTH_PERCENT}%;">
       <col style="width: ${LABEL_WIDTH_PERCENT}%;">
       <col span="${data.monthColumns.length}" style="width: ${measureWidth}%;">
       <col style="width: ${measureWidth}%;">
@@ -286,7 +293,9 @@ export const pembelianStTimelineReport: ReportDefinition<PeriodParams, TimelineD
       subtitle: `Periode ${period}`,
       bodyHtml: renderPivot(data),
       style: 'pembelian_st',
-      landscape: true,
+      // Portrait. The month axis is one or two years wide at most in practice,
+      // and the year band reads better on a portrait page than stretched out
+      // across a landscape one.
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

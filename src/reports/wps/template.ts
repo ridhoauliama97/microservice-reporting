@@ -29,6 +29,10 @@ export const WPS_REPORT_CSS = `
   body { margin: 0; font-family: 'Noto Serif', serif; font-size: 10px; line-height: 1.2; color: #000; }
   .report-title { text-align: center; margin: 0; font-size: 16px; font-weight: bold; }
   .report-subtitle { text-align: center; margin: 2px 0 20px 0; font-size: 12px; color: #636466; }
+  /* Optional extra line under the subtitle, e.g. a filter the report was
+     narrowed by. Not a subtitle itself - it is left-aligned and closer to the
+     table. */
+  .report-meta { text-align: left; margin: -14px 0 6px 0; font-size: 10px; color: #000; }
   .section-title { margin: 14px 0 6px 0; font-size: 12px; font-weight: bold; }
   table { width: 100%; border-collapse: collapse; margin-bottom: 6px; page-break-inside: auto; table-layout: fixed; }
   .report-table { border-spacing: 0; border-top: 0; border-right: 0; border-bottom: 1px solid #000; border-left: 1px solid #000; }

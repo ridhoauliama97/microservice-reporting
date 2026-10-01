@@ -8,6 +8,7 @@ import { periodParamsSchema, type PeriodParams } from '../period-params'
 import type { ReportDefinition } from '../types'
 import { buildEmptyTableRow, renderWpsReportPage } from './template'
 import {
+  cellFitsShare,
   naturalCaseInsensitive,
   pivotColumnWidths,
   renderPivotCell,
@@ -90,7 +91,8 @@ const PREFERRED_JENIS = [
   'KAYU LAT JABON',
 ];
 
-const LABEL_WIDTH_PERCENT = 26;
+const LABEL_WIDTH_PERCENT = 24;
+const NO_WIDTH_PERCENT = 4;
 
 const text = (value: unknown): string => String(value ?? '').trim();
 
@@ -153,8 +155,10 @@ function renderPivot(data: PerSupplierData): string {
   }
 
   // The Total column is a measure column too, so it shares the remaining width.
+  const labelPercent = NO_WIDTH_PERCENT + LABEL_WIDTH_PERCENT;
   const measureCount = data.jenisColumns.length + 1;
-  const measureWidth = pivotColumnWidths(measureCount, LABEL_WIDTH_PERCENT);
+  const measureWidth = pivotColumnWidths(measureCount, labelPercent);
+  const withShare = cellFitsShare(measureCount, labelPercent);
 
   const body = data.rows
     .map(
@@ -162,11 +166,15 @@ function renderPivot(data: PerSupplierData): string {
         <td class="center data-cell">${index + 1}</td>
         <td class="data-cell" style="text-align: left">${escapeHtml(row.supplier)}</td>
 ${row.byJenis
-  .map((ton, column) => `        <td class="data-cell">${renderPivotCell(ton, data.totalsByJenis[column]!)}</td>`)
+  .map(
+    (ton, column) =>
+      `        <td class="data-cell">${renderPivotCell(ton, data.totalsByJenis[column]!, withShare)}</td>`,
+  )
   .join('\n')}
         <td class="data-cell">${renderPivotCell(
           row.byJenis.reduce((sum, value) => sum + value, 0),
           data.grandTotal,
+          withShare,
         )}</td>
       </tr>`,
     )
@@ -175,14 +183,14 @@ ${row.byJenis
   const totalsRow = `<tr class="totals-row">
         <td class="data-cell" colspan="2" style="text-align: center">Total</td>
 ${data.totalsByJenis
-  .map((ton) => `        <td class="data-cell">${renderTotalCell(ton)}</td>`)
+  .map((ton) => `        <td class="data-cell">${renderTotalCell(ton, withShare)}</td>`)
   .join('\n')}
-        <td class="data-cell">${renderTotalCell(data.grandTotal)}</td>
+        <td class="data-cell">${renderTotalCell(data.grandTotal, withShare)}</td>
       </tr>`;
 
   return `<table class="report-table pembelian-st-table">
     <colgroup>
-      <col style="width: 4%;">
+      <col style="width: ${NO_WIDTH_PERCENT}%;">
       <col style="width: ${LABEL_WIDTH_PERCENT}%;">
       <col span="${data.jenisColumns.length}" style="width: ${measureWidth}%;">
       <col style="width: ${measureWidth}%;">
@@ -229,7 +237,9 @@ export const pembelianStPerSupplierReport: ReportDefinition<
       subtitle: `Periode ${period}`,
       bodyHtml: renderPivot(data),
       style: 'pembelian_st',
-      landscape: true,
+      // Portrait. The cross-tab is a supplier down the side and a measure
+      // across the top, and at a type or a handful of months the columns are
+      // few enough that landscape only made them float in white space.
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

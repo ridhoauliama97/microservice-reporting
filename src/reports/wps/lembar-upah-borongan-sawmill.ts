@@ -498,7 +498,9 @@ export const lembarPerhitunganUpahBoronganSawmillReport: ReportDefinition<
 
     return renderWpsReportPage({
       title: 'Lembaran Perhitungan Upah Borongan Sawmill',
-      subtitle: `No. Produksi : ${meta.params.noProduksi}`,
+      // No subtitle. The reference prints the title and nothing under it - the
+      // production number belongs in the identification block, which already
+      // carries it as "Nomor Lembaran".
       bodyHtml,
       style: 'upah_sawmill',
       printedBy: meta.requestedBy,
