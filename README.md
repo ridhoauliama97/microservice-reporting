@@ -184,6 +184,47 @@ Yang tidak kelihatan dari nama kolom atau dari nama parameternya:
 | `PREFERRED_JENIS` di `pembelian-st-per-supplier-ton` | Reference menulis `RAMBUNG STD` (tanpa strip), SP mengembalikan `RAMBUNG - STD` (dengan strip). Jadi kolom itu tidak pernah kena slot preferensi dan jatuh di ekor alfabetis. Dibawa apa adanya; ubah satu baris di `pembelian-st-per-supplier.ts` kalau urutan yang dimaksud memang punya Rambung STD di depan. |
 | Lebar kolom razor di dua cross-tab Pembelian ST | Reference pad ke 16 karakter monospace, yang assumes kolom cukup lebar. Di setting 9px project ini angkanya meluber ke sel sebelah dan saling tabrakan, jadi penyelarasan persen pakai flexbox. Tampilan sama, tidak bergantung lebar. |
 
+### Laporan Sawmill (QC, per-meja, dan penerimaan)
+
+Sepuluh laporan Sawmill lagi. Semuanya diport dari `open-api-report`, kolom diverifikasi ke DB.
+
+| type | Params body | Stored procedure |
+|---|---|---|
+| `penerimaan-st-hasil-sawmill` | `{ noPenST }` | `SP_LapPenerimaanSTSawmill` + `_Sub` |
+| `qc-sawmill` | periode | `SP_LapQCSawmill` |
+| `qc-sawmill-discrepancy` | periode | `SP_LapQCSawmillDescr` |
+| `qc-sawmill-summary` | periode | `SP_LapQCSawmillSummary` |
+| `rekap-hasil-sawmill-per-meja` | periode | `SPWps_LapRekapHasilSawmillPerMeja` |
+| `rekap-hasil-sawmill-per-meja-semua-meja` | periode | `SPWps_LapRekapHasilSawmillPerMejaUpahBoronganV2` + `_Sub` |
+| `rekap-hasil-sawmill-per-meja-upah-borongan` | periode | `SPWps_LapRekapHasilSawmillPerMejaUpahBorongan` + `_Sub` |
+| `rekap-kamar-kd` | periode | `SP_LapRekapKamarKD` + `_Sub1` + `_Sub2` |
+| `rekap-penerimaan-st-non-rambung` | periode | `SPWps_LapRekapPenSTDariSawmill` |
+| `rekap-produktivitas-sawmill` | periode | `SPWps_LapRekapProduktivitasSawmill` |
+
+Yang tidak kelihatan dari nama kolom atau parameternya:
+
+- **`Penerimaan ST Hasil Sawmill` membagi quantity dengan 3.** `JmlhBatang` dan `Hasil` dari SP dihitung dalam satuan tiga kali yang dicetak, jadi piece count = `round(JmlhBatang / 3)` dan tonase = `Hasil / 3`. Tanpa pembagi ini laporan tetap *terlihat benar* — hanya angkanya tiga kali lipat. Ini `QUANTITY_DIVISOR` di file laporan.
+- **`QC Sawmill` dan `QC Sawmill - Discrepancy` kolomnya IDENTIK** (8 kolom, parameter sama). Bedanya cuma baris mana yang dicetak: Discrepancy hanya baris yang **gagal**, tapi ringkasannya tetap menghitung **semua** baris. Itu yang bikin "3 dari 40 papan gagal" terbaca di tabel yang hanya berisi 3 baris.
+- **Toleransi QC:** tidak akurat kalau deviasi < −0,00001 **atau** ≥ 2. Masing-masing dimensi ditebak sendiri — tebal 3mm lebih tipis tetap gagal meski lebarnya sempurna.
+- **`#6` dan `#7` datanya identik.** `...UpahBoronganV2` dan `...UpahBorongan` mengembalikan 12 kolom yang sama persis, begitu juga `_Sub`-nya. Satu implementasi, dua nama SP. Output-nya 131.557 vs 131.658 byte — selisihnya cuma panjang judul.
+- **`Rekap Kamar KD` punya DUA persentase kapasitas yang sengaja tidak sama.** `Jumlah (% Capacity)` = jumlah per-tipe **setelah** dibulatkan 2 desimal (meniru legacy printout, jadi itulah angka yang ada di lembar). `Ave Capacity KD` = total m3 ÷ 80 sekaligus. Volume tiap lot juga **estimasi**: m3 hanya ada per-tebal di `_Sub1`, jadi faktornya (m3/ton) diturunkan dan diterapkan ke tiap lot.
+- **`Rekap Produktivitas Sawmill` punya lima kolom yang tidak ada di SP.** `GroupKayu` dilipat ke lima produk dengan `contains` berurutan (JABON dulu, baru varian Rambung) — urutan itu penting dan bukan alfabetik. Group yang tak dikenai **dibuang**, jadi Total harian = jumlah lima kolom, bukan jumlah prosedurnya.
+- **`Rekap Penerimaan ST Non Rambung` menurunkan tiga kolom yang tidak ada di SP:** `Rend ST-KB` = STTon/KBTon, `Ave Dia` = √(Area / PcsKB), `Ave Tbl` = TotalTblST / PcsST.
+
+### ⚠️ Batas lebar (sama seperti cross-tab)
+
+`qc-sawmill-summary` punya satu kolom per tanggal QC. Periode ¼ tahun = **82 kolom**, dan angka-angkanya bertabrakan. Batasnya inherent, bukan salah implementasi — perlu keputusan: pecah per blok, atau batasi periode. Yang.statusnya masih terbuka.
+
+### ⚠️ Yang sengaja tidak diport
+
+- **Jalur `flat` di `Penerimaan ST Hasil Sawmill`.** Reference cuma memakainya kalau SP mengembalikan nol baris lalu jatuh ke query manual PHP. Jalur yang SP hasilkan selalu `grade` — itu yang diimplementasikan.
+- **Bucket "RB STD (Tbl 14/16/18/23)"** di blade reference. Itu daftar angka ajaib di blade, bukan kolom SP. Menghilang kalau daftarnya berubah, jadi tidak dikembangbiakkan.
+- **`No. Plat` di `Penerimaan ST Hasil Sawmill`** dicetak `-`. Reference mengambilnya dari tabel header kayu bulat; `SP_LapPenerimaanSTSawmill` tidak punya kolom itu.
+
+### ⚠️ Yang belum ditutup test
+
+Hanya `qc-sawmill*` punya regression test (`tests/wps-qc-sawmill.test.ts`). Sembilan laporan lain diverifikasi manual — dirender ke Gotenberg, PDF-nya dibaca, dan angkanya dicek satu per satu (mis. `1,0583 / 1,1841 = 89,38%`, deviasi `2,00` → `No`). Tapi tidak ada test yang menjaganya kalau nanti ada perubahan.
+
 Contoh:
 
 ```sh
@@ -266,12 +307,12 @@ bun run scripts/ws-test.ts <jobId> <token>   # klien WebSocket manual
 
 ## Lingkup & batas saat ini
 
-Bentuk `params` pada `POST /reports` dipetakan otomatis dari registry, jadi spesifikasinya tidak mungkin melenceng dari kode. Satu request body dipetakan lewat `anyOf` per **bentuk** parameter, bukan per laporan: 151 laporan hanya jadi 16 cabang, dan tiap cabang mencantumkan laporan mana yang memakainya. Bentuk `params` yang ada:
+Bentuk `params` pada `POST /reports` dipetakan otomatis dari registry, jadi spesifikasinya tidak mungkin melenceng dari kode. Satu request body dipetakan lewat `anyOf` per **bentuk** parameter, bukan per laporan: 161 laporan hanya jadi 16 cabang, dan tiap cabang mencantumkan laporan mana yang memakainya. Bentuk `params` yang ada:
 
 | Bentuk | Jumlah laporan | Isi `params` |
 |---|---|---|
-| `PeriodParams` | 92 | `tglAwal` + `tglAkhir` (wajib) |
-| `NoParams` | 12 | kosong / `{}` |
+| `PeriodParams` | 102 | `tglAwal` + `tglAkhir` (wajib) |
+| `NoParams` | 14 | kosong / `{}` |
 | `AsOfDateParams` | 8 | `tglAkhir` saja |
 | `ParamsUmurLaminatingDetail` | 8 | `umur1`..`umur4` (ada default) |
 | `ParamsProduksiFjPerNomorProduksi` | 7 | `noProduksi` |

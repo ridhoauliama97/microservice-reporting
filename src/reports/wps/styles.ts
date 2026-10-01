@@ -1544,6 +1544,80 @@ const UPAH_SAWMILL_CSS = `
   .signature-total-block .summary-value { font-size: 10px; font-variant-numeric: tabular-nums; }
 `;
 
+/**
+ * QC Sawmill: a chamber block is a meta line, one table per chamber-date, a
+ * per-chamber total, and a grand-total summary. The meta lines are captions,
+ * not grids, so they carry no border.
+ */
+const QC_SAWMILL_CSS = `
+  .meja-qc-block { margin-bottom: 16px; }
+  .group-meta-table { border-collapse: collapse; margin: 0 0 2px 0; }
+  .group-meta-table td { border: 0; padding: 0 0 0 0; font-size: 10px; }
+  .group-meta-table .group-meta-label { font-weight: bold; white-space: nowrap; }
+  .group-meta-table .group-meta-sep { width: 10px; text-align: center; }
+  .date-meta-table { margin-top: 6px; }
+  .qc-table { font-size: 10px; }
+  .qc-table td.data-cell, .qc-table th { font-size: 10px; }
+  .meja-total-table { margin-top: 4px; }
+  .rangkuman-qc-container { margin-top: 18px; }
+  .rangkuman-qc-container .section-title { text-align: center; margin: 0 0 8px 0; font-size: 11px; }
+  /* The summary grid is one column per QC date, so it needs every pixel. */
+  .qc-summary-table { table-layout: fixed; }
+  .qc-summary-table th, .qc-summary-table td { font-size: 9px; padding: 0 1px; }
+  /* A percentage is up to four characters. Without nowrap a narrow column
+     breaks it across four lines and the whole grid doubles in height. */
+  .qc-summary-table td.number { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .qc-summary-table th { white-space: nowrap; overflow: hidden; }
+  .qc-summary-table .meja-column { width: 96px; }
+  .qc-summary-table .total-column { width: 44px; }
+`;
+
+/**
+ * The three per-meja sawmill reports. The thickness-by-date cross-tab is the
+ * narrow one - a month of columns at 52px - and the piece-work sheets are nine
+ * fixed columns, so they need different rules.
+ */
+const PER_MEJA_CSS = `
+  .per-meja-table { table-layout: fixed; }
+  .per-meja-table th, .per-meja-table td { font-size: 9px; padding: 1px 2px; }
+  .per-meja-table .number { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .per-meja-table .subtotal-row td { font-weight: bold; background: #eef2f8; border-top: 1px solid #000; }
+  .per-meja-table .group-start td { border-top: 1px solid #000; }
+  .borongan-meja { margin-bottom: 14px; }
+  .borongan-date { margin-bottom: 8px; }
+  .meja-label, .date-label { font-size: 10px; font-weight: bold; margin: 6px 0 2px 0; }
+  .borongan-table { font-size: 10px; }
+  .borongan-table th, .borongan-table td { padding: 1px 3px; }
+  .borongan-table .number { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .borongan-table .meja-total-table { margin-top: 4px; }
+  .borongan-table .grand-row td { font-weight: bold; }
+`;
+
+/**
+ * Rekap Kamar KD: each wood type inside a chamber gets two half-width tables
+ * side by side - the volume summary on the left, the lots with their estimated
+ * volume on the right. The two halves must stay level, so they share a flex row
+ * rather than a table row, which cannot break across a page.
+ */
+const KAMAR_KD_CSS = `
+  .kamar-kd-room { margin-bottom: 18px; }
+  .room-label, .jenis-label { font-size: 10px; font-weight: bold; margin: 8px 0 3px 0; }
+  .kamar-kd-jenis { margin-bottom: 10px; }
+  .kamar-kd-pair { display: flex; gap: 12px; align-items: flex-start; }
+  .kamar-kd-half { flex: 1 1 0; min-width: 0; }
+  .kamar-kd-table { font-size: 10px; }
+  .kamar-kd-table th, .kamar-kd-table td { padding: 1px 3px; }
+  .kamar-kd-table .number { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .kamar-kd-meta { width: auto; border-collapse: collapse; margin-top: 3px; }
+  .kamar-kd-meta td { border: 0; padding: 0 0 0 0; font-size: 10px; }
+  .kamar-kd-meta .label { font-weight: bold; white-space: nowrap; }
+  .kamar-kd-meta .sep { width: 8px; text-align: center; }
+  .room-footer-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+  .room-footer-table td { border: 1px solid #000; padding: 2px 4px; font-size: 10px; }
+  .room-footer-table .label { font-weight: bold; white-space: nowrap; }
+  .room-footer-table .sep { padding: 0 4px; }
+`;
+
 const WPS_REPORT_STYLES = {
   dashboard_barang_jadi: DASHBOARD_BARANG_JADI_CSS,
   dashboard_cross_cut_akhir: DASHBOARD_CROSS_CUT_AKHIR_CSS,
@@ -1677,6 +1751,39 @@ const WPS_REPORT_STYLES = {
   penerimaan_st_sawmill: PENERIMAAN_ST_SAWMILL_CSS,
   // Lembar Perhitungan Upah Borongan Sawmill: two-column split tally.
   upah_sawmill: UPAH_SAWMILL_CSS,
+  // QC Sawmill, its discrepancy variant, and the accuracy summary grid.
+  qc_sawmill: QC_SAWMILL_CSS,
+  // The three per-meja sawmill reports: thickness-by-date and piece-work.
+  per_meja: PER_MEJA_CSS,
+  // Rekap Kamar KD: two half-width tables per wood type, side by side.
+  kamar_kd: KAMAR_KD_CSS,
+  // Rekap Penerimaan ST Non Rambung: twelve fixed columns, one block per supplier.
+  non_rambung: `
+  .non-rambang-table { table-layout: fixed; font-size: 9px; }
+  .non-rambang-table th, .non-rambang-table td { padding: 1px 2px; }
+  .non-rambang-table .number { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .non-rambang-table .supplier-heading-row td {
+    font-weight: bold; background: #c9d1df; font-size: 10px; padding: 3px 2px;
+  }
+  .non-rambang-table .supplier-total-row td { font-weight: bold; background: #eef2f8; border-top: 1px solid #000; }
+`,
+  // Penerimaan ST Hasil Sawmill: a caption header, then a length-column tally.
+  hasil_sawmill: `  .meta-layout { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+  .meta-layout > tbody > tr > td { vertical-align: top; }
+  .meta-block { width: 100%; border-collapse: collapse; }
+  .meta-block td { border: 0; padding: 0 2px 0 0; font-size: 10px; }
+  .meta-block .meta-label { font-weight: bold; white-space: nowrap; }
+  .meta-block .meta-separator { width: 8px; text-align: center; }
+  .hasil-sawmill-table { font-size: 9px; table-layout: fixed; }
+  .hasil-sawmill-table th, .hasil-sawmill-table td { padding: 1px 2px; }
+  .hasil-sawmill-table .number { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .hasil-sawmill-table .grade-cell { font-weight: bold; vertical-align: middle; }
+  .hasil-sawmill-table .grade-total-row td { font-weight: bold; background: #eef2f8; border-top: 1px solid #000; }
+  .sub-summary { margin-top: 14px; }
+  .section-label { font-size: 10px; font-weight: bold; margin: 0 0 3px 0; }
+  .sub-table { font-size: 10px; width: auto; }
+  .sub-table .number { text-align: right; }
+`,
   rekap_rendemen_rambung_per_supplier: REKAP_RENDEMEN_RAMBUNG_PER_SUPPLIER_CSS,
   saldo_barang_jadi_hidup_per_jenis_per_produk:
     SALDO_BARANG_JADI_HIDUP_PER_JENIS_PER_PRODUK_CSS,

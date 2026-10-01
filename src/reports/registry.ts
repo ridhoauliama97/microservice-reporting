@@ -144,6 +144,17 @@ import { umurSandingDetailReport } from './wps/umur-sanding-detail'
 import { mutasiSawnTimberTonReport } from './wps/mutasi-sawn-timber'
 import { mutasiKdReport } from './wps/mutasi-kd'
 import { dashboardSawnTimberReport } from './wps/dashboard-sawn-timber'
+import { qcSawmillReport, qcSawmillDiscrepancyReport } from './wps/qc-sawmill'
+import { qcSawmillSummaryReport } from './wps/qc-sawmill-summary'
+import { rekapHasilSawmillPerMejaReport } from './wps/rekap-hasil-sawmill-per-meja'
+import {
+  rekapSawmillPerMejaSemuaMejaReport,
+  rekapSawmillPerMejaUpahBoronganReport,
+} from './wps/rekap-hasil-sawmill-per-meja-borongan'
+import { rekapKamarKdReport } from './wps/rekap-kamar-kd'
+import { rekapProduktivitasSawmillReport } from './wps/rekap-produktivitas-sawmill'
+import { penerimaanStHasilSawmillReport } from './wps/penerimaan-st-hasil-sawmill'
+import { rekapPenerimaanStNonRambungReport } from './wps/rekap-penerimaan-st-non-rambung'
 import { kdKeluarMasukReport } from './wps/kd-keluar-masuk'
 import { kdUpahPerCustomerReport } from './wps/kd-upah-per-customer'
 import { kdUpahPerNoProcKdDetailReport } from './wps/kd-upah-per-no-proc-kd-detail'
@@ -323,4 +334,14 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'pembelian-st-per-supplier-ton': pembelianStPerSupplierReport,
   'pembelian-st-timeline-ton': pembelianStTimelineReport,
   'penerimaan-st-sawmill-kg': penerimaanStSawmillKgReport,
+  'qc-sawmill': qcSawmillReport,
+  'qc-sawmill-discrepancy': qcSawmillDiscrepancyReport,
+  'qc-sawmill-summary': qcSawmillSummaryReport,
+  'rekap-hasil-sawmill-per-meja': rekapHasilSawmillPerMejaReport,
+  'rekap-hasil-sawmill-per-meja-semua-meja': rekapSawmillPerMejaSemuaMejaReport,
+  'rekap-hasil-sawmill-per-meja-upah-borongan': rekapSawmillPerMejaUpahBoronganReport,
+  'rekap-kamar-kd': rekapKamarKdReport,
+  'rekap-produktivitas-sawmill': rekapProduktivitasSawmillReport,
+  'penerimaan-st-hasil-sawmill': penerimaanStHasilSawmillReport,
+  'rekap-penerimaan-st-non-rambung': rekapPenerimaanStNonRambungReport,
 }
