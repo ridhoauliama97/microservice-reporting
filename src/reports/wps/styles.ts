@@ -1487,6 +1487,11 @@ const OBAT_VACUUM_CSS = `
  * rendemen line sits under the table as a headline figure rather than a cell.
  */
 const PENERIMAAN_ST_SAWMILL_CSS = `
+  .penerimaan-st-table { table-layout: fixed; }
+  .penerimaan-st-table td.data-cell, .penerimaan-st-table th { font-size: 10px; }
+  /* Grade names are codes like "RAMBUNG - SAMSAM-460". Let them keep their
+     hyphens unbroken rather than wrapping after one. */
+  .penerimaan-st-table td.grade, .penerimaan-st-table td.grade-output { overflow-wrap: normal; word-break: keep-all; }
   .penerimaan-st-table .section-cell {
     font-weight: bold; text-align: center; vertical-align: middle;
     background: #eef2f8; white-space: nowrap;

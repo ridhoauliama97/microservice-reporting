@@ -222,7 +222,7 @@ const fmtPct1 = (value: number): string => formatNumber(value, 1, { blankWhenZer
 
 const renderInputRow = (line: GradeLine, index: number, first: boolean, span: number): string =>
   `<tr class="data-row ${index % 2 === 0 ? 'row-odd' : 'row-even'}">
-          ${first ? `          <td class="data-cell section-cell" rowspan="${span}">INPUT</td>\n          ` : ''}<td class="data-cell">${escapeHtml(line.grade)}</td>
+          ${first ? `          <td class="data-cell section-cell" rowspan="${span}">INPUT</td>\n          ` : ''}<td class="data-cell grade">${escapeHtml(line.grade)}</td>
           <td class="data-cell center">${escapeHtml(formatInt(line.trucks))}</td>
           <td class="data-cell number">${escapeHtml(fmt2(line.kbTon))}</td>
           <td class="data-cell center"></td>
@@ -258,6 +258,15 @@ function renderTable(data: PenerimaanData): string {
   }
 
   return `<table class="report-table penerimaan-st-table">
+      <colgroup>
+        <col style="width: 12%;">
+        <col style="width: 30%;">
+        <col style="width: 10%;">
+        <col style="width: 12%;">
+        <col style="width: 12%;">
+        <col style="width: 12%;">
+        <col style="width: 12%;">
+      </colgroup>
       <thead>
         <tr class="headers-row">
           <th>Kategori</th>
@@ -305,7 +314,9 @@ export const penerimaanStSawmillKgReport: ReportDefinition<PeriodParams, Penerim
       subtitle: `Periode ${period}${data.receiptCount > 0 ? ` | ${data.receiptCount} penerimaan` : ''}`,
       bodyHtml: renderTable(data),
       style: 'penerimaan_st_sawmill',
-      landscape: true,
+      // Portrait. Seven columns, and the reference's own layout is portrait
+      // too - the grade names are the widest thing on the page and they read
+      // better with room to breathe than stretched across a landscape sheet.
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });
