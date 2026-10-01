@@ -257,7 +257,9 @@ export const kdUpahPerNoProcKdDetailReport: ReportDefinition<
       subtitle: `No.Proses KD : ${meta.params.noProcKd}`,
       bodyHtml,
       style: 'kd_upah',
-      landscape: true,
+      // Portrait. Seven columns, and the batch header is two label/value pairs
+      // wide - it reads better stacked over a portrait page than spread across
+      // a landscape one.
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

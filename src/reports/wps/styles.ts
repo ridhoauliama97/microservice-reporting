@@ -1438,8 +1438,10 @@ const MUTASI_KD_CSS = `
  */
 const KD_UPAH_CSS = `
   .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-  .meta-table td { border: 1px solid #000; padding: 2px 4px; font-size: 10px; }
-  .meta-table .meta-label { font-weight: bold; background: #f2f2f2; white-space: nowrap; }
+  /* No border and no shading: the header block is a caption, not a grid, and
+     this is how the other reports in this service already print theirs. */
+  .meta-table td { border: 0; padding: 1px 0; font-size: 10px; vertical-align: top; }
+  .meta-table .meta-label { width: 78px; white-space: nowrap; }
   .meta-table .meta-separator { width: 10px; text-align: center; }
   .meta-table .meta-value { overflow-wrap: anywhere; }
   .report-table tfoot .totals-row td {
@@ -1509,7 +1511,9 @@ const UPAH_SAWMILL_CSS = `
   .meta-layout { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
   .meta-layout > tbody > tr > td { vertical-align: top; }
   .meta-block { width: 100%; border-collapse: collapse; }
-  .meta-block td { padding: 1px 2px; font-size: 10px; }
+  /* No border: the identification block is a caption above the tally, and the
+     base sheet rule puts a 1px box on every td otherwise. */
+  .meta-block td { border: 0; padding: 1px 0; font-size: 10px; vertical-align: top; }
   .meta-block .meta-label { font-weight: bold; white-space: nowrap; }
   .meta-block .meta-separator { width: 10px; text-align: center; }
   .meta-block .meta-value { overflow-wrap: anywhere; }
