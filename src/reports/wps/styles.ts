@@ -1198,11 +1198,6 @@ const REKAP_PRODUKSI_S4S_RAMBUNG_CSS = `
   .rambung-per-grade-table td.number { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
   .rambung-per-grade-table tfoot td { font-weight: bold; background: #fff; }
   .rambung-per-grade-table td.empty-cell { text-align: center; font-style: italic; }
-  .summary-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-  .summary-table td { border: 1px solid #000; padding: 2px 4px; font-size: 10px; }
-  .summary-table td.number { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
-  .summary-table td.label { text-align: left; }
-  .summary-table tr.totals-row td { font-weight: bold; background: #fff; }
 `;
 
 /**

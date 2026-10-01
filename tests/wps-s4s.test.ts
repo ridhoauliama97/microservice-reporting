@@ -519,14 +519,22 @@ describe('Rekap Produksi S4S Rambung Per Grade totals', () => {
     ...over,
   })
 
-  test('the Total row sums each Ratio column', () => {
-    // The Total row used to leave ratio at zero, so the whole footer printed
-    // blank under every Ratio heading next to a real figure under Total.
+  test('the Total row ratio is each grade share of the period, not a sum of the daily ratios', () => {
+    // open-api-report computes the footer as total / periodGrand * 100, so each
+    // side adds up to 100%. Summing the daily percentages instead would give
+    // 109.5662% for these two days, which is a share of nothing - each day's
+    // ratio is relative to that day's own group total.
     const data = buildRambungData([
-      row({ Tanggal: '2026-08-03', Ratio: 68.3662 }),
-      row({ Tanggal: '2026-08-04', Ratio: 41.2 }),
-    ],)
-    expect(data.totals.output[0]!.ratio).toBeCloseTo(109.5662, 6)
+      row({ Tanggal: '2026-08-03', Total: 12.4313, Ratio: 68.3662 }),
+      row({ Tanggal: '2026-08-04', Total: 4.5, Ratio: 41.2 }),
+      row({ Tanggal: '2026-08-03', Jenis: 'BELAH', Total: 3.5, Ratio: 31.6338 }),
+      row({ Tanggal: '2026-08-04', Jenis: 'BELAH', Total: 1, Ratio: 58.8 }),
+    ])
+    const grand = 12.4313 + 4.5 + 3.5 + 1
+    const sum = data.totals.output.reduce((acc, cell) => acc + cell.ratio, 0)
+    expect(sum).toBeCloseTo(100, 6)
+    expect(data.totals.output[0]!.ratio).toBeCloseTo((16.9313 / grand) * 100, 6)
+    expect(data.totals.output[1]!.ratio).toBeCloseTo((4.5 / grand) * 100, 6)
   })
 
   test('the Total row still sums the figures alongside it', () => {
@@ -601,7 +609,11 @@ describe('Rekap Produksi S4S Rambung Per Grade percent column', () => {
         Jenis: 'A/B', Total: 1, GrandTotalPerGroup: 2, Ratio: 0,
       },
     ])
-    expect(html).not.toContain('0.00 %')
+    // Scoped to the data row on purpose. The footer's share of a single-grade
+    // period is 100.00%, and "100.00 %" contains the substring "0.00 %", so a
+    // document-wide check for that substring fails on a correct render.
+    const dataRow = html.match(/<tr class="data-row[^"]*">[\s\S]*?<\/tr>/)![0]!
+    expect(dataRow).not.toContain('%')
   })
 })
 
