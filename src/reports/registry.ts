@@ -147,6 +147,16 @@ import { dashboardSawnTimberReport } from './wps/dashboard-sawn-timber'
 import { qcSawmillReport, qcSawmillDiscrepancyReport } from './wps/qc-sawmill'
 import { qcSawmillSummaryReport } from './wps/qc-sawmill-summary'
 import { rekapHasilSawmillPerMejaReport } from './wps/rekap-hasil-sawmill-per-meja'
+import { rekapStPenjualanReport } from './wps/rekap-st-penjualan'
+import { saldoStHidupPerProdukReport } from './wps/saldo-st-hidup-per-produk'
+import { serahTerimaStKamarKdReport } from './wps/serah-terima-st-kamar-kd'
+import { spkSawmillReport } from './wps/spk-sawmill'
+import { stSawmillMasukPerGroupReport } from './wps/st-sawmill-masuk-per-group'
+import { stBasahHidupPerUmurKayuTonReport } from './wps/st-basah-hidup-per-umur-kayu-ton'
+import { stHidupKeringReport } from './wps/st-hidup-kering'
+import { stHidupPerSpkReport } from './wps/st-hidup-per-spk'
+import { stMasukPerGroupReport } from './wps/st-masuk-per-group'
+import { stRambungMc1Mc2DetailReport } from './wps/st-rambung-mc1-mc2-detail'
 import {
   rekapSawmillPerMejaSemuaMejaReport,
   rekapSawmillPerMejaUpahBoronganReport,
@@ -337,6 +347,16 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'qc-sawmill': qcSawmillReport,
   'qc-sawmill-discrepancy': qcSawmillDiscrepancyReport,
   'qc-sawmill-summary': qcSawmillSummaryReport,
+  'rekap-st-penjualan': rekapStPenjualanReport,
+  'saldo-st-hidup-per-produk': saldoStHidupPerProdukReport,
+  'serah-terima-st-kamar-kd': serahTerimaStKamarKdReport,
+  'spk-sawmill': spkSawmillReport,
+  'st-sawmill-masuk-per-group': stSawmillMasukPerGroupReport,
+  'st-basah-hidup-per-umur-kayu-ton': stBasahHidupPerUmurKayuTonReport,
+  'st-hidup-kering': stHidupKeringReport,
+  'st-hidup-per-spk': stHidupPerSpkReport,
+  'st-masuk-per-group': stMasukPerGroupReport,
+  'st-rambung-mc1-mc2-detail': stRambungMc1Mc2DetailReport,
   'rekap-hasil-sawmill-per-meja': rekapHasilSawmillPerMejaReport,
   'rekap-hasil-sawmill-per-meja-semua-meja': rekapSawmillPerMejaSemuaMejaReport,
   'rekap-hasil-sawmill-per-meja-upah-borongan': rekapSawmillPerMejaUpahBoronganReport,

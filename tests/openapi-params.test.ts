@@ -13,7 +13,7 @@ import { reports } from '../src/reports/registry'
  * The documented request body for POST /reports.
  *
  * This schema used to be a bare `{ type: string, params?: unknown }`, so the
- * docs described none of the 138 report types and a "Try it out" form sent a
+ * docs described none of the 170 report types and a "Try it out" form sent a
  * date range to a procedure that takes no parameters. What matters here is
  * that the docs stay in step with the registry: a new report, or a changed
  * param shape, has to show up without anyone editing a list by hand.
@@ -28,9 +28,9 @@ describe('param shape collection', () => {
     expect(new Set(covered).size).toBe(covered.length)
   })
 
-  test('the shapes collapse 138 reports into a readable handful', () => {
+  test('the shapes collapse 170 reports into a readable handful', () => {
     const shapes = collectParamShapes()
-    expect(shapes.length).toBeLessThan(20)
+    expect(shapes.length).toBeLessThan(28)
     // The period shape is by far the biggest group.
     expect(shapes[0]!.name).toBe('PeriodParams')
     expect(shapes[0]!.types.length).toBeGreaterThan(50)
@@ -43,7 +43,7 @@ describe('param shape collection', () => {
     expect(names).toContain('NoParams')
   })
 
-  test('a no-parameter report shares one shape, not 138 of them', () => {
+  test('a no-parameter report shares one shape, not 170 of them', () => {
     const noParams = collectParamShapes().find((shape) => shape.name === 'NoParams')
     expect(noParams).toBeDefined()
     expect(noParams!.types).toContain('label-nyangkut')

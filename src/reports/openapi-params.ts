@@ -4,14 +4,14 @@ import { reports } from './registry'
 /**
  * `POST /reports` has a body whose shape depends on another field: `params`
  * means something different for every report. It used to be published as a bare
- * `object`, which is why the docs could describe none of the 138 types and why a
+ * `object`, which is why the docs could describe none of the 170 types and why a
  * "Try it out" form happily sent a date range to a procedure that takes no
  * parameters.
  *
  * The body is therefore built from the registry here, so the documented params
  * come from the same Zod schema the API validates with and cannot drift.
  *
- * 138 report types but only a handful of distinct param shapes, so the body is a
+ * 170 report types but only a handful of distinct param shapes, so the body is a
  * `oneOf` per SHAPE rather than per report. Each branch pins `type` to the
  * reports that use that shape, so the docs still say exactly which reports take
  * what, and a body naming `label-nyangkap` cannot also carry a period.

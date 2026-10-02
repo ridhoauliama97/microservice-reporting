@@ -61,6 +61,11 @@ export const WPS_REPORT_CSS = `
   .row-even td { background: #eef2f8; }
   .totals-row td { font-weight: bold; font-size: 11px; border-top: 1px solid #000; border-right: 1px solid #000; border-bottom: 0; border-left: 0; }
   .totals-row td.blank { background: transparent; }
+  /* Meta blocks (NoProcKD / NoSPK / dst.) are a key/value list, not a table —
+     no grid borders. Many reports previously inherited a bordered grid here. */
+  .meta-table, .meta-table th, .meta-table td { border: 0 !important; background: #fff !important; }
+  .meta-table .meta-label { font-weight: bold; white-space: nowrap; padding-right: 4px; }
+  .meta-table .meta-sep { width: 10px; text-align: center; }
   .headers-row th { font-weight: bold; font-size: 11px; border-top: 0; border-right: 1px solid #000; border-bottom: 1px solid #000; border-left: 0; }
   .report-table thead tr.headers-row:first-child th { border-top: 1px solid #000; }
   .report-table thead tr.headers-row:first-child th[rowspan] { border-bottom: 1px solid #000; }
