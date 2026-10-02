@@ -157,6 +157,16 @@ import { stHidupKeringReport } from './wps/st-hidup-kering'
 import { stHidupPerSpkReport } from './wps/st-hidup-per-spk'
 import { stMasukPerGroupReport } from './wps/st-masuk-per-group'
 import { stRambungMc1Mc2DetailReport } from './wps/st-rambung-mc1-mc2-detail'
+import { stRambungMc1Mc2RangkumanReport } from './wps/st-rambung-mc1-mc2-rangkuman'
+import { stSawmillHariTebalLebarReport } from './wps/st-sawmill-hari-tebal-lebar'
+import { stockStBasahReport } from './wps/stock-st-basah'
+import { stockStKeringReport } from './wps/stock-st-kering'
+import { stokOpnameStDetailKdReport } from './wps/stok-opname-st-detail-kd'
+import { detailLembarTallyHasilSawmillReport } from './wps/detail-lembar-tally-hasil-sawmill'
+import { totalBagusKulitRambungReport } from './wps/total-bagus-kulit-rambung'
+import { tracingStReport } from './wps/tracing-st'
+import { umurStDetailTonReport } from './wps/umur-sawn-timber-detail-ton'
+import { rekapPcsTellyHasilSawmillReport } from './wps/rekap-pcs-telly-hasil-sawmill'
 import {
   rekapSawmillPerMejaSemuaMejaReport,
   rekapSawmillPerMejaUpahBoronganReport,
@@ -357,6 +367,16 @@ export const reports: Record<string, ReportDefinition<any, any>> = {
   'st-hidup-per-spk': stHidupPerSpkReport,
   'st-masuk-per-group': stMasukPerGroupReport,
   'st-rambung-mc1-mc2-detail': stRambungMc1Mc2DetailReport,
+  'st-rambung-mc1-mc2-rangkuman': stRambungMc1Mc2RangkumanReport,
+  'st-sawmill-hari-tebal-lebar': stSawmillHariTebalLebarReport,
+  'stock-st-basah': stockStBasahReport,
+  'stock-st-kering': stockStKeringReport,
+  'stok-opname-st-detail-kd': stokOpnameStDetailKdReport,
+  'detail-lembar-tally-hasil-sawmill': detailLembarTallyHasilSawmillReport,
+  'total-bagus-kulit-rambung': totalBagusKulitRambungReport,
+  'tracing-st': tracingStReport,
+  'umur-sawn-timber-detail-ton': umurStDetailTonReport,
+  'rekap-pcs-telly-hasil-sawmill': rekapPcsTellyHasilSawmillReport,
   'rekap-hasil-sawmill-per-meja': rekapHasilSawmillPerMejaReport,
   'rekap-hasil-sawmill-per-meja-semua-meja': rekapSawmillPerMejaSemuaMejaReport,
   'rekap-hasil-sawmill-per-meja-upah-borongan': rekapSawmillPerMejaUpahBoronganReport,
