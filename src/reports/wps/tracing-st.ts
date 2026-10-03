@@ -1,18 +1,20 @@
 import { z } from "zod";
 import sql from "mssql";
-import { escapeHtml, formatNumber, formatPrintedAt } from "../../templates/html";
+import { escapeHtml, formatPrintedAt, formatTanggalId, toDateKey } from "../../templates/html";
 import { renderWpsReportPage } from "./template";
 import type { ReportDefinition } from "../types";
+import { WPS_REFERENCE_CSS } from "./reference-css";
 
 /**
  * SP_LapTracingST — "Laporan Tracing ST". Ported from open-api-report's
  * TracingStReportService + tracing-st-pdf.blade.php.
  *
- * Takes @NoProduk. One block per traced ST (NoST): a meta table, then six
- * step tables (Tanggal Masuk Balok / Tanggal Mulai Racip / Tanggal Selesai
- * Racip / Tanggal Stick / Tanggal Masuk KD / Tanggal Keluar KD) with the
- * per-step umur-tunggu/umur-racip/etc. line between them. Each step date and
- * day count is taken straight from the SP row.
+ * First row is filtered to a single NoST by the SP (@NoProduk is actually the
+ * NoST value). Each traced ST is laid out as a meta block (No ST / No Kayu
+ * Bulat / Supplier / No Truk) followed by six step tables: Tanggal Masuk
+ * Balok, Tanggal Mulai Racip (day: Umur tunggu), Tanggal Selesai Racip (day:
+ * Umur racip), Tanggal Stick (day: Umur stick + optional Balok ke Stick),
+ * Tanggal Masuk KD (day: Umur tunggu KD), Tanggal Keluar KD (day: Lama KD).
  */
 
 const fmtNum = (v: unknown): string => {
@@ -25,6 +27,11 @@ const fmtDay = (v: unknown, label: string): string => {
   const n = fmtNum(v);
   return n === "-" ? `${label}: - hari` : `${label}: ${n} hari`;
 };
+const fmtT = (v: unknown): string => {
+  const k = toDateKey(v);
+  return k ? formatTanggalId(k) : "-";
+};
+const tf = (v: unknown): string => (v === null || v === undefined || String(v).trim() === "" ? "-" : String(v));
 
 const paramsSchema = z.object({ noProduk: z.string().trim().min(1) });
 
@@ -43,53 +50,50 @@ export const tracingStReport: ReportDefinition<
   },
 
   render(rows, meta) {
-    const cards = rows
-      .map((r, idx) => {
-        const tfmt = (v: unknown): string => {
-          const s = String(v ?? "").trim();
-          return s === "" ? "-" : s;
-        };
-        const card = `<div style="margin-bottom:18px;">
-  <div style="font-weight:bold;font-size:13px;margin-bottom:6px;">Laporan Tracing ST</div>
-  <table style="width:100%;border-collapse:collapse;margin-bottom:10px;">
-    <tr><td style="width:40%;padding:2px 0;font-weight:bold;">No ST</td><td>${escapeHtml(tfmt(r.NoST))}</td></tr>
-    <tr><td style="font-weight:bold;padding:2px 0;">No Kayu Bulat</td><td>${escapeHtml(tfmt(r.NoKayuBulat))}</td></tr>
-    <tr><td style="font-weight:bold;padding:2px 0;">Supplier</td><td>${escapeHtml(tfmt(r.NmSupplier))}</td></tr>
-    <tr><td style="font-weight:bold;padding:2px 0;">No Truk</td><td>${escapeHtml(tfmt(r.NoTruk))}</td></tr>
-  </table>
-  <table style="width:100%;border-collapse:collapse;border:1px solid #000;">
-    <tr><td style="font-weight:bold;padding:5px 8px;border-bottom:1px solid #000;">Tanggal Masuk Balok</td><td style="padding:5px 8px;border-bottom:1px solid #000;">${escapeHtml(tfmt(r.TglMasuk))}</td></tr>
-    <tr><td colspan="2" style="padding:2px 8px;color:#555;">${escapeHtml(fmtDay(r.UT, "Umur tunggu"))}</td></tr>
-    <tr><td style="font-weight:bold;padding:5px 8px;border-top:1px solid #000;">Tanggal Mulai Racip</td><td style="padding:5px 8px;border-top:1px solid #000;">${escapeHtml(tfmt(r.TglMulai))}</td></tr>
-    <tr><td colspan="2" style="padding:2px 8px;color:#555;">${escapeHtml(fmtDay(r.UR, "Umur racip"))}</td></tr>
-    <tr><td style="font-weight:bold;padding:5px 8px;border-top:1px solid #000;">Tanggal Selesai Racip</td><td style="padding:5px 8px;border-top:1px solid #000;">${escapeHtml(tfmt(r.TglSelesai))}</td></tr>
-    <tr><td colspan="2" style="padding:2px 8px;color:#555;">${escapeHtml(fmtDay(r["U-Stick"], "Umur stick"))}${r.BalokToStick !== null && r.BalokToStick !== undefined ? ` | Balok ke Stick ${escapeHtml(fmtNum(r.BalokToStick))} hari` : ""}</td></tr>
-    <tr><td style="font-weight:bold;padding:5px 8px;border-top:1px solid #000;">Tanggal Masuk KD</td><td style="padding:5px 8px;border-top:1px solid #000;">${escapeHtml(tfmt(r.TglMasukKD))}</td></tr>
-    <tr><td colspan="2" style="padding:2px 8px;color:#555;">${escapeHtml(fmtDay(r["UT-KD"], "Umur tunggu KD"))}</td></tr>
-    <tr><td style="font-weight:bold;padding:5px 8px;border-top:1px solid #000;"> Tanggal Keluar KD</td><td style="padding:5px 8px;border-top:1px solid #000;">${escapeHtml(tfmt(r.TglKeluar))}</td></tr>
-    <tr><td colspan="2" style="padding:2px 8px;color:#555;">${escapeHtml(fmtDay(r.LamaKD, "Lama KD"))}</td></tr>
-  </table>
-</div>`;
-        return card;
-      })
-      .join("<div style=\"page-break-before:always;\"></div>");
+    /** One step box: bold name on the left, date on the right, and the
+     *  day-count line underneath (blank when the step has no day count). */
+    const step = (name: string, date: string, day?: string): string =>
+      `<table class="step">
+  <tr>
+    <td class="step-name">${escapeHtml(name)}</td>
+    <td class="step-date">${escapeHtml(date)}</td>
+  </tr>
+  ${day ? `<tr><td colspan="2" class="day">${escapeHtml(day)}</td></tr>` : ""}
+</table>`;
 
-    if (!rows.length) {
-      return renderWpsReportPage({
-        title: "Laporan Tracing ST",
-        subtitle: "",
-        bodyHtml: `<p>Tidak ada data</p>`,
-        extraCss: `body{font-size:11px;}`,
-        printedBy: meta.requestedBy,
-        printedAt: formatPrintedAt(meta.generatedAt),
-      });
-    }
+    // The blade repeats "Laporan Tracing ST" above every traced ST, one ST per
+    // page. The page shell already prints that title once, so each card omits it
+    // and the cards are simply separated by a page break.
+    const cards = rows
+      .map((r) => {
+        const balokToStick =
+          r.BalokToStick !== null && r.BalokToStick !== undefined && String(r.BalokToStick).trim() !== ""
+            ? ` | Balok ke Stick ${fmtNum(r.BalokToStick)} hari`
+            : "";
+        return `<div class="trace-card">
+  <table class="meta">
+    <tr><td class="label">No ST</td><td class="value">${escapeHtml(tf(r.NoST))}</td></tr>
+    <tr><td class="label">No Kayu Bulat</td><td class="value">${escapeHtml(tf(r.NoKayuBulat))}</td></tr>
+    <tr><td class="label">Supplier</td><td class="value">${escapeHtml(tf(r.NmSupplier))}</td></tr>
+    <tr><td class="label">No Truk</td><td class="value">${escapeHtml(tf(r.NoTruk))}</td></tr>
+  </table>
+  <div class="section">
+${step("Tanggal Masuk Balok", fmtT(r.TglMasuk))}
+${step("Tanggal Mulai Racip", fmtT(r.TglMulai), fmtDay(r.UT, "Umur tunggu"))}
+${step("Tanggal Selesai Racip", fmtT(r.TglSelesai), fmtDay(r.UR, "Umur racip"))}
+${step("Tanggal Stick", fmtT(r.TglStick), fmtDay(r["U-Stick"], "Umur stick") + balokToStick)}
+${step("Tanggal Masuk KD", fmtT(r.TglMasukKD), fmtDay(r["UT-KD"], "Umur tunggu KD"))}
+${step("Tanggal Keluar KD", fmtT(r.TglKeluar), fmtDay(r.LamaKD, "Lama KD"))}
+  </div>
+</div>`;
+      })
+      .join(`<div class="page-break"></div>\n`);
 
     return renderWpsReportPage({
       title: "Laporan Tracing ST",
       subtitle: "",
-      bodyHtml: `${cards}`,
-      extraCss: `body{font-size:11px;}`,
+      bodyHtml: cards.length ? cards : `<p>Tidak ada data</p>`,
+      extraCss: WPS_REFERENCE_CSS["tracing-st"],
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

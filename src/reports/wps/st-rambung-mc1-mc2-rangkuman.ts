@@ -2,6 +2,7 @@ import { z } from "zod";
 import { escapeHtml, formatPrintedAt, formatTanggalId } from "../../templates/html";
 import { EMPTY_DATA_MESSAGE, renderWpsReportPage, buildEmptyTableRow } from "./template";
 import type { ReportDefinition } from "../types";
+import { WPS_REFERENCE_CSS } from "./reference-css";
 
 /**
  * SP_LapSTRambungMC1danMC2Rangkuman — "Laporan ST Rambung MC1 dan MC2
@@ -77,27 +78,27 @@ export const stRambungMc1Mc2RangkumanReport: ReportDefinition<
       let jp = 0, jt = 0, jk = 0;
       for (const label of labels) {
         const acc = tables.get(label)!;
-        tableRows.push(`    <tr class="data-row"><td class="center">${tableRows.length + 1}</td><td>${escapeHtml(label)}</td><td class="number" style="font-weight:bold;">${fmtInt(acc.pcs)}</td><td class="number" style="font-weight:bold;">${fmt4(acc.ton)}</td><td class="number" style="font-weight:bold;">${fmt4(acc.kubik)}</td></tr>`);
+        tableRows.push(`    <tr class="data-row ${tableRows.length % 2 === 0 ? "row-odd" : "row-even"}"><td class="center data-cell">${tableRows.length + 1}</td><td>${escapeHtml(label)}</td><td class="number" style="font-weight:bold;">${fmtInt(acc.pcs)}</td><td class="number" style="font-weight:bold;">${fmt4(acc.ton)}</td><td class="number" style="font-weight:bold;">${fmt4(acc.kubik)}</td></tr>`);
         jp += acc.pcs; jt += acc.ton; jk += acc.kubik;
       }
-      groupRows.push(`    <tr class="data-row"><td class="center">${groupRows.length + 1}</td><td>${escapeHtml(jenis)}</td><td class="number" style="font-weight:bold;">${fmtInt(jp)}</td><td class="number" style="font-weight:bold;">${fmt4(jt)}</td><td class="number" style="font-weight:bold;">${fmt4(jk)}</td></tr>`);
+      groupRows.push(`    <tr class="data-row ${groupRows.length % 2 === 0 ? "row-odd" : "row-even"}"><td class="center data-cell">${groupRows.length + 1}</td><td>${escapeHtml(jenis)}</td><td class="number" style="font-weight:bold;">${fmtInt(jp)}</td><td class="number" style="font-weight:bold;">${fmt4(jt)}</td><td class="number" style="font-weight:bold;">${fmt4(jk)}</td></tr>`);
       grandPcs += jp; grandTon += jt; grandKubik += jk;
     }
 
     const generated = formatTanggalId(meta.generatedAt.toISOString().slice(0, 10)).replace(/\d{4}$/, (y) => y.slice(-2));
     const bodyHtml = `<div class="sub-title">Total Masing-masing Jenis Stock</div>
-<table class="report-table">
+<table class="data-table">
   <thead><tr><th style="width:4%;">No</th><th style="width:55%;">Jenis Stock</th><th style="width:17%;">Jumlah Batang (Pcs)</th><th style="width:12%;">Ton</th><th style="width:12%;">Kubik (m3)</th></tr></thead>
   <tbody>
 ${tableRows.join("\n") || `    <tr><td colspan="5" class="center">${EMPTY_DATA_MESSAGE}</td></tr>`}
   </tbody>
 </table>
 <div class="sub-title">Grand Total Seluruh Group Stock</div>
-<table class="report-table">
+<table class="data-table">
   <thead><tr><th style="width:4%;">No</th><th style="width:55%;">Group Stock</th><th style="width:17%;">Jumlah Batang (Pcs)</th><th style="width:12%;">Ton</th><th style="width:12%;">Kubik (m3)</th></tr></thead>
   <tbody>
 ${groupRows.join("\n") || `    <tr><td colspan="5" class="center">${EMPTY_DATA_MESSAGE}</td></tr>`}
-    <tr class="totals-row"><td colspan="2" class="center">Grand Total</td><td class="number">${fmtInt(grandPcs)}</td><td class="number">${fmt4(grandTon)}</td><td class="number">${fmt4(grandKubik)}</td></tr>
+    <tr class="totals-row grand-total-row"><td colspan="2" class="center">Grand Total</td><td class="number">${fmtInt(grandPcs)}</td><td class="number">${fmt4(grandTon)}</td><td class="number">${fmt4(grandKubik)}</td></tr>
   </tbody>
 </table>`;
 
@@ -105,7 +106,7 @@ ${groupRows.join("\n") || `    <tr><td colspan="5" class="center">${EMPTY_DATA_M
       title: "Laporan ST Rambung MC1 dan MC2 (Rangkuman)",
       subtitle: `Per ${generated}`,
       bodyHtml,
-      style: "saldo_barang_jadi_hidup_per_jenis_per_produk",
+      extraCss: WPS_REFERENCE_CSS["st-rambang-mc1-mc2-rangkuman"],
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

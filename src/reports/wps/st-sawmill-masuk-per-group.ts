@@ -8,6 +8,7 @@ import {
 } from "../../templates/html";
 import { EMPTY_DATA_MESSAGE, renderWpsReportPage } from "./template";
 import type { ReportDefinition } from "../types";
+import { WPS_REFERENCE_CSS } from "./reference-css";
 
 /**
  * SP_LapSTSawmillMasukPerGroup — "Laporan ST (Sawmill) Masuk Per-Group".
@@ -211,7 +212,7 @@ export const stSawmillMasukPerGroupReport: ReportDefinition<
     );
 
     const bodyHtml = groups.length
-      ? `<table class="report-table">
+      ? `<table >
   <thead>
     <tr>
       <th rowspan="2" style="width:110px;">Group Jenis</th>
@@ -233,13 +234,13 @@ export const stSawmillMasukPerGroupReport: ReportDefinition<
     </tr>
   </tbody>
 </table>`
-      : `<table class="report-table"><tbody><tr><td colspan="99" class="center">${EMPTY_DATA_MESSAGE}</td></tr></tbody></table>`;
+      : `<table ><tbody><tr><td colspan="${4 + mejaHeadColspan}" class="center">${EMPTY_DATA_MESSAGE}</td></tr></tbody></table>`;
 
     return renderWpsReportPage({
       title: "Laporan ST (Sawmill) Masuk Per-Group",
       subtitle: `Periode ${formatTanggalId(meta.params.tglAwal)} s/d ${formatTanggalId(meta.params.tglAkhir)}`,
       bodyHtml,
-      style: "saldo_barang_jadi_hidup_per_jenis_per_produk",
+      extraCss: WPS_REFERENCE_CSS["st-sawmill-masuk-per-group"],
       landscape: false,
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),

@@ -3,6 +3,7 @@ import { periodParamsSchema, type PeriodParams } from "../period-params";
 import { escapeHtml, formatNumber, formatPrintedAt, formatTanggalId } from "../../templates/html";
 import { renderWpsReportPage } from "./template";
 import type { ReportDefinition } from "../types";
+import { WPS_REFERENCE_CSS } from "./reference-css";
 
 /**
  * SPWps_LapSTSawmillPerHariPerTebalPerLebar — "Laporan ST Sawmill Per-Hari,
@@ -195,7 +196,7 @@ export const stSawmillHariTebalLebarReport: ReportDefinition<
       for (const g of groupData) for (const dk of dateKeys) blockByDate.set(dk, (blockByDate.get(dk) ?? 0) + (g.byDate.get(dk) ?? 0));
       const blockCells = dateKeys.map((dk) => `<td class="number">${fmtTon(blockByDate.get(dk) ?? 0)}</td>`).join("");
       const blockTotal = sumToDates(blockByDate, dateKeys).total;
-      bodyRows.push(`<tr class="totals-row"><td class="center" colspan="3">Grand Total</td>${blockCells}<td class="number">${fmtTon(blockTotal)}</td></tr>`);
+      bodyRows.push(`<tr class="totals-row grand-total-row"><td class="center" colspan="3">Grand Total</td>${blockCells}<td class="number">${fmtTon(blockTotal)}</td></tr>`);
 
       const headerCells = dateKeys.map((dk) => `<th style="width:48px;">${escapeHtml(dateLabel(dk))}</th>`).join("");
       const tableRowStr = bodyRows.map((r) => r.replace(/class="(totals-row)[^"]*"/, 'class="totals-row"'));
@@ -231,17 +232,17 @@ ${tableRowStr.join("\n")}
         const total = m.get(tebal) ?? 0;
         const percent = jenTotal > 0.0000001 ? (total / jenTotal) * 100 : 0;
         const jenisCell = idx === 0 ? `<td rowspan="${tebalKeys.length + 1}" class="jenis-cell">${escapeHtml(g)}</td>` : "";
-        rangRows.push(`<tr class="${idx === 0 ? "rangkuman-group-start" : ""}">${jenisCell}<td class="center">${fmtDim(tebal)}</td><td class="number">${fmtTon(total)}</td><td class="center">${fmtPct(percent)}</td></tr>`);
+        rangRows.push(`<tr class="rangkuman-group${idx === 0 ? " rangkuman-group-start" : ""}">${jenisCell}<td class="center">${fmtDim(tebal)}</td><td class="number">${fmtTon(total)}</td><td class="center">${fmtPct(percent)}</td></tr>`);
       });
-      rangRows.push(`<tr class="totals-row"><td class="center">Total</td><td class="number">${fmtTon(jenTotal)}</td><td class="center">100%</td></tr>`);
+      rangRows.push(`<tr class="totals-row rangkuman-group"><td class="center">Total</td><td class="number">${fmtTon(jenTotal)}</td><td class="center">100%</td></tr>`);
     }
 
     const rangkBody = `<div class="section-title">Rangkuman Grand Total</div>
-<table class="report-table">
+<table class="rangkuman-table zebra-table">
   <thead><tr><th style="width:160px;">Jenis Kayu</th><th style="width:50px;">Tebal</th><th style="width:80px;">Total</th><th style="width:60px;">Persen</th></tr></thead>
   <tbody>
 ${rangRows.join("\n")}
-    <tr class="totals-row"><td colspan="2" class="center">Grand Total</td><td class="number">${fmtTon(grandRangk)}</td><td class="center">100%</td></tr>
+    <tr class="totals-row grand-total-row"><td colspan="2" class="center">Grand Total</td><td class="number">${fmtTon(grandRangk)}</td><td class="center">100%</td></tr>
   </tbody>
 </table>`;
 
@@ -253,7 +254,7 @@ ${rangRows.join("\n")}
       title: "Laporan ST Sawmill Per-Hari, Per-Tebal, Per-Lebar",
       subtitle: `Periode ${formatTanggalId(meta.params.tglAwal)} s/d ${formatTanggalId(meta.params.tglAkhir)}`,
       bodyHtml,
-      style: "saldo_barang_jadi_hidup_per_jenis_per_produk",
+      extraCss: WPS_REFERENCE_CSS["st-sawmill-hari-tebal-lebar"],
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

@@ -3,6 +3,7 @@ import sql from "mssql";
 import { escapeHtml, formatNumber, formatPrintedAt } from "../../templates/html";
 import { renderWpsReportPage, EMPTY_DATA_MESSAGE } from "./template";
 import type { ReportDefinition } from "../types";
+import { WPS_REFERENCE_CSS } from "./reference-css";
 
 /**
  * SPWps_LapUmurST — "Laporan Umur Sawn Timber Detail (Ton)". Ported from
@@ -96,7 +97,7 @@ export const umurStDetailTonReport: ReportDefinition<
 
     const bodyHtml = `<table class="report-table">
   <thead>
-    <tr>
+    <tr class="headers-row">
       <th style="width:5%;">No</th>
       <th>Jenis</th><th>Tebal</th><th>Lebar</th><th>Panjang</th>
       <th>${escapeHtml(labels[0])}</th><th>${escapeHtml(labels[1])}</th><th>${escapeHtml(labels[2])}</th><th>${escapeHtml(labels[3])}</th><th>${escapeHtml(labels[4])}</th>
@@ -105,10 +106,10 @@ export const umurStDetailTonReport: ReportDefinition<
   </thead>
   <tbody>
 ${bodyRows || `    <tr><td colspan="11" class="center">${EMPTY_DATA_MESSAGE}</td></tr>`}
-  </tbody>
-</table>${rows.length ? `
-<table class="report-table">
-  <tbody>
+  </tbody>${
+  rows.length
+    ? `
+  <tfoot>
     <tr class="totals-row">
       <td colspan="5" class="center">Total</td>
       <td class="number">${formatNumber(totals[0], 4)}</td>
@@ -118,14 +119,16 @@ ${bodyRows || `    <tr><td colspan="11" class="center">${EMPTY_DATA_MESSAGE}</td
       <td class="number">${formatNumber(totals[4], 4)}</td>
       <td class="number">${formatNumber(rowTotal, 4)}</td>
     </tr>
-  </tbody>
-</table>` : ""}`;
+  </tfoot>`
+    : ""
+}
+</table>`;
 
     return renderWpsReportPage({
       title: "Laporan Umur Sawn Timber Detail (Ton)",
       subtitle: "",
       bodyHtml,
-      style: "saldo_barang_jadi_hidup_per_jenis_per_produk",
+      extraCss: WPS_REFERENCE_CSS["umur-sawn-timber-detail-ton"],
       landscape: false,
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),

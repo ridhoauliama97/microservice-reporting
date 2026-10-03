@@ -1,4 +1,5 @@
 import { createSnapshotTableReport } from "./template";
+import { WPS_REFERENCE_CSS } from "./reference-css";
 
 /**
  * SP_LapSTBasahHidupPerUmurKayu — "Laporan ST Basah Hidup Per-Umur Kayu
@@ -22,9 +23,11 @@ export const stBasahHidupPerUmurKayuTonReport = createSnapshotTableReport({
     { label: "4 - 6 Minggu", kind: "number", field: "Ton4to6Wk", width: "70px" },
     { label: "6 - 8 Minggu", kind: "number", field: "Ton6to8Wk", width: "70px" },
     { label: "> 8 Minggu", kind: "number", field: "Ton8WkMore", width: "70px" },
-    { label: "Total", kind: "number", field: "Total", width: "70px" },
+    // The blade bolds the derived Total column, both the header and the cells.
+    { label: "Total", kind: "number", field: "Total", width: "70px", bold: true },
   ],
   totals: true,
+  extraCss: WPS_REFERENCE_CSS["st-basah-hidup-per-umur-kayu-ton"],
   transformRows: (rows) =>
     rows.map((row) => ({
       ...row,

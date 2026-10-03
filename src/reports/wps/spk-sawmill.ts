@@ -6,8 +6,9 @@ import {
   formatPrintedAt,
   formatTanggalId,
 } from "../../templates/html";
-import { renderWpsReportPage } from "./template";
+import { EMPTY_DATA_MESSAGE, renderWpsReportPage } from "./template";
 import type { ReportDefinition } from "../types";
+import { WPS_REFERENCE_CSS } from "./reference-css";
 
 /**
  * SP_LapHasilSPKSawmill_h + SP_LapHasilSPKSawmill_d — "Laporan SPK Sawmill".
@@ -109,16 +110,16 @@ export const spkSawmillReport: ReportDefinition<
     const metaTable = `<table class="meta-table">
   <tbody>
     <tr>
-      <td style="width:47%;" class="meta-inner-cell">
-        <table style="border-collapse:collapse;width:100%;">
-          <tr><td class="meta-label" style="width:52px;">Jenis Kayu</td><td class="meta-sep">:</td><td>${escapeHtml(first?.NamaGroup ?? "")}</td></tr>
-          <tr><td class="meta-label" style="width:52px;">Tanggal</td><td class="meta-sep">:</td><td>${escapeHtml(first?.Tanggal ? formatTanggalId(first.Tanggal) : "")}</td></tr>
+      <td style="width:47%;">
+        <table class="meta-inner">
+          <tr><td class="meta-label">Jenis Kayu</td><td class="meta-sep">:</td><td>${escapeHtml(first?.NamaGroup ?? "")}</td></tr>
+          <tr><td class="meta-label">Tanggal</td><td class="meta-sep">:</td><td>${escapeHtml(first?.Tanggal ? formatTanggalId(first.Tanggal) : "")}</td></tr>
         </table>
       </td>
       <td style="width:53%;">
-        <table style="border-collapse:collapse;width:100%;">
-          <tr><td class="meta-label" style="width:44px;">No SPK</td><td class="meta-sep">:</td><td>${escapeHtml(String(meta.params.noSpk))}</td></tr>
-          <tr><td class="meta-label" style="width:44px;">Produk</td><td class="meta-sep">:</td><td>${escapeHtml(first?.NamaProduk ?? "")}</td></tr>
+        <table class="meta-inner">
+          <tr><td class="meta-label">No SPK</td><td class="meta-sep">:</td><td>${escapeHtml(String(meta.params.noSpk))}</td></tr>
+          <tr><td class="meta-label">Produk</td><td class="meta-sep">:</td><td>${escapeHtml(first?.NamaProduk ?? "")}</td></tr>
         </table>
       </td>
     </tr>
@@ -153,33 +154,37 @@ export const spkSawmillReport: ReportDefinition<
     const racipTable = (rows: Array<DetailRow>): string => `<table class="report-table racip-table">
   <thead><tr class="headers-row"><th style="width:42%;">Tanggal</th><th style="width:29%;">Racip</th><th style="width:29%;">Saldo</th></tr></thead>
   <tbody>
-${detailRowFor(rows) || `    <tr class="data-row row-odd row-last"><td colspan="3" class="center">Tidak ada data</td></tr>`}
+${detailRowFor(rows) || `    <tr class="data-row row-odd row-last"><td colspan="3" class="center">${EMPTY_DATA_MESSAGE}</td></tr>`}
   </tbody>
 </table>`;
 
     const bodyHtml = `${metaTable}
-<table class="report-table" style="width:100%;">
+<table class="report-table size-table">
   <thead><tr class="headers-row"><th style="width:50%;">Tebal</th><th style="width:50%;">Lebar</th></tr></thead>
   <tbody>
 ${dimensionRows}
   </tbody>
 </table>
-<p style="margin:8px 0;">Permintaan Racip : <strong>${formatNumber(permintaanRacip, 4)}</strong></p>
+<div class="request-row">Permintaan Racip :
+  <span class="request-value">${formatNumber(permintaanRacip, 4)}</span>
+</div>
 ${
   split
-    ? `<table style="width:100%; border-collapse:collapse;"><tr>
-      <td style="width:45%; vertical-align:top;">${racipTable(leftRows)}</td>
-      <td style="width:10%;"></td>
-      <td style="width:45%; vertical-align:top;">${racipTable(rightRows)}</td>
-    </tr></table>`
-    : racipTable(leftRows)
+    ? `<table class="detail-layout"><tbody><tr>
+      <td style="width:45%;">${racipTable(leftRows)}</td>
+      <td class="detail-gap"></td>
+      <td style="width:45%;">${racipTable(rightRows)}</td>
+    </tr></tbody></table>`
+    : `<table class="detail-layout single-detail-layout"><tbody><tr>
+      <td>${racipTable(leftRows)}</td>
+    </tr></tbody></table>`
 }`;
 
     return renderWpsReportPage({
       title: "Laporan SPK Sawmill",
       subtitle: "",
       bodyHtml,
-      style: "produksi_per_spk",
+      extraCss: WPS_REFERENCE_CSS["spk-sawmill"],
       landscape: false,
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),

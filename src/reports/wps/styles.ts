@@ -957,6 +957,389 @@ const SALDO_BARANG_JADI_HIDUP_PER_JENIS_PER_PRODUK_CSS = `
   .report-table-summary tbody tr.totals-row td { background: #fff !important; font-weight: bold; font-size: 11px; border: 0 !important; }
 `;
 
+// Umur Sawn Timber Detail (Ton). Five age-bucket columns plus a derived Total,
+// fully boxed. The Total row sits in a real tfoot that is laid out as an
+// ordinary row group, so it lands once at the end instead of repeating on every
+// page (a table-footer-group would repeat it).
+const UMUR_SAWN_TIMBER_DETAIL_CSS = `
+  .report-table { width: 100%; border-collapse: collapse; border-spacing: 0; border: 1px solid #000; margin-bottom: 8px; }
+  .report-table th, .report-table td { border: 1px solid #000; padding: 3px 4px; vertical-align: middle; }
+  .report-table thead tr.headers-row th { text-align: center; font-weight: bold; font-size: 11px; border-top: 0; border-bottom: 1px solid #000; }
+  .report-table tfoot { display: table-row-group; }
+  .report-table tbody tr.totals-row td { font-weight: bold; background: #fff !important; }
+  .report-table td.number { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
+`;
+
+// Total Bagus/Kulit Rambung. A single eight-column table with roomy cells
+// (5px/6px); the dimensions sit in their own centred ".dim" column class and
+// the counts in right-aligned ".number" ones. The Total row is always printed,
+// even with no data.
+const TOTAL_BAGUS_KULIT_RAMBUNG_CSS = `
+  .report-table { width: 100%; border: 1px solid #000; border-collapse: collapse; }
+  .report-table th, .report-table td { border: 1px solid #000; padding: 5px 6px; vertical-align: middle; }
+  .report-table thead tr.headers-row th { text-align: center; font-weight: bold; font-size: 11px; border-top: 0; border-bottom: 1px solid #000; }
+  .report-table tbody tr.data-row td { border-top: 0; border-bottom: 0; }
+  .report-table td.number { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
+  /* Board dimensions are centred, not right-aligned - that is what .dim is for. */
+  .report-table td.dim { text-align: center; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
+  .report-table tbody tr.empty-row td { background: #c9d1df !important; font-weight: bold; font-style: italic; text-align: center; }
+  .report-table tbody tr.total-row td { font-weight: bold; font-size: 11px; background: #fff !important; }
+`;
+
+// Tally Hasil Sawmill Detail. One block per tally sheet: a two-pane meta block
+// (No. Meja / No. ST / Tanggal / Operator | Supplier / Jenis Kayu / No KB /
+// No.Plat) then that sheet's line items. Every cell is centred unless it
+// carries .number; the Rangkuman Grand Total starts on a new page.
+const DETAIL_LEMBAR_TALLY_CSS = `
+  .section-title { margin: 10px 0 6px; font-size: 12px; font-weight: bold; }
+  .page-break { page-break-before: always; }
+
+  .meta-layout { margin-bottom: 8px; table-layout: fixed; width: 100%; }
+  .meta-layout td { border: 0 !important; padding: 0; vertical-align: top; background: #fff; }
+  .meta-block { table-layout: fixed; width: 100%; border-collapse: collapse; }
+  .meta-block td { border: 0 !important; padding: 0 0 2px 0; vertical-align: top; font-size: 9.5px; background: #fff; }
+  .meta-block .meta-label { width: 72px; white-space: nowrap; }
+  .meta-block .meta-separator { width: 10px; text-align: center; }
+  .meta-block .meta-value { overflow-wrap: break-word; }
+
+  .report-table { width: 100%; margin: 0 0 8px 0; border: 1px solid #000; border-collapse: collapse; border-spacing: 0; table-layout: fixed; font-size: 10px; }
+  .report-table th, .report-table td { border: 1px solid #000; padding: 2px 4px; text-align: center; vertical-align: middle; }
+  .report-table thead tr.headers-row th { background: #fff; font-weight: bold; border-top: 0; border-bottom: 1px solid #000; font-size: 11px; }
+  .report-table tbody tr.data-row td { border-top: 0 !important; border-bottom: 0 !important; }
+  .report-table tbody tr.row-last td { border-bottom: 1px solid #000 !important; }
+  .report-table td.number { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
+  .report-table tbody tr.totals-row td { background: #fff !important; font-weight: bold; font-size: 11px; }
+  .report-table td.totals-label { text-align: right; }
+`;
+
+// Stok Opname ST Detail Pada KD. A four-field header block (No KD / Ruang KD /
+// Tanggal Masuk / Tanggal Keluar) over a fully boxed 12-column line-item table
+// with a Total row inside it.
+const STOK_OPNAME_ST_DETAIL_KD_CSS = `
+  .meta-table { width: 100%; margin: 0 0 8px 0; border-collapse: collapse; table-layout: fixed; }
+  .meta-table td { border: 0 !important; padding: 0 8px 3px 0; vertical-align: top; background: #fff; }
+  .meta-table .meta-label { width: 82px; white-space: nowrap; font-weight: bold; }
+  .meta-table .meta-sep { width: 8px; text-align: center; }
+
+  .report-table { width: 100%; table-layout: fixed; border-collapse: collapse; border-spacing: 0; border: 1px solid #000; }
+  .report-table th, .report-table td { border: 1px solid #000; padding: 2px 3px; vertical-align: middle; font-size: 10px; }
+  .report-table thead tr.headers-row th { text-align: center; font-weight: bold; background: #fff; white-space: nowrap; font-size: 10px; }
+  .report-table tbody td { border-top: 0; border-bottom: 0; }
+  .report-table tbody tr:last-child td { border-bottom: 1px solid #000; }
+  .report-table tbody tr.totals-row td { font-size: 11px; font-weight: bold; border: 1px solid #000 !important; background: #fff !important; }
+  .report-table td.number { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
+`;
+
+// Stock ST Basah / Kering. Both blades group the rows Jenis > Produk, print the
+// two group names as headings (not as columns) and set every product table to
+// 65% of the page, indented 10px under the Jenis heading.
+const STOCK_ST_BASAH_KERING_CSS = `
+  .jenis-title { margin: 10px 0 0 0; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+  .produk-title { margin: 6px 0 0 10px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+  .report-table { width: 65%; margin: 2px 0 6px 10px; table-layout: fixed; border: 1px solid #000; }
+  .report-table th, .report-table td { padding: 3px 4px; }
+  .report-table thead tr.headers-row th { border-top: 0; font-size: 11px; border-bottom: 1px solid #000; }
+  .report-table tbody tr.data-row td { border-top: 0 !important; border-bottom: 0 !important; }
+  .report-table tbody tr:last-child td { border-bottom: 1px solid #000 !important; }
+  /* The blade's .subtotal-row tint is overridden by its own later .totals-row
+     rule (both !important), so the totals band lands on white. */
+  .report-table tbody tr.totals-row td { border-top: 1px solid #000 !important; border-bottom: 1px solid #000 !important; font-weight: bold; background: #fff !important; }
+  /* Column 7 of these sheets is Lokasi, centred in the blade. */
+  .report-table tbody td:nth-child(7) { text-align: center !important; }
+  .report-table tbody tr.data-row.row-negative td { color: red !important; }
+`;
+
+// Serah Terima ST (Kamar KD): one full-width data table whose column rules run
+// the full height (cell borders on the left only, the table carries the box),
+// with the total pinned to the bottom of every page via a real tfoot, and the
+// three-column signature block underneath.
+const SERAH_TERIMA_ST_KAMAR_KD_CSS = `
+  /* Header block: four label/value pairs in two rows, no grid, sitting 14px
+     below the title. */
+  .meta-table { width: 100%; margin: 14px 0 10px 0; border-collapse: collapse; }
+  .meta-table td { border: 0 !important; padding: 1px 4px; vertical-align: top; background: #fff; }
+  .meta-table .meta-label { width: 16%; white-space: nowrap; font-weight: normal; }
+  .meta-table .meta-separator { width: 2%; text-align: center; }
+  .meta-table .meta-value { width: 32%; }
+
+  .report-table { border: 1px solid #000; table-layout: fixed; }
+  .report-table th, .report-table td { border: 0; border-left: 1px solid #000; border-right: 1px solid #000; padding: 2px 3px; vertical-align: middle; }
+  .report-table th:first-child, .report-table td:first-child { border-left: 0; }
+  .report-table thead tr.headers-row th { text-align: center; font-weight: bold; font-size: 10px; border-bottom: 1px solid #000; background: #fff; }
+  .report-table tbody td { border-top: 0; border-bottom: 0; }
+  /* A rule above the first line of every new No ST group. */
+  .report-table tbody tr.no-st-start td { border-top: 1px solid #000; }
+  /* The total sits in a tfoot so it repeats at the foot of every page rather
+     than trailing the last row onto its own page. */
+  .report-table tfoot { display: table-footer-group; }
+  .report-table tfoot td { border-top: 1px solid #000; font-weight: bold; font-size: 11px; background: #fff !important; }
+
+  .signature-table { width: 100%; margin-top: 26px; border-collapse: collapse; font-size: 10px; }
+  .signature-table td { border: 0 !important; padding: 0 4px; text-align: center; vertical-align: top; background: #fff !important; }
+  .signature-space { height: 60px; }
+`;
+
+// Rekap Jumlah (Pcs) Telly Hasil Sawmill. Per document: a two-pane header block,
+// then per grade a two-up grid of small Tebal|Lebar|Pcs tables (47.5% each with a
+// 5% gutter), each closed by a right-aligned "Jmlh Tebal n", the grade closed by
+// "Jmlh {grade}", and the document closed by the two-up footer summary.
+const REKAP_PCS_TELLY_HASIL_SAWMILL_CSS = `
+  .meta-layout { width: 100%; margin: 10px 0; table-layout: fixed; }
+  .meta-layout td { border: 0 !important; padding: 0; vertical-align: top; }
+  .meta-block { width: 100%; table-layout: fixed; }
+  .meta-block td { border: 0 !important; padding: 0 0 2px 0; font-size: 9.5px; vertical-align: top; }
+  .meta-block .meta-label { width: 88px; white-space: nowrap; }
+  .meta-block .meta-separator { width: 10px; text-align: center; }
+
+  .grade-title { margin: 10px 0 6px; font-size: 11px; font-weight: bold; }
+
+  /* The grid only positions the two panes; it must not draw a box of its own. */
+  .split-layout { width: 100%; table-layout: fixed; margin: 0 0 6px 0; border-collapse: collapse; }
+  .split-layout > tbody > tr > td { border: 0 !important; padding: 0; vertical-align: top; background: #fff; }
+  .split-layout .split-gap { width: 5%; }
+
+  /* The small Tebal|Lebar|Pcs tables: fully boxed, cells centred, horizontal
+     rules only between the rows of a block (dropped on the last one). */
+  .tebal-table { width: 100%; border-collapse: collapse; border-spacing: 0; border: 1px solid #000; margin-bottom: 3px; table-layout: fixed; }
+  .tebal-table th, .tebal-table td { border: 1px solid #000; padding: 2px 4px; text-align: center; vertical-align: middle; }
+  .tebal-table thead tr.headers-row th { font-size: 10px; font-weight: bold; border-top: 0; border-bottom: 1px solid #000; background: #fff; }
+  .tebal-table tbody tr.data-row td { border-top: 0 !important; border-bottom: 0 !important; }
+  .tebal-table tbody tr.row-last td { border-bottom: 1px solid #000 !important; }
+  .tebal-table td.number { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
+  .row-odd td { background: #c9d1df; }
+  .row-even td { background: #eef2f8; }
+
+  .tebal-total { margin: 0 0 10px; text-align: right; font-size: 10px; }
+  .grade-total { margin: 2px 0 10px; font-size: 11px; }
+
+  .footer-summary { width: 100%; margin-top: 10px; table-layout: fixed; }
+  .footer-summary td { border: 0 !important; padding: 0; font-size: 11px; background: #fff; }
+  .footer-summary .left { text-align: left; }
+  .footer-summary .right { text-align: right; }
+`;
+
+// Tracing ST. Not a grid report: a label/value meta block, then six borderless
+// step boxes (name left, date right, day count right-aligned beneath) under one
+// hairline, one traced ST per page.
+const TRACING_ST_CSS = `
+  .tracing-card { page-break-inside: avoid; }
+  .tracing-meta { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+  .tracing-meta td { border: 0 !important; padding: 1px 0; vertical-align: top; background: #fff; }
+  .tracing-meta .tracing-meta-label { width: 26mm; }
+  .tracing-meta .tracing-meta-value { font-weight: bold; }
+
+  .tracing-section { border-top: 0.4px solid #111; padding-top: 4px; margin-top: 5px; }
+  .tracing-step { width: 100%; border-collapse: collapse; margin: 0 0 3px 0; }
+  .tracing-step td { border: 0 !important; padding: 1px 0; vertical-align: top; background: #fff; }
+  .tracing-step .tracing-step-name { width: 31mm; font-weight: bold; }
+  .tracing-step .tracing-step-date { width: 20mm; text-align: right; }
+  .tracing-step .tracing-day { font-size: 10px; color: #333; text-align: right; }
+
+  .tracing-page-break { page-break-before: always; height: 0; }
+`;
+
+// ST Sawmill Per-Hari, Per-Tebal, Per-Lebar. A wide cross-tab per IS Group
+// (Group | Tebal | Lebar | one column per date | Total), then a page break and
+// a narrow 420px Rangkuman with a shaded Jenis Kayu cell spanning its block.
+const ST_SAWMILL_HARI_TEBAL_LEBAR_CSS = `
+  .report-subtitle { margin: 2px 0 12px 0; }
+  .group-title { margin: 0 0 6px 0; font-size: 10px; font-weight: bold; }
+  .section-title { margin: 10px 0 4px; font-size: 11px; font-weight: bold; }
+
+  /* Cross-tab: vertical rules only, horizontal ones only on the totals rows. */
+  table { width: 100%; border-collapse: collapse; border: 1px solid #000; }
+  th, td { border: 0; border-left: 1px solid #000; border-right: 1px solid #000; padding: 2px 3px; vertical-align: middle; }
+  th:first-child, td:first-child { border-left: 0; }
+  th { text-align: center; font-weight: bold; border-bottom: 1px solid #000; }
+  tbody td { border-top: 0; border-bottom: 0; }
+  tbody tr.totals-row td { font-weight: bold; border-top: 1px solid #000; border-bottom: 1px solid #000; background: #fff !important; }
+  tbody tr:last-child.totals-row td { border-bottom: 0; }
+  td.number { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
+  .grand-total-row td { background: none !important; font-size: 11px; }
+
+  /* Rangkuman: a narrow block, striped by row index rather than a class. */
+  .rangkuman-table { width: 420px !important; table-layout: fixed; }
+  .rangkuman-table td { padding: 2px 3px; }
+  .rangkuman-table tbody tr:nth-child(odd) td { background: #c9d1df; }
+  .rangkuman-table tbody tr:nth-child(even) td { background: #eef2f8; }
+  .rangkuman-table tbody tr.rangkuman-group-start td { border-top: 1px solid #000 !important; }
+  .rangkuman-table td.jenis-cell { font-weight: bold; vertical-align: middle; background: #c9d1df !important; border-top: 1px solid #000 !important; border-bottom: 1px solid #000 !important; }
+  .page-break { page-break-before: always; }
+`;
+
+// ST Hidup Rambung MC1 dan MC2 (Rangkuman). Two full-width tables under
+// sub-headings: per-tabel totals, then per-group totals with a Grand Total
+// row. No indent, 10px headers, vertical rules only.
+const ST_RAMBUNG_MC1_MC2_RANGKUMAN_CSS = `
+  .sub-title { margin: 20px 0 6px 0; font-size: 11px; font-weight: bold; text-align: left; }
+  .report-table { width: 100%; table-layout: fixed; border-collapse: collapse; border-spacing: 0; border: 1px solid #000; font-size: 10px; }
+  .report-table th, .report-table td { border: 0; border-left: 1px solid #000; border-right: 1px solid #000; border-top: 0; border-bottom: 0; padding: 2px 3px; vertical-align: middle; }
+  .report-table th:first-child, .report-table td:first-child { border-left: 0; }
+  .report-table thead tr.headers-row th { text-align: center; font-weight: bold; background: #fff; font-size: 10px; white-space: nowrap; border-bottom: 1px solid #000; }
+  .report-table tbody tr.totals-row td { border-top: 1px solid #000; font-weight: bold; background: #fff !important; }
+  .report-table td.number { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
+`;
+
+// ST Hidup Rambung MC1 dan MC2 (Detail). Per Jenis: a group heading, then a
+// per-tabel detail table indented 8px, then a Rangkuman with two summary
+// tables. Vertical rules only; the totals rows keep a rule above them.
+const ST_RAMBUNG_MC1_MC2_DETAIL_CSS = `
+  .group-title { margin: 10px 0 2px 0; font-size: 12px; font-weight: bold; text-align: left; }
+  .sub-title { margin: 0 0 6px 8px; font-size: 11px; font-weight: bold; text-align: left; }
+  .section-title { margin: 14px 0 6px 0; font-size: 12px; font-weight: bold; }
+
+  .report-table { width: calc(100% - 8px); table-layout: auto; border-collapse: collapse; border-spacing: 0; border: 1px solid #000; margin: 0 0 4px 8px; font-size: 10px; }
+  .report-table th, .report-table td { border: 0; border-left: 1px solid #000; border-right: 1px solid #000; border-top: 0; border-bottom: 0; padding: 2px 3px; vertical-align: middle; }
+  .report-table th:first-child, .report-table td:first-child { border-left: 0; }
+  .report-table thead tr.headers-row th { text-align: center; font-weight: bold; background: #fff; font-size: 11px; white-space: nowrap; border-bottom: 1px solid #000; }
+  .report-table tbody tr.totals-row td { border-top: 1px solid #000; font-weight: bold; background: #fff !important; }
+  .report-table td.number { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
+`;
+
+// ST Masuk Per-Group. A small 260px No | Tebal | ST (Ton) table per group,
+// indented 12px under its heading — not a full-page table.
+const ST_MASUK_PER_GROUP_CSS = `
+  .group-section-title { font-weight: bold; font-size: 11px; margin: 12px 0 5px 0; }
+  .report-table { width: 260px; margin-left: 12px; border-collapse: collapse; margin-bottom: 8px; }
+  .report-table th, .report-table td { border: 1px solid #000; padding: 3px 4px; vertical-align: middle; }
+  .report-table thead tr.headers-row th { text-align: center; font-weight: bold; font-size: 11px; }
+  .report-table tbody td { border-top: 0; border-bottom: 0; }
+  .report-table tbody tr.totals-row td { font-weight: bold; border: 1px solid #000; background: #fff !important; }
+  .report-table td.number { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
+`;
+
+// ST Hidup Per SPK. Per Jenis: a section title, then per Grade a heading and
+// one indented table per SPK with its own "Sub Total {spk}", and a
+// "Total Grade {grade}" row closing the last SPK of a Grade. The Rangkuman
+// Grand Total starts on a new page. Each table draws its own margins, so the
+// preset adds no indent of its own.
+const ST_HIDUP_PER_SPK_CSS = `
+  .section-title { margin: 10px 0 4px; font-size: 11px; font-weight: bold; }
+  .section-rangkuman-title { margin: 10px 0 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; text-decoration: underline; }
+  .page-break { page-break-before: always; }
+
+  .report-table { width: 100%; table-layout: fixed; border-collapse: collapse; border: 1px solid #000; }
+  .report-table thead tr.headers-row th { text-align: center; font-weight: bold; font-size: 11px; border-top: 0; border-bottom: 1px solid #000; }
+  .report-table tbody tr.data-row td { border-top: 0 !important; border-bottom: 0 !important; }
+  .report-table tbody tr.row-last td { border-bottom: 1px solid #000 !important; }
+  .report-table tbody tr.totals-row td { font-size: 11px; font-weight: bold; border: 1px solid #000; background: #fff !important; }
+  .report-table tbody tr.totals-row:last-child td { border-bottom: 0 !important; }
+  .report-table td.number { white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
+`;
+
+// ST Hidup Kering. One table per Jenis, listing live ST labels. The blade
+// gives every cell a full box but strips the horizontal rules between data
+// rows, and closes each table with a rule under its last row. No totals row.
+const ST_HIDUP_KERING_CSS = `
+  .jenis-title { margin: 8px 0 4px 0; font-weight: bold; font-size: 11px; }
+  .report-table { width: 100%; table-layout: fixed; border-collapse: collapse; border-spacing: 0; border: 1px solid #000; margin-bottom: 8px; font-size: 10px; }
+  .report-table td { border: 1px solid #000; padding: 2px 3px; vertical-align: middle; }
+  .report-table thead tr.headers-row th { text-align: center; font-weight: bold; background: #fff; font-size: 11px; white-space: nowrap; border-top: 0; border-left: 0; border-right: 0; border-bottom: 1px solid #000; }
+  .report-table tbody td { border-top: 0; border-bottom: 0; }
+  .report-table tbody tr:last-child td { border-bottom: 1px solid #000; }
+`;
+
+// ST Basah Hidup Per-Umur Kayu (Ton). Five age buckets plus a derived Total.
+// The blade draws vertical rules on BOTH sides of every cell, so the grid
+// closes at the right-hand edge too, and only the totals row keeps a rule
+// above it.
+const ST_BASAH_HIDUP_PER_UMUR_CSS = `
+  .report-table { width: 100%; table-layout: fixed; border-collapse: collapse; border: 1px solid #000; }
+  .report-table th, .report-table td { border: 0; border-left: 1px solid #000; border-right: 1px solid #000; padding: 2px 3px; vertical-align: middle; }
+  .report-table th:first-child, .report-table td:first-child { border-left: 0; }
+  .report-table thead tr.headers-row th { text-align: center; font-weight: bold; font-size: 11px; border-bottom: 1px solid #000; }
+  .report-table tbody td { border-top: 0; border-bottom: 0; }
+  .report-table tbody tr.totals-row td { font-weight: bold; font-size: 11px; border-top: 1px solid #000; }
+  .report-table td.number { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
+`;
+
+// ST (Sawmill) Masuk Per-Group per Meja. A cross-tab: Group Jenis | Jenis Kayu |
+// Tebal | one column per Meja | Total. The blade sizes the fixed columns in px
+// and lets the Meja columns fall where they may, so the layout stays auto (not
+// the shared fixed) and no header wraps.
+const ST_SAWMILL_MASUK_PER_GROUP_CSS = `
+  .report-table { width: 100%; table-layout: auto; border-collapse: collapse; border: 1px solid #000; }
+  .report-table th, .report-table td { border: 0; border-left: 1px solid #000; border-right: 1px solid #000; padding: 3px 4px; vertical-align: middle; }
+  .report-table th:first-child, .report-table td:first-child { border-left: 0; }
+  .report-table thead tr.headers-row th { text-align: center; font-weight: bold; font-size: 11px; border-bottom: 1px solid #000; background: #fff; white-space: nowrap; }
+  /* Only the totals rows keep a rule above them; data rows read as stripes. */
+  .report-table tbody td { border-top: 0; border-bottom: 0; }
+  .report-table tbody tr.totals-row td { border-top: 1px solid #000; font-weight: bold; font-size: 11px; }
+  .report-table td.number { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
+`;
+
+// SPK Sawmill. Two header blocks side by side, a narrow 220px Tebal|Lebar
+// block, the "Permintaan Racip" figure, then the racip ledger. The blade sets
+// the ledger in 7.5px/8px type with an 11px row height so a season of daily
+// rows fits on the page - at the shared 10px it ran to a second sheet.
+const SPK_SAWMILL_CSS = `
+  .meta-table { width: 100%; table-layout: fixed; margin-bottom: 8px; border: 0; }
+  .meta-table td { border: 0 !important; padding: 0 4px 4px 0; vertical-align: top; }
+  .meta-inner { width: 100%; border: 0; margin-bottom: 0; border-collapse: collapse; }
+  .meta-label { width: 86px; white-space: nowrap; }
+  .meta-sep { width: 14px; text-align: center; }
+
+  .spk-size-table { width: 220px; margin-top: 4px; margin-bottom: 8px; font-size: 10px; }
+  .spk-size-table th, .spk-size-table td { padding: 2px 6px; font-size: 10px; }
+
+  .spk-request-row { margin: 8px 0 18px; font-size: 11px; }
+  /* wkhtmltopdf's attachment-block is meaningless in Chromium; a block keeps
+     the same "figure on its own line under the label" look. */
+  .spk-request-value { display: block; margin-left: 8px; font-size: 18px; font-weight: bold; line-height: 1; }
+
+  .spk-detail-layout { width: 100%; table-layout: fixed; border: 0; margin-bottom: 0; border-collapse: collapse; }
+  /* A single ledger only fills half the page, as in the blade. */
+  .spk-detail-layout.single-detail-layout { width: 48%; }
+  .spk-detail-layout > tbody > tr > td { border: 0 !important; padding: 0; vertical-align: top; background: #fff; }
+  .spk-detail-layout .spk-detail-gap { width: 10%; }
+
+  /* Every table on this sheet is 10px, like the rest of the body - the legacy
+     blade dropped the ledger to 7.5px/8px, which read as a different report. */
+  .racip-table { width: 100%; table-layout: fixed; margin-bottom: 0; font-size: 10px; }
+  .racip-table th, .racip-table td { border: 1px solid #000; padding: 2px 4px; text-align: center; vertical-align: middle; font-size: 10px; }
+  .racip-table th { font-size: 10px; line-height: 1.15; background: #fff; border-bottom: 1px solid #000; }
+  .racip-table tbody tr.data-row td { height: 13px; }
+  .racip-table td.number { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
+`;
+
+// Saldo ST Hidup Per-Jenis Per-Tebal. Per Group: a section title, one table
+// per Produk indented 12px, and a borderless "Total {group}" band also at
+// 12px. The data rows keep only their vertical rules, the totals rows are
+// fully boxed.
+const SALDO_ST_HIDUP_PER_PRODUK_CSS = `
+  .section-title { margin: 10px 0 4px; font-size: 11px; font-weight: bold; }
+  .report-table { margin: 0 0 6px 12px; width: calc(100% - 24px); table-layout: fixed; }
+  .report-table thead tr.headers-row th { font-size: 11px; border-top: 0; border-bottom: 1px solid #000; }
+  .report-table tbody tr.data-row td { border-top: 0 !important; border-bottom: 0 !important; }
+  .report-table tbody tr.data-row:last-child td { border-bottom: 1px solid #000 !important; }
+  .report-table tbody tr.totals-row td { font-size: 11px; font-weight: bold; background: #fff !important; }
+  .report-table tbody tr.totals-row:last-child td { border-bottom: 0 !important; }
+  .report-table td.number { white-space: nowrap; }
+  /* The Group total is a borderless band, not a grid - same as the blade's
+     .report-table-total. */
+  .report-table.report-table-total { border: 0 !important; margin: 6px 0 2px 12px; width: calc(100% - 24px); }
+  .report-table.report-table-total td { border: 1px solid #000 !important; }
+`;
+
+// Rekap ST Penjualan. One table per Pembeli. The blade draws the grid with
+// vertical rules only: the table carries the outer box, every cell adds a LEFT
+// border and nothing else, so the data rows read as stripes rather than a grid.
+const REKAP_ST_PENJUALAN_CSS = `
+  .buyer-title { margin: 10px 0 6px 0; font-size: 11px; font-weight: bold; }
+
+  .report-table { width: 100%; border-collapse: collapse; border-spacing: 0; border: 1px solid #000; table-layout: fixed; }
+  .report-table th, .report-table td { border: 0; border-left: 1px solid #000; border-right: 1px solid #000; border-top: 0; border-bottom: 0; padding: 2px 3px; vertical-align: middle; }
+  .report-table th:first-child, .report-table td:first-child { border-left: 0; }
+  /* The blade keeps the header band at the 10px body size and on one line so a
+     long label such as "UOM Tbl Lebar" never wraps. */
+  .report-table thead tr.headers-row th { font-size: 10px; white-space: nowrap; border-bottom: 1px solid #000; background: #fff; }
+  .report-table td.number { text-align: right; white-space: nowrap; font-family: "Noto Sans", "DejaVu Sans", sans-serif; font-variant-numeric: tabular-nums; }
+  .report-table tbody tr.data-row td { border-top: 0 !important; border-bottom: 0 !important; }
+  .report-table tbody tr.totals-row td { border-top: 1px solid #000; font-weight: bold; background: #fff !important; }
+  /* Empty state: a shaded, bold-italic band closed by a rule underneath. */
+  .report-table tbody tr.empty-row td { background: #c9d1df !important; border-bottom: 1px solid #000 !important; font-size: 11px; font-weight: bold !important; font-style: italic; text-align: center !important; }
+`;
+
 const SALDO_HIDUP_KAYU_BULAT_KG_CSS = `
   .kb-block { margin-bottom: 10px; }
   .kb-meta { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
@@ -1264,7 +1647,7 @@ const PRODUKSI_PER_SPK_CSS = `
   .meta-label { width: 72px; }
   .meta-sep { width: 10px; text-align: center; }
 
-  .spk-dimension-table, .spk-rendemen-table { width: 100%; }
+  ..spk-dimension-table, .spk-rendemen-table { width: 100%; }
 
   /* Two header tables side by side: 49% each with a 2% spacer between them, the
      same split the Produksi Per Nomor Produksi reports use. The reset is
@@ -1787,6 +2170,25 @@ const WPS_REPORT_STYLES = {
   rekap_rendemen_rambung_per_supplier: REKAP_RENDEMEN_RAMBUNG_PER_SUPPLIER_CSS,
   saldo_barang_jadi_hidup_per_jenis_per_produk:
     SALDO_BARANG_JADI_HIDUP_PER_JENIS_PER_PRODUK_CSS,
+  stock_st_basah_kering: STOCK_ST_BASAH_KERING_CSS,
+  stok_opname_st_detail_kd: STOK_OPNAME_ST_DETAIL_KD_CSS,
+  detail_lembar_tally: DETAIL_LEMBAR_TALLY_CSS,
+  total_bagus_kulit_rambung: TOTAL_BAGUS_KULIT_RAMBUNG_CSS,
+  umur_sawn_timber_detail: UMUR_SAWN_TIMBER_DETAIL_CSS,
+  rekap_st_penjualan: REKAP_ST_PENJUALAN_CSS,
+  saldo_st_hidup_per_produk: SALDO_ST_HIDUP_PER_PRODUK_CSS,
+  spk_sawmill: SPK_SAWMILL_CSS,
+  st_sawmill_masuk_per_group: ST_SAWMILL_MASUK_PER_GROUP_CSS,
+  st_basah_hidup_per_umur: ST_BASAH_HIDUP_PER_UMUR_CSS,
+  st_hidup_kering: ST_HIDUP_KERING_CSS,
+  st_hidup_per_spk: ST_HIDUP_PER_SPK_CSS,
+  st_masuk_per_group: ST_MASUK_PER_GROUP_CSS,
+  st_rambung_mc1_mc2_detail: ST_RAMBUNG_MC1_MC2_DETAIL_CSS,
+  st_rambung_mc1_mc2_rangkuman: ST_RAMBUNG_MC1_MC2_RANGKUMAN_CSS,
+  st_sawmill_hari_tebal_lebar: ST_SAWMILL_HARI_TEBAL_LEBAR_CSS,
+  serah_terima_st_kamar_kd: SERAH_TERIMA_ST_KAMAR_KD_CSS,
+  rekap_pcs_telly_hasil_sawmill: REKAP_PCS_TELLY_HASIL_SAWMILL_CSS,
+  tracing_st: TRACING_ST_CSS,
   saldo_hidup_kayu_bulat_kg: SALDO_HIDUP_KAYU_BULAT_KG_CSS,
   stock_opname_kb: STOCK_OPNAME_KB_CSS,
   stock_racip_kayu_lat: STOCK_RACIP_KAYU_LAT_CSS,

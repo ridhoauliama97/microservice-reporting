@@ -8,6 +8,7 @@ import {
 } from "../../templates/html";
 import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import type { ReportDefinition } from "../types";
+import { WPS_REFERENCE_CSS } from "./reference-css";
 
 /**
  * SP_LapRekapSTPenjualan — "Laporan Rekap ST Penjualan". Ported from
@@ -16,12 +17,11 @@ import type { ReportDefinition } from "../types";
  *
  * One row per sold board, grouped by Pembeli. The SP names the period
  * parameters @StartDate/@EndDate (mapped to tglAwal/tglAkhir by inputNames),
- * and derives "NoST" from NoST (falling back to NoSTJual) plus UOM labels
- * from IdUOMTblLebar/IdUOMPanjang. Each Pembeli block closes with its own
+ * and derives "NoST" from NoST (falling back to NoSTJual). Each Pembeli block
+ * closes with its own
  * JmlhBtg/Ton subtotal, as the legacy per-supplier sheet does.
  */
 
-const UOM_LABEL: Record<number, string> = { 1: "mm", 3: "inch", 4: "feet" };
 
 const toFloat = (value: unknown): number => {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -45,9 +45,7 @@ interface PenjualanRow extends Record<string, unknown> {
   JenisKayu: string;
   Tebal: number;
   Lebar: number;
-  UOMTblLebar: string;
   Panjang: number;
-  UOMPanjang: string;
   JmlhBtg: number;
   Ton: number;
 }
@@ -58,9 +56,6 @@ interface PenjualanGroup {
   totalBatang: number;
   totalTon: number;
 }
-
-const uomLabel = (id: unknown): string =>
-  UOM_LABEL[toInt(id)] ?? "";
 
 function mapRow(row: Record<string, unknown>): PenjualanRow {
   const tanggalRaw = row.DateCreate ?? row.TglJual ?? "";
@@ -74,15 +69,7 @@ function mapRow(row: Record<string, unknown>): PenjualanRow {
     JenisKayu: String(row.Jenis ?? row.JenisKayu ?? ""),
     Tebal: toFloat(row.Tebal),
     Lebar: toFloat(row.Lebar),
-    UOMTblLebar:
-      typeof row.UOMTblLebar === "string" && row.UOMTblLebar.trim() !== ""
-        ? row.UOMTblLebar.trim()
-        : uomLabel(row.IdUOMTblLebar),
     Panjang: toFloat(row.Panjang),
-    UOMPanjang:
-      typeof row.UOMPanjang === "string" && row.UOMPanjang.trim() !== ""
-        ? row.UOMPanjang.trim()
-        : uomLabel(row.IdUOMPanjang),
     JmlhBtg: toInt(row.JmlhBatang ?? row.JmlhBtg),
     Ton: toFloat(row.Ton),
   };
@@ -124,34 +111,30 @@ const buildGroupTable = (group: PenjualanGroup): string => {
         <td>${escapeHtml(row.JenisKayu)}</td>
         <td class="center">${formatNumber(row.Tebal, 0)}</td>
         <td class="center">${formatNumber(row.Lebar, 0)}</td>
-        <td class="center">${escapeHtml(row.UOMTblLebar)}</td>
         <td class="number">${formatNumber(row.Panjang, 0)}</td>
-        <td class="center">${escapeHtml(row.UOMPanjang)}</td>
         <td class="number">${formatNumber(row.JmlhBtg, 0)}</td>
         <td class="number">${formatNumber(row.Ton, 4)}</td>
       </tr>`,
     )
     .join("\n      ");
 
-  return `<table class="report-table">
+  return `<table class="data-table">
   <thead>
     <tr class="headers-row">
       <th>NoST</th>
       <th>Tanggal (ST)</th>
       <th>Jenis Kayu</th>
-      <th>Tebal</th>
-      <th>Lebar</th>
-      <th>UOM Tbl Lebar</th>
-      <th>Panjang</th>
-      <th>UOMPanjang</th>
-      <th>JmlhBtg</th>
+      <th>Tebal (mm)</th>
+      <th>Lebar (mm)</th>
+      <th>Panjang (feet)</th>
+      <th>Jmlh Batang</th>
       <th>Ton</th>
     </tr>
   </thead>
   <tbody>
     ${bodyRows}
     <tr class="totals-row">
-      <td colspan="8" class="number" style="text-align:right;">Jmlh Batang / ${escapeHtml(group.pembeli)} :</td>
+      <td colspan="6" class="center">Jmlh Batang / ${escapeHtml(group.pembeli)}</td>
       <td class="number">${formatNumber(group.totalBatang, 0)}</td>
       <td class="number">${formatNumber(group.totalTon, 4)}</td>
     </tr>
@@ -184,16 +167,21 @@ export const rekapStPenjualanReport: ReportDefinition<
       ? groups
           .map(
             (group) =>
-              `<div class="section-title">Pembeli&nbsp;&nbsp;: ${escapeHtml(group.pembeli)}</div>\n` +
+              `<div class="buyer-title">Pembeli&nbsp;&nbsp;: ${escapeHtml(group.pembeli)}</div>\n` +
               buildGroupTable(group),
           )
           .join("\n")
-      : `<table class="report-table"><tbody>${buildEmptyTableRow(10)}</tbody></table>`;
+      : `<table class="data-table"><thead>
+    <tr class="headers-row">
+      <th>NoST</th><th>Tanggal (ST)</th><th>Jenis Kayu</th><th>Tebal (mm)</th><th>Lebar (mm)</th>
+      <th>Panjang (feet)</th><th>Jmlh Batang</th><th>Ton</th>
+    </tr>
+  </thead><tbody>${buildEmptyTableRow(8)}</tbody></table>`;
     return renderWpsReportPage({
       title: "Laporan Rekap ST Penjualan",
       subtitle: `Periode ${formatTanggalId(meta.params.tglAwal)} s/d ${formatTanggalId(meta.params.tglAkhir)}`,
       bodyHtml,
-      style: "saldo_barang_jadi_hidup_per_jenis_per_produk",
+      extraCss: WPS_REFERENCE_CSS["rekap-st-penjualan"],
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

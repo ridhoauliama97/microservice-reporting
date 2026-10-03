@@ -8,6 +8,7 @@ import {
 } from "../../templates/html";
 import { EMPTY_DATA_MESSAGE, renderWpsReportPage } from "./template";
 import type { ReportDefinition } from "../types";
+import { WPS_REFERENCE_CSS } from "./reference-css";
 
 /**
  * SPWps_LapSTMasukPerGroup — "Laporan ST Masuk Per-Group". Ported from
@@ -79,8 +80,8 @@ const buildGroupTable = (block: GroupBlock, index: number): string => {
     )
     .join("\n      ");
 
-  return `<div class="section-title">${index + 1}. ${escapeHtml(block.name)}</div>
-<table class="report-table">
+  return `<div class="group-section-title">${index + 1}. ${escapeHtml(block.name)}</div>
+<table class="group-table">
   <thead>
     <tr class="headers-row">
       <th style="width: 36px;">No</th>
@@ -130,7 +131,7 @@ export const stMasukPerGroupReport: ReportDefinition<
       title: "Laporan ST Masuk Per-Group",
       subtitle: `Periode ${formatTanggalId(meta.params.tglAwal)} s/d ${formatTanggalId(meta.params.tglAkhir)}`,
       bodyHtml,
-      style: "saldo_barang_jadi_hidup_per_jenis_per_produk",
+      extraCss: WPS_REFERENCE_CSS["st-masuk-per-group"],
       landscape: false,
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),

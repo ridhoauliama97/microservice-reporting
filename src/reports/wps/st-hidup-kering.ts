@@ -8,6 +8,7 @@ import {
 } from "../../templates/html";
 import { renderWpsReportPage, buildEmptyTableRow } from "./template";
 import type { ReportDefinition } from "../types";
+import { WPS_REFERENCE_CSS } from "./reference-css";
 
 /**
  * SP_LapSTHidupKering — "Laporan ST Hidup Kering". Ported from open-api-report's
@@ -143,17 +144,17 @@ export const stHidupKeringReport: ReportDefinition<
       meta.generatedAt.toISOString().slice(0, 10),
     ).replace(/\d{4}$/, (year) => year.slice(-2));
 
-    const tableFor = (group: JenisGroup): string => `<div class="product-title">Jenis : ${escapeHtml(group.name)}</div>
-<table class="report-table">
+    const tableFor = (group: JenisGroup): string => `<div class="jenis-title">Jenis : ${escapeHtml(group.name)}</div>
+<table class="data-table">
   <thead>
     <tr class="headers-row">
       <th style="width: 5%">No</th>
-      <th>No ST</th>
-      <th>Tebal (mm)</th>
-      <th>Lebar (mm)</th>
-      <th>Jumlah Batang (Pcs)</th>
-      <th>Lokasi</th>
-      <th>Usia (Hari)</th>
+      <th style="width: 15%">No ST</th>
+      <th style="width: 15%">Tebal (mm)</th>
+      <th style="width: 15%">Lebar (mm)</th>
+      <th style="width: 20%">Jumlah Batang (Pcs)</th>
+      <th style="width: 20%">Lokasi</th>
+      <th style="width: 15%">Usia (Hari)</th>
     </tr>
   </thead>
   <tbody>
@@ -161,32 +162,27 @@ ${group.rows
   .map(
     (r, i) => `    <tr class="data-row ${i % 2 === 0 ? "row-odd" : "row-even"}">
       <td class="center">${i + 1}</td>
-      <td>${escapeHtml(r.NoST)}</td>
-      <td class="number">${formatNumber(r.Tebal, 0)}</td>
-      <td class="number">${formatNumber(r.Lebar, 0)}</td>
-      <td class="number">${formatNumber(r.JmlhBatang, 0)}</td>
-      <td>${escapeHtml(r.IdLokasi)}</td>
-      <td class="number">${formatNumber(r.UsiaHari, 0)}</td>
+      <td class="center">${escapeHtml(r.NoST)}</td>
+      <td class="center">${formatNumber(r.Tebal, 0)}</td>
+      <td class="center">${formatNumber(r.Lebar, 0)}</td>
+      <td class="center">${formatNumber(r.JmlhBatang, 0)}</td>
+      <td class="center">${escapeHtml(r.IdLokasi)}</td>
+      <td class="center">${formatNumber(r.UsiaHari, 0)}</td>
     </tr>`,
   )
   .join("\n")}
-    <tr class="totals-row">
-      <td colspan="4" class="blank">Jumlah ${escapeHtml(group.name)}</td>
-      <td class="number">${formatNumber(group.totalBatang, 0)}</td>
-      <td colspan="2"></td>
-    </tr>
   </tbody>
 </table>`;
 
     const bodyHtml = groups.length
       ? groups.map((g) => tableFor(g)).join("\n")
-      : `<table class="report-table"><tbody>${buildEmptyTableRow(7)}</tbody></table>`;
+      : `<table class="data-table"><tbody>${buildEmptyTableRow(7)}</tbody></table>`;
 
     return renderWpsReportPage({
       title: "Laporan ST Hidup Kering",
       subtitle: `Per ${generated}`,
       bodyHtml,
-      style: "saldo_barang_jadi_hidup_per_jenis_per_produk",
+      extraCss: WPS_REFERENCE_CSS["st-hidup-kering"],
       landscape: false,
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),

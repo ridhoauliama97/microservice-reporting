@@ -155,6 +155,25 @@ export function formatTanggalId(iso: string): string {
 }
 
 /**
+ * Normalises a date value that can be a Date object (what the mssql driver
+ * returns for `date`/`datetime` columns) or a string into a YYYY-MM-DD key,
+ * so the result can be fed to formatTanggalId. Returns "" when the value is
+ * not a usable date, letting callers render blank or a dash.
+ */
+export function toDateKey(raw: unknown): string {
+  if (raw === null || raw === undefined) return "";
+  if (raw instanceof Date) {
+    return Number.isNaN(raw.getTime()) ? "" : raw.toISOString().slice(0, 10);
+  }
+  const s = String(raw).trim();
+  if (!s) return "";
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+  if (match) return `${match[1]}-${match[2]}-${match[3]}`;
+  const parsed = new Date(s);
+  return Number.isNaN(parsed.getTime()) ? "" : parsed.toISOString().slice(0, 10);
+}
+
+/**
  * Single-line page footer, stamped on EVERY page inside the bottom margin:
  * left  "Dicetak oleh: <name> pada <datetime>" (flush with the table's LEFT
  * edge), right "Halaman <n> dari <m>" (flush with the table's RIGHT edge).

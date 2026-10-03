@@ -5,8 +5,9 @@ import {
   formatPrintedAt,
   formatTanggalId,
 } from "../../templates/html";
-import { buildEmptyTableRow, renderWpsReportPage } from "./template";
+import { EMPTY_DATA_MESSAGE, renderWpsReportPage } from "./template";
 import type { ReportDefinition } from "../types";
+import { WPS_REFERENCE_CSS } from "./reference-css";
 
 /**
  * SPWps_LapSTHidupPerProdukV2 — "Laporan ST Hidup Per SPK, Per Jenis, Per
@@ -128,11 +129,15 @@ const detailTable = (rows: ProdukRow[], spk: string, lastInProduct: boolean, pro
   const sumK = rows.reduce((a, r) => a + toFloat(r.KDTon), 0);
   const sumKr = rows.reduce((a, r) => a + toFloat(r.KeringTon), 0);
   const sumT = rows.reduce((a, r) => a + toFloat(r.TotalTon), 0);
+  // The blade writes width:100% together with margin:0 20px. Chromium resolves
+  // the two independently, so the table would hang 20px past the right margin
+  // and clip the Total column; the -40px keeps the blade's 20px indent without
+  // losing any digits.
   return `<div style="margin: 0 0 4px 20px; font-weight: bold;">NoSPK : ${escapeHtml(spk)}</div>
 <table class="report-table" style="width: calc(100% - 40px); margin: 0 20px 4px 20px;">
   <thead>
     <tr class="headers-row">
-      <th style="width:1.96%;">No</th>
+      <th style="width:26px;">No</th>
       <th style="width:14.28%;">Tebal</th>
       <th style="width:14.28%;">Lebar</th>
       <th style="width:14.28%;">UOM</th>
@@ -158,11 +163,11 @@ ${rows
   )
   .join("")}
     <tr class="totals-row">
-      <td class="center" colspan="4" style="border-top: 0 !important;">Sub Total ${escapeHtml(spk)}</td>
-      <td class="number" style="border-top: 0 !important;">${fmtTon(sumB)}</td>
-      <td class="number" style="border-top: 0 !important;">${fmtTon(sumK)}</td>
-      <td class="number" style="border-top: 0 !important;">${fmtTon(sumKr)}</td>
-      <td class="number" style="border-top: 0 !important;">${fmtTon(sumT)}</td>
+      <td class="center" colspan="4">Sub Total ${escapeHtml(spk)}</td>
+      <td class="number">${fmtTon(sumB)}</td>
+      <td class="number">${fmtTon(sumK)}</td>
+      <td class="number">${fmtTon(sumKr)}</td>
+      <td class="number">${fmtTon(sumT)}</td>
     </tr>
 ${
   lastInProduct
@@ -195,7 +200,8 @@ const buildGroupTables = (group: GroupBlock): string => {
 const buildRangkuman = (blocks: GroupBlock[]): string => {
   if (blocks.length === 0) return "";
   const parts: string[] = [];
-  parts.push(`<div style="text-align: center; margin: 20px 0 0 0; font-weight: bold;">Rangkuman Grand Total</div>`);
+  parts.push(`<div class="page-break"></div>
+  <div class="section-rangkuman-title" style="text-align: center; margin: 20px 0 0 0;">Rangkuman Grand Total</div>`);
   blocks.forEach((group) => {
     parts.push(`<div class="section-title" style="margin-top: 10px;">${escapeHtml(group.name)}</div>`);
     parts.push(`<table class="report-table" style="width: 100%;">
@@ -211,12 +217,12 @@ const buildRangkuman = (blocks: GroupBlock[]): string => {
   <tbody>
 ${group.produks
   .map(
-    (p, i) => `    <tr class="data-row ${i % 2 === 0 ? "row-odd" : "row-even"}">
-      <td>${escapeHtml(p.name)}</td>
-      <td class="number">${fmtTon(p.basah)}</td>
-      <td class="number">${fmtTon(p.kd)}</td>
-      <td class="number">${fmtTon(p.kering)}</td>
-      <td class="number">${fmtTon(p.total)}</td>
+    (p, i) => `    <tr class="data-row ${i % 2 === 0 ? "row-odd" : "row-even"}${i === group.produks.length - 1 ? " row-last" : ""}">
+      <td class="data-cell">${escapeHtml(p.name)}</td>
+      <td class="number data-cell">${fmtTon(p.basah)}</td>
+      <td class="number data-cell">${fmtTon(p.kd)}</td>
+      <td class="number data-cell">${fmtTon(p.kering)}</td>
+      <td class="number data-cell">${fmtTon(p.total)}</td>
     </tr>`,
   )
   .join("")}
@@ -253,12 +259,13 @@ export const stHidupPerSpkReport: ReportDefinition<
     const blocks = groupRows(rows);
     const bodyHtml = blocks.length
       ? blocks.map(buildGroupTables).join("") + buildRangkuman(blocks)
-      : `<table class="report-table"><tbody>${buildEmptyTableRow(5)}</tbody></table>`;
+      : `<div class="center">${EMPTY_DATA_MESSAGE}</div>`;
     return renderWpsReportPage({
       title: "Laporan ST Hidup Per SPK, Per Jenis, Per Tebal, Per Group Jenis Kayu",
-      subtitle: "",
+      // The blade keeps an (empty) subtitle line under the title.
+      subtitle: "\u00A0",
       bodyHtml,
-      style: "saldo_barang_jadi_hidup_per_jenis_per_produk",
+      extraCss: WPS_REFERENCE_CSS["st-hidup-per-spk"],
       landscape: false,
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),

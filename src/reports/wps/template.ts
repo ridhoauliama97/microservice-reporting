@@ -387,6 +387,11 @@ export interface SingleTableReportSpec {
   transformRows?: (
     rows: Array<Record<string, unknown>>,
   ) => Array<Record<string, unknown>>;
+  /** Named shared layout preset; defaults to the plain WPS stylesheet. */
+  style?: WpsReportStyle;
+  /** Raw CSS appended after the shared sheet - used to hand a report the exact
+   *  stylesheet of its legacy blade (see reference-css.ts). */
+  extraCss?: string;
   landscape?: boolean;
 }
 
@@ -439,6 +444,11 @@ export interface SnapshotTableReportSpec {
   transformRows?: (
     rows: Array<Record<string, unknown>>,
   ) => Array<Record<string, unknown>>;
+  /** Named shared layout preset; defaults to the plain WPS stylesheet. */
+  style?: WpsReportStyle;
+  /** Raw CSS appended after the shared sheet - used to hand a report the exact
+   *  stylesheet of its legacy blade (see reference-css.ts). */
+  extraCss?: string;
   landscape?: boolean;
 }
 
@@ -495,6 +505,11 @@ export interface SingleDateTableReportSpec {
   transformRows?: (
     rows: Array<Record<string, unknown>>,
   ) => Array<Record<string, unknown>>;
+  /** Named shared layout preset; defaults to the plain WPS stylesheet. */
+  style?: WpsReportStyle;
+  /** Raw CSS appended after the shared sheet - used to hand a report the exact
+   *  stylesheet of its legacy blade (see reference-css.ts). */
+  extraCss?: string;
   landscape?: boolean;
 }
 
@@ -545,6 +560,11 @@ export interface NoKayuBulatLookupTableReportSpec {
   transformRows?: (
     rows: Array<Record<string, unknown>>,
   ) => Array<Record<string, unknown>>;
+  /** Named shared layout preset; defaults to the plain WPS stylesheet. */
+  style?: WpsReportStyle;
+  /** Raw CSS appended after the shared sheet - used to hand a report the exact
+   *  stylesheet of its legacy blade (see reference-css.ts). */
+  extraCss?: string;
   landscape?: boolean;
 }
 
@@ -591,6 +611,8 @@ function renderStandardTable(
     transformRows?: (
       rows: Array<Record<string, unknown>>,
     ) => Array<Record<string, unknown>>;
+    style?: WpsReportStyle;
+    extraCss?: string;
     landscape?: boolean;
   },
   rawRows: Array<Record<string, unknown>>,
@@ -616,6 +638,8 @@ function renderStandardTable(
       rows,
       totals,
     }),
+    style: spec.style,
+    extraCss: spec.extraCss,
     landscape: spec.landscape,
     printedBy: meta.requestedBy,
     printedAt: formatPrintedAt(meta.generatedAt),

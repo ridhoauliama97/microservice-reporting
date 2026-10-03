@@ -5,8 +5,9 @@ import {
   formatPrintedAt,
   formatTanggalId,
 } from "../../templates/html";
-import { buildEmptyTableRow, renderWpsReportPage } from "./template";
+import { EMPTY_DATA_MESSAGE, renderWpsReportPage } from "./template";
 import type { ReportDefinition } from "../types";
+import { WPS_REFERENCE_CSS } from "./reference-css";
 
 /**
  * SPWps_LapSTHidupPerProduk — "Laporan Saldo ST Hidup Per-Jenis Per-Tebal
@@ -113,38 +114,52 @@ function groupRows(rows: SaldoRow[]): GroupBlock[] {
 const fmtTon = (value: unknown): string =>
   formatNumber(toFloat(value), 4, { blankWhenZero: true });
 
+/**
+ * Column geometry shared by the per-product tables and the group's "Total"
+ * band, so a group's figure sits directly under the column it summarises.
+ *
+ * The blade states these as `th` percentages and as a separate `width: 100%`
+ * plus `margin-left: 12px`, which adds up to 115% and hangs the last column
+ * past the right margin. One `<colgroup>` inside a padded wrapper keeps the
+ * blade's proportions and the indent without the overflow.
+ */
+const COLGROUP = `<colgroup>
+      <col style="width: 5%"><col style="width: 12%"><col style="width: 12%"><col style="width: 8%"><col style="width: 15.75%"><col style="width: 15.75%"><col style="width: 15.75%"><col style="width: 15.75%">
+    </colgroup>`;
+
 const buildProductTable = (group: ProdukGroup): string => {
   const bodyRows = group.rows
     .map(
       (row, index) => `<tr class="data-row ${index % 2 === 0 ? "row-odd" : "row-even"}">
-        <td class="center">${index + 1}</td>
-        <td class="number">${formatNumber(toFloat(row.Tebal), 0)}</td>
-        <td class="number">${formatNumber(toFloat(row.Lebar), 0)}</td>
-        <td>${escapeHtml(String(row.UOM ?? ""))}</td>
-        <td class="number">${fmtTon(row.BasahTon)}</td>
-        <td class="number">${fmtTon(row.KDTon)}</td>
-        <td class="number">${fmtTon(row.KeringTon)}</td>
-        <td class="number">${fmtTon(row.TotalTon)}</td>
+        <td class="center data-cell">${index + 1}</td>
+        <td class="number data-cell">${formatNumber(toFloat(row.Tebal), 0)}</td>
+        <td class="number data-cell">${formatNumber(toFloat(row.Lebar), 0)}</td>
+        <td class="center data-cell">${escapeHtml(String(row.UOM ?? ""))}</td>
+        <td class="number data-cell">${fmtTon(row.BasahTon)}</td>
+        <td class="number data-cell">${fmtTon(row.KDTon)}</td>
+        <td class="number data-cell">${fmtTon(row.KeringTon)}</td>
+        <td class="number data-cell">${fmtTon(row.TotalTon)}</td>
       </tr>`,
     )
     .join("\n      ");
 
-  return `<div class="product-title">Produk : ${escapeHtml(group.name)}</div>
+  return `<div class="section-title" style="margin: 6px 0 2px 0; font-weight: bold; font-size: 11px;">Produk : ${escapeHtml(group.name)}</div>
 <table class="report-table">
+    ${COLGROUP}
   <thead>
     <tr class="headers-row">
-      <th style="width: 5%;">No</th>
-      <th style="width: 15%;">Tebal</th>
-      <th style="width: 15%;">Lebar</th>
-      <th style="width: 10%;">UOM</th>
-      <th style="width: 17.5%;">Basah (Ton)</th>
-      <th style="width: 17.5%;">KD (Ton)</th>
-      <th style="width: 17.5%;">Kering (Ton)</th>
-      <th style="width: 17.5%;">Total (Ton)</th>
+      <th>No</th>
+      <th>Tebal</th>
+      <th>Lebar</th>
+      <th>UOM</th>
+      <th>Basah (Ton)</th>
+      <th>KD (Ton)</th>
+      <th>Kering (Ton)</th>
+      <th>Total (Ton)</th>
     </tr>
   </thead>
   <tbody>
-    ${bodyRows}
+    ${bodyRows || `<tr><td colspan="8" class="center">${EMPTY_DATA_MESSAGE}</td></tr>`}
     <tr class="totals-row">
       <td colspan="4" class="center">Jumlah</td>
       <td class="number">${fmtTon(group.basah)}</td>
@@ -156,9 +171,7 @@ const buildProductTable = (group: ProdukGroup): string => {
 </table>`;
 };
 
-const buildEmptyTable = (): string => `<table class="report-table">
-  <tbody>${buildEmptyTableRow(8)}</tbody>
-</table>`;
+const buildEmptyBlock = (): string => `<div class="center">${EMPTY_DATA_MESSAGE}</div>`;
 
 export const saldoStHidupPerProdukReport: ReportDefinition<
   Record<never, never>,
@@ -179,11 +192,10 @@ export const saldoStHidupPerProdukReport: ReportDefinition<
       ? groupRows(rows)
           .map(
             (group, gi) => `<div class="section-title">${gi + 1}. ${escapeHtml(group.name)}</div>
+  <div style="padding: 0 12px;">
   ${group.produks.map(buildProductTable).join("\n  ")}
-  <table class="report-table" style="margin: 6px 0 2px 20px;">
-    <colgroup>
-      <col style="width: 5%"><col style="width: 15%"><col style="width: 15%"><col style="width: 10%"><col style="width: 17.5%"><col style="width: 17.5%"><col style="width: 17.5%"><col style="width: 17.5%">
-    </colgroup>
+  <table class="report-table report-table-total" style="margin: 6px 0 2px 0;">
+    ${COLGROUP}
     <tbody>
       <tr class="totals-row">
         <td class="center" colspan="4">Total ${escapeHtml(group.name)}</td>
@@ -193,15 +205,18 @@ export const saldoStHidupPerProdukReport: ReportDefinition<
         <td class="number">${fmtTon(group.total)}</td>
       </tr>
     </tbody>
-  </table>`,
+  </table>
+  </div>`,
           )
           .join("\n")
-      : buildEmptyTable();
+      : buildEmptyBlock();
     return renderWpsReportPage({
       title: "Laporan Saldo ST Hidup Per-Jenis Per-Tebal (Per-Group Jenis Kayu)",
-      subtitle: undefined,
+      // The blade keeps the (empty) subtitle line, so the title sits above the
+      // same 20px gap the other WPS sheets have.
+      subtitle: "\u00A0",
       bodyHtml,
-      style: "saldo_barang_jadi_hidup_per_jenis_per_produk",
+      extraCss: WPS_REFERENCE_CSS["saldo-st-hidup-per-produk"],
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

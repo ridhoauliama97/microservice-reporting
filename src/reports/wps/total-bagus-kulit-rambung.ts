@@ -3,6 +3,7 @@ import sql from "mssql";
 import { escapeHtml, formatNumber, formatPrintedAt } from "../../templates/html";
 import { renderWpsReportPage, EMPTY_DATA_MESSAGE } from "./template";
 import type { ReportDefinition } from "../types";
+import { WPS_REFERENCE_CSS } from "./reference-css";
 
 /**
  * "Laporan Total Bagus/Kulit Rambung". Ported from open-api-report's
@@ -73,9 +74,9 @@ ORDER BY Jenis, Kategori, D.Tebal, D.Lebar, D.Panjang`);
       <td class="center">${i + 1}</td>
       <td>${escapeHtml(String(r.Jenis ?? ""))}</td>
       <td>${escapeHtml(String(r.Kategori ?? ""))}</td>
-      <td class="number">${formatNumber(toFloat(r.Tebal), 0)}</td>
-      <td class="number">${formatNumber(toFloat(r.Lebar), 0)}</td>
-      <td class="number">${formatNumber(toFloat(r.Panjang), 0)}</td>
+      <td class="dim">${formatNumber(toFloat(r.Tebal), 0)}</td>
+      <td class="dim">${formatNumber(toFloat(r.Lebar), 0)}</td>
+      <td class="dim">${formatNumber(toFloat(r.Panjang), 0)}</td>
       <td class="number">${formatNumber(bgs, 0)}</td>
       <td class="number">${formatNumber(k, 0)}</td>
     </tr>`;
@@ -84,15 +85,17 @@ ORDER BY Jenis, Kategori, D.Tebal, D.Lebar, D.Panjang`);
 
     return renderWpsReportPage({
       title: "Laporan Total Bagus/Kulit Rambung",
-      subtitle: `Per Tanggal : ${escapeHtml(String(meta.params.tanggal))}`,
+      subtitle: `Per Tanggal : ${meta.params.tanggal}`,
       bodyHtml: `<table class="report-table">
   <thead>
     <tr><th style="width:6%;">No</th><th style="width:22%;">Jenis</th><th style="width:20%;">Kategori</th><th style="width:10%;">Tebal</th><th style="width:10%;">Lebar</th><th style="width:10%;">Panjang</th><th style="width:11%;">Bagus</th><th style="width:11%;">Kulit</th></tr>
   </thead>
   <tbody>
-${bodyRows || `    <tr><td colspan="8" class="center">${EMPTY_DATA_MESSAGE}</td></tr>`}
+${bodyRows || `    <tr class="empty-row"><td colspan="8" class="center">${EMPTY_DATA_MESSAGE}</td></tr>`}
+    <tr class="total-row"><td class="center" colspan="6">Total</td><td class="number">${formatNumber(bagus, 0)}</td><td class="number">${formatNumber(kulit, 0)}</td></tr>
   </tbody>
-</table>${rows.length ? `<table class="report-table"><tbody><tr class="totals-row"><td class="center" colspan="6">Total</td><td class="number">${formatNumber(bagus, 0)}</td><td class="number">${formatNumber(kulit, 0)}</td></tr></tbody></table>` : ""}`,
+</table>`,
+      extraCss: WPS_REFERENCE_CSS["total-bagus-kulit-rambung"],
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
     });

@@ -8,6 +8,7 @@ import {
 } from "../../templates/html";
 import { renderWpsReportPage } from "./template";
 import type { ReportDefinition } from "../types";
+import { WPS_REFERENCE_CSS } from "./reference-css";
 
 /**
  * SP_LapSerahTerimaSTKDKeluar — "Laporan Serah Terima ST (Kamar KD)". Ported
@@ -16,8 +17,12 @@ import type { ReportDefinition } from "../types";
  *
  * Parameter @NoProcKD. The result-set exposes the kamar-KD header (NoProcKD,
  * NoRuangKD, TglMasuk, TglKeluar) on every row; we surface it once as a meta
- * table, then render per-NoST sections with their own Pcs / Ton / Kubik
- * subtotal, as the legacy sheet does.
+ * table, then one data table that groups the lines per No ST (Cek + No ST
+ * span their group) and closes with the "Total Dari Ruang KD {ruang}" footer,
+ * and finally the signature block.
+ *
+ * Note: the handover-summary table of the blade (Jmlh Label Dari No.KD / Jmlh
+ * Dari Proses KD) is commented out there, so it is not rendered here either.
  */
 
 const toFloat = (value: unknown): number => {
@@ -123,15 +128,15 @@ export const serahTerimaStKamarKdReport: ReportDefinition<
       return out === "" ? "0" : out;
     };
 
-    const metaTable = `<table class="meta-table" style="width: 100%;">
+    const metaTable = `<table class="meta-table">
   <tbody>
     <tr>
-      <td class="meta-label">No.Proses KD</td><td class="meta-separator">:</td><td>${escapeHtml(header.NoProcKD)}</td>
-      <td class="meta-label">No.Ruang KD</td><td class="meta-separator">:</td><td>${escapeHtml(String(header.NoRuangKD))}</td>
+      <td class="meta-label">No.Proses KD</td><td class="meta-separator">:</td><td class="meta-value">${escapeHtml(header.NoProcKD)}</td>
+      <td class="meta-label">No.Ruang KD</td><td class="meta-separator">:</td><td class="meta-value">${escapeHtml(String(header.NoRuangKD))}</td>
     </tr>
     <tr>
-      <td class="meta-label">Tanggal Masuk</td><td class="meta-separator">:</td><td>${escapeHtml(header.TglMasuk)}</td>
-      <td class="meta-label">Tanggal Keluar</td><td class="meta-separator">:</td><td>${escapeHtml(header.TglKeluar)}</td>
+      <td class="meta-label">Tanggal Masuk</td><td class="meta-separator">:</td><td class="meta-value">${escapeHtml(header.TglMasuk)}</td>
+      <td class="meta-label">Tanggal Keluar</td><td class="meta-separator">:</td><td class="meta-value">${escapeHtml(header.TglKeluar)}</td>
     </tr>
   </tbody>
 </table>`;
@@ -146,14 +151,14 @@ export const serahTerimaStKamarKdReport: ReportDefinition<
         const span = i === 0
           ? `<td rowspan="${rowspan}" class="center">&#9633;</td><td rowspan="${rowspan}">${escapeHtml(g.noSt)}</td>`
           : "";
-        dataRows += `<tr class="${odd ? "row-odd" : "row-even"}">${span}<td class="center">${i + 1}</td><td></td>` +
+        dataRows += `<tr class="${odd ? "row-odd" : "row-even"}${i === 0 ? " no-st-start" : ""}">${span}<td class="center">${i + 1}</td><td></td>` +
           `<td class="number">${fmtSize(r.Tebal)}</td><td class="number">${fmtSize(r.Lebar)}</td><td class="number">${fmtSize(r.Panjang)}</td>` +
-          `<td class="number">${formatNumber(r.JmlhBatang, 0)}</td><td class="number">${formatNumber(r.Ton, 4)}</td><td class="number">${formatNumber(r.Kubik, 4)}</td></tr>
+          `<td class="number">${formatNumber(r.JmlhBatang, 0)}</td><td class="number" style="font-weight:bold;">${formatNumber(r.Ton, 4)}</td><td class="number" style="font-weight:bold;">${formatNumber(r.Kubik, 4)}</td></tr>
 `;
       });
     }
 
-    const bodyHtml = metaTable + `<table class="report-table" style="width: 100%;">
+    const bodyHtml = metaTable + `<table class="data-table">
   <thead>
     <tr>
       <th style="width:5%;">Cek</th>
@@ -180,11 +185,48 @@ ${dataRows || `    <tr><td colspan="10" class="center">Tidak ada data</td></tr>`
   </tfoot>
 </table>`;
 
+    // The blade's signature block: two signatories side by side plus the
+    // "Diketahui Oleh (Ka.Div Stock)" line in the middle column.
+    const signatureTable = `<table class="signature-table">
+  <tbody>
+    <tr>
+      <td style="width:40%;">Yang Menyerahkan</td>
+      <td style="width:20%;"></td>
+      <td style="width:40%;">Yang Menerima</td>
+    </tr>
+    <tr>
+      <td class="signature-space"></td>
+      <td></td>
+      <td class="signature-space"></td>
+    </tr>
+    <tr>
+      <td>( ................................ )</td>
+      <td></td>
+      <td>( ................................ )</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td style="padding-top: 14px;">Diketahui Oleh</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td></td>
+      <td class="signature-space"></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td></td>
+      <td>(Ka.Div Stock)</td>
+      <td></td>
+    </tr>
+  </tbody>
+</table>`;
+
     return renderWpsReportPage({
       title: "Laporan Serah Terima ST (Kamar KD)",
       subtitle: "",
-      bodyHtml,
-      style: "saldo_barang_jadi_hidup_per_jenis_per_produk",
+      bodyHtml: bodyHtml + signatureTable,
+      extraCss: WPS_REFERENCE_CSS["serah-terima-st-kamar-kd"],
       landscape: false,
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),

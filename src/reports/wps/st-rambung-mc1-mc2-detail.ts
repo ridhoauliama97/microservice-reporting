@@ -7,6 +7,7 @@ import {
 } from "../../templates/html";
 import { buildEmptyTableRow, renderWpsReportPage } from "./template";
 import type { ReportDefinition } from "../types";
+import { WPS_REFERENCE_CSS } from "./reference-css";
 
 /**
  * SP_LapSTRambungMC1danMC2Detail — "Laporan ST Hidup Rambung MC1 dan MC2
@@ -120,18 +121,34 @@ function groupRows(rows: DetailRow[]): JenisGroup[] {
     });
 }
 
-const buildDetailTable = (sub: SubGroup): string => `<div class="product-title">${escapeHtml(sub.label)}</div>
-<table class="report-table">
+/**
+ * Column geometry for the per-subgroup tables.
+ *
+ * The blade pairs `table-layout: fixed` with `white-space: nowrap` on the
+ * headers and declares no widths at all, so every column lands on an equal
+ * 12.5% and "Jumlah Batang (pcs)" - too wide to wrap - runs straight over the
+ * next column's rule. Pinning the columns keeps the blade's 10px / nowrap look
+ * while giving the long header room and the row number just enough.
+ */
+const DETAIL_COLGROUP = `<colgroup>
+    <col style="width:4%"><col style="width:14%"><col style="width:9%"><col style="width:9%">
+    <col style="width:9%"><col style="width:24%"><col style="width:15.5%"><col style="width:15.5%">
+  </colgroup>`;
+
+const buildDetailTable = (sub: SubGroup): string => `<div class="sub-title">${escapeHtml(sub.label)}</div>
+<div class="sheet-indent" style="padding: 0 8px;">
+<table class="data-table" style="width: 100%; margin-left: 0;">
+    ${DETAIL_COLGROUP}
   <thead>
     <tr class="headers-row">
-      <th style="width:30px;">No</th>
-      <th style="width:70px">No ST</th>
-      <th style="width:50px">Tebal (mm)</th>
-      <th style="width:50px">Lebar (mm)</th>
-      <th style="width:50px">Panjang (ft)</th>
-      <th style="width:70px">Jumlah Batang (pcs)</th>
-      <th style="width:70px">Ton</th>
-      <th style="width:70px">Kubik</th>
+      <th>No</th>
+      <th>No ST</th>
+      <th>Tebal (mm)</th>
+      <th>Lebar (mm)</th>
+      <th>Panjang (ft)</th>
+      <th>Jumlah Batang (pcs)</th>
+      <th>Ton</th>
+      <th>Kubik</th>
     </tr>
   </thead>
   <tbody>
@@ -139,10 +156,10 @@ ${sub.rows
   .map(
     (r, i) => `    <tr class="data-row ${i % 2 === 0 ? "row-odd" : "row-even"}">
       <td class="center">${i + 1}</td>
-      <td>${escapeHtml(r.NoST)}</td>
-      <td class="number">${formatNumber(r.Tebal, 0)}</td>
-      <td class="number">${formatNumber(r.Lebar, 0)}</td>
-      <td class="number">${formatNumber(r.Panjang, 0)}</td>
+      <td class="center">${escapeHtml(r.NoST)}</td>
+      <td class="center">${formatNumber(r.Tebal, 0)}</td>
+      <td class="center">${formatNumber(r.Lebar, 0)}</td>
+      <td class="center">${formatNumber(r.Panjang, 0)}</td>
       <td class="number">${formatNumber(r.JmlhBatang, 0)}</td>
       <td class="number">${formatNumber(r.Ton, 4)}</td>
       <td class="number">${formatNumber(r.Kubik, 4)}</td>
@@ -150,13 +167,14 @@ ${sub.rows
   )
   .join("\n")}
     <tr class="totals-row">
-      <td colspan="5" class="blank">Total ${escapeHtml(sub.label)}</td>
+      <td colspan="5">Total ${escapeHtml(sub.label)}</td>
       <td class="number">${formatNumber(sub.pcs, 0)}</td>
       <td class="number">${formatNumber(sub.ton, 4)}</td>
       <td class="number">${formatNumber(sub.kubik, 4)}</td>
     </tr>
   </tbody>
-</table>`;
+</table>
+</div>`;
 
 const buildRangkuman = (groups: JenisGroup[]): string => {
   if (groups.length === 0) return "";
@@ -176,8 +194,9 @@ const buildRangkuman = (groups: JenisGroup[]): string => {
   const parts: string[] = [];
   parts.push(`<div class="section-title">Rangkuman</div>`);
   if (tables.length > 0) {
-    parts.push(`<div style="font-weight: bold; margin: 6px 0 2px 0;">Total Masing-masing Jenis Stock</div>
-<table class="report-table">
+    parts.push(`<div class="sub-title">Total Masing-masing Jenis Stock</div>
+<div class="sheet-indent" style="padding: 0 8px;">
+<table class="data-table" style="width: 100%; margin-left: 0;">
   <thead>
     <tr>
       <th style="width:4%;">No</th>
@@ -200,11 +219,13 @@ ${tables
   )
   .join("")}
   </tbody>
-</table>`);
+</table>
+</div>`);
   }
   if (groupRows.length > 0) {
-    parts.push(`<div style="font-weight: bold; margin: 6px 0 2px 0;">Grand Total Seluruh Group Stock</div>
-<table class="report-table">
+    parts.push(`<div class="sub-title">Grand Total Seluruh Group Stock</div>
+<div class="sheet-indent" style="padding: 0 8px;">
+<table class="data-table" style="width: 100%; margin-left: 0;">
   <thead>
     <tr>
       <th style="width:4%;">No</th>
@@ -233,7 +254,8 @@ ${groupRows
       <td class="number">${formatNumber(grandKubik, 4)}</td>
     </tr>
   </tbody>
-</table>`);
+</table>
+</div>`);
   }
   return parts.join("");
 };
@@ -266,17 +288,17 @@ export const stRambungMc1Mc2DetailReport: ReportDefinition<
     const bodyHtml = groups.length
       ? groups
           .map(
-            (g) => `<div class="section-title">${escapeHtml(g.jenis)}</div>
+            (g) => `<div class="group-title">${escapeHtml(g.jenis)}</div>
 ${g.subgroups.map(buildDetailTable).join("")}`,
           )
           .join("") + buildRangkuman(groups)
-      : `<table class="report-table"><tbody>${buildEmptyTableRow(8)}</tbody></table>`;
+      : `<table class="data-table"><tbody>${buildEmptyTableRow(8)}</tbody></table>`;
 
     return renderWpsReportPage({
       title: "Laporan ST Hidup Rambung MC1 dan MC2 (Detail)",
       subtitle: `Per ${generated}`,
       bodyHtml,
-      style: "saldo_barang_jadi_hidup_per_jenis_per_produk",
+      extraCss: WPS_REFERENCE_CSS["st-rambung-mc1-mc2-detail"],
       landscape: false,
       printedBy: meta.requestedBy,
       printedAt: formatPrintedAt(meta.generatedAt),
