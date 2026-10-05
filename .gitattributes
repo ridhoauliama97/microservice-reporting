@@ -1,0 +1,6 @@
+# Generated docs are compared byte-for-byte by `generate-catalog.ts --check`.
+# Without pinning the EOL here, `core.autocrlf=true` on Windows checks them out
+# with CRLF while the generator always writes LF, so --check reports every
+# generated file as stale even though the content is identical. The diff is
+# empty; only the line endings differ.
+docs/** text eol=lf
