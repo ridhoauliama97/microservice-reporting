@@ -193,7 +193,7 @@ import { rangkumanJumlahLabelInputReport } from './wps/rangkuman-jumlah-label-in
 import { kapasitasRacipKayuBulatHidupReport } from './wps/kapasitas-racip-kayu-bulat-hidup'
 import type { ReportDefinition } from './types'
 
-// The single allowed `any` in the codebase (AGENTS.md 7.9): each report has
+// The single allowed `any` in the codebase (AGENTS.md §2): each report has
 // its own params/data types, and generic bookkeeping here adds no safety —
 // params are validated against each report's paramsSchema before use.
 export const reports: Record<string, ReportDefinition<any, any>> = {

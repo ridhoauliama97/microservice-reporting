@@ -260,7 +260,9 @@ Lalu daftarkan di `src/reports/registry.ts`.
 
 **Penempatan file:** laporan yang menyentuh database WPS diletakkan di `src/reports/wps/` (mis. `src/reports/wps/mutasi-kayu-bulat.ts`); laporan umum/tanpa DB tetap di `src/reports/`.
 
-**Kasus khusus** (2 SP / tabel ganda / header bergrup seperti `mutasi-barang-jadi`, atau parameter non-periode): tulis `fetchData` + `render` sendiri di file laporan — pakai blok bangunan template (`renderWpsReportPage`, `buildReportTable`, `formatNumber4`, `formatTanggalId`) supaya tampilan tetap konsisten, jangan menulis CSS sendiri. Tanpa DB, tiru `src/reports/example.ts`.</think><tool_call>edit<arg_key>newString</arg_key><arg_value>`fetchData` menerima `ctx.pool` berupa **promise lazy** — koneksi SQL Server baru dibuka saat promise itu di-await, jadi laporan yang tidak butuh DB tidak pernah membuka koneksi.
+**Kasus khusus** (2 SP / tabel ganda / header bergrup seperti `mutasi-barang-jadi`, atau parameter non-periode): tulis `fetchData` + `render` sendiri di file laporan — pakai blok bangunan template (`renderWpsReportPage`, `buildReportTable`, `formatNumber4`, `formatTanggalId`) supaya tampilan tetap konsisten, jangan menulis CSS sendiri. Tanpa DB, tiru `src/reports/example.ts`.
+
+`fetchData` menerima `ctx.pool` berupa **promise lazy** — koneksi SQL Server baru dibuka saat promise itu di-await, jadi laporan yang tidak butuh DB tidak pernah membuka koneksi.
 
 Dua pola query yang sah (selalu berparameter, **jangan** menyambung string SQL dengan input user):
 
@@ -286,13 +288,43 @@ async fetchData(params, { pool }) {
 
 Aturan template HTML (`render`): **semua** nilai dari DB/user wajib lewat `escapeHtml`; template tidak boleh bergantung JavaScript (JS Chromium dinonaktifkan di Gotenberg); gambar pakai `data:` URI base64.
 
+### Stylesheet blade legacy (20 laporan)
+
+Dua puluh laporan memakai stylesheet blade-nya sendiri, bukan layout bersama, supaya tampilannya sama dengan cetakan legacy. File itu **generated**:
+
+```sh
+bun run generate:css              # tulis ulang src/reports/wps/reference-css.ts
+bun run generate:css -- --check   # gagal kalau file hasil generate sudah basi
+```
+
+- Sumbernya `open-api-report`'s `resources/views/**-pdf.blade.php` (bisa diubah lewat `OPEN_API_REPORT_VIEWS`).
+- **Jangan edit `reference-css.ts` manual** — jalan berikutnya menimpanya. Ubah blade-nya, lalu jalankan ulang.
+- Koreksi per-laporan tidak ada di generator (itu keputusan, bukan turunan): ada di `src/reports/wps/reference-css-fixups.ts`.
+- Generator gagal dengan pesan jelas kalau nama variabel Blade tidak punya nilai — именно bug "nilai fontsize hilang" yang pernah membuat dua sheet tampil dengan ukuran font bawaan Chromium.
+- Peta `type` → blade ada eksplisit di `scripts/generate-reference-css.ts` dan **namanya saling tertukar**: `st-masuk-per-group` memakai blade `st-sawmill-masuk-per-group`, dan sebaliknya memakai yang `-meja`.
+
 ## Testing
 
 ```sh
 bun run typecheck   # tsc --noEmit
-bun test            # unit test (env, html, registry)
+bun test            # unit test (env, html, registry, + regression per kelompok laporan)
 bun run scripts/ws-test.ts <jobId> <token>   # klien WebSocket manual
 ```
+
+### Menjalankan seluruh laporan end-to-end
+
+Butuh infra + API + worker hidup, lalu:
+
+```sh
+bun run e2e -- --from=2026-09-01 --to=2026-09-30
+```
+
+Script ini menjalankan **seluruh** jenis laporan: `POST /reports` → tunggu job → unduh PDF → cek magic `%PDF` → simpan ke `storage/e2e/`, plus `e2e-report.json` berisi ringkasan per tipe.
+
+- Parameter setiap laporan **dibangun dari skema Zod laporan itu sendiri**, jadi laporan baru otomatis ikut diuji.
+- Laporan berparam lookup (nomor produksi, SPK, kayu bulat, no. jual, no. proses KD, no. penerimaan ST) memakai **nilai nyata yang diambil dari tabel yang dibaca stored procedure-nya** — kunci tebakan hanya menghasilkan lembar kosong.
+- Opsi: `--concurrency=`, `--only=type1,type2`, `--skip=`, `--out=`, `--small-pdf=`, `--timeout=`.
+- Laporan yang selesai tapi kecil (< 20 KB) dicatat terpisah: itu suspiciously mungkin "Tidak ada data". Periksa dengan periode yang lebih luas sebelum menganggapnya bug.
 
 ## Troubleshooting
 
@@ -307,19 +339,17 @@ bun run scripts/ws-test.ts <jobId> <token>   # klien WebSocket manual
 
 ## Lingkup & batas saat ini
 
-Bentuk `params` pada `POST /reports` dipetakan otomatis dari registry, jadi spesifikasinya tidak mungkin melenceng dari kode. Satu request body dipetakan lewat `anyOf` per **bentuk** parameter, bukan per laporan: 161 laporan hanya jadi 16 cabang, dan tiap cabang mencantumkan laporan mana yang memakainya. Bentuk `params` yang ada:
+Bentuk `params` pada `POST /reports` dipetakan otomatis dari registry, jadi spesifikasinya tidak mungkin melenceng dari kode. Satu request body dipetakan lewat `anyOf` per **bentuk** parameter, bukan per laporan: 181 laporan hanya jadi 26 cabang, dan tiap cabang mencantumkan laporan mana yang memakainya. Bentuk `params` yang ada:
 
 | Bentuk | Jumlah laporan | Isi `params` |
 |---|---|---|
-| `PeriodParams` | 102 | `tglAwal` + `tglAkhir` (wajib) |
-| `NoParams` | 14 | kosong / `{}` |
+| `PeriodParams` | 108 | `tglAwal` + `tglAkhir` (wajib) |
+| `NoParams` | 19 | kosong / `{}` |
 | `AsOfDateParams` | 8 | `tglAkhir` saja |
 | `ParamsUmurLaminatingDetail` | 8 | `umur1`..`umur4` (ada default) |
 | `ParamsProduksiFjPerNomorProduksi` | 7 | `noProduksi` |
 | sisanya | 1–4 per bentuk | khusus — lihat komponen di `/docs/openapi.json` |
 
-
 - Nama kolom `NoS4S`/`Kubik` pada laporan hidup S4S & Sanding, urutan kolom `dashboard-sanding`, dan kolom `Period1-5` pada laporan umur masih **asumsi** — belum diverifikasi terhadap SP asli di SQL Server. (Column mapping 4 SP consolidated/per-jenis sudah diverifikasi dan dikoreksi; `mutasi-sanding` juga sudah, lewat `rekap-mutasi.ts`.)
 - Kapasitas Racip memakai konstanta kapasitas sawmill `323.7837` ton/hari dan rendemen 85% / 20% yang diambil dari `open-api-report`, bukan dari SP. Kalau angka plants berubah, kedua konstanta itu perlu ditinjau.
-- Nama field username di payload JWT WPS (`JWT_USERNAME_CLAIM`) dan algoritma JWT (`JWT_ALG`) masih default dan **belum dikonfirmasi** terhadap token WPS asli.
-- Kredensial SQL Server production belum diisi; semua pengujian memakai laporan `example`.
+- Nama field username di payload JWT WPS adalah `username` (`JWT_USERNAME_CLAIM`) dan algoritmanya `HS256` (`JWT_ALG`) — **sudah dicek langsung ke token WPS asli**, jadi nilai default di `config/env.ts` bukan lagi asumsi.

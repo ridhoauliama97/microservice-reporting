@@ -11,8 +11,8 @@ import { reports } from './registry'
  * The body is therefore built from the registry here, so the documented params
  * come from the same Zod schema the API validates with and cannot drift.
  *
- * 170 report types but only a handful of distinct param shapes, so the body is a
- * `oneOf` per SHAPE rather than per report. Each branch pins `type` to the
+ * Many report types but only a handful of distinct param shapes, so the body is
+ * a `oneOf` per SHAPE rather than per report. Each branch pins `type` to the
  * reports that use that shape, so the docs still say exactly which reports take
  * what, and a body naming `label-nyangkap` cannot also carry a period.
  *

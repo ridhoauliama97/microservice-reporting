@@ -31,11 +31,11 @@ export const app = new OpenAPIHono<AppEnv>({
   },
 })
 
-// Order matters (AGENTS.md 7.2): logger -> CORS -> body limit -> routes.
+// Order matters (AGENTS.md §1): logger -> CORS -> body limit -> routes.
 
 // Request logger. hono/logger was rejected deliberately: it prints the FULL
 // URL including the query string, which would leak the WebSocket token
-// (AGENTS.md 7.2). Here we log the path only.
+// (AGENTS.md §1). Here we log the path only.
 app.use('*', async (c, next) => {
   const start = performance.now()
   await next()
@@ -66,10 +66,10 @@ registerHealthRoutes(app)
 registerReportsRoutes(app)
 registerWsRoutes(app)
 
-// --- OpenAPI docs (AGENTS.md 7.13) ---
+// --- OpenAPI docs (AGENTS.md §1) ---
 
 // The spec is built by hand rather than via app.doc() because the components
-// block has to carry the 138 reports' param schemas, and the generator's config
+// block has to carry the reports' param schemas, and the generator's config
 // type does not accept one. The document is otherwise the standard output.
 const openApiConfig = {
   openapi: '3.1.0' as const,

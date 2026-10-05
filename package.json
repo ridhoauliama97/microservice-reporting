@@ -7,7 +7,9 @@
     "start:worker": "bun run src/worker.ts",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
-    "dev:token": "bun run scripts/dev-token.ts"
+    "dev:token": "bun run scripts/dev-token.ts",
+    "generate:css": "bun run scripts/generate-reference-css.ts",
+    "e2e": "bun run scripts/e2e-all-reports.ts"
   },
   "dependencies": {
     "@hono/zod-openapi": "^1.6.3",

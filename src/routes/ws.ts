@@ -11,7 +11,7 @@ import type { AppEnv } from '../types'
 
 export const wsApp = new Hono<AppEnv>()
 
-// All checks happen BEFORE the upgrade (AGENTS.md 6):
+// All checks happen BEFORE the upgrade (README.md — Endpoint):
 // 1. verify the token (query param — browsers cannot send headers on WS)
 wsApp.use('/reports/:jobId', authMiddleware({ allowQueryToken: true }))
 

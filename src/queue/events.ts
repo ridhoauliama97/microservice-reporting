@@ -43,7 +43,7 @@ function deliver(update: JobUpdate): void {
   }
 }
 
-// QueueEvents lives ONLY in the API process (AGENTS.md 7.5), with its own
+// QueueEvents lives ONLY in the API process (AGENTS.md §1), with its own
 // connection.
 export const reportQueueEvents = new QueueEvents(QUEUE_NAME, {
   connection: redisConnection,
