@@ -241,6 +241,22 @@ bun run docs/scripts/generate-catalog.ts --check   # gagal kalau katalog basi
 cd docs && npx mint broken-links                   # validasi link
 ```
 
+### Publikasi: GitHub Pages
+
+Dokumentasi ini **situs Mintlify asli**, bukan renderer buatan sendiri. Diterbitkan lewat **GitHub Pages dari branch `docs`, folder `/docs`**:
+
+```
+https://<owner>.github.io/microservice-reporting/docs/
+```
+
+Tidak ada route di service untuk menyajikan dokumentasi — `/docs` tetap Swagger UI (dibangkitkan dari kode) dan **tidak** terkait dengan `docs/`. Kalau butuh membaca dokumentasi tanpa internet: `cd docs && npx mint dev` (lihat §11 Perintah).
+
+Konsekuensi yang harus diingat:
+
+- **Perubahan `docs/` baru terlihat di situs setelah Pages selesai build.** Kalau pushed ke `docs` tapi situsnya masih isi lama, itu bukan bug — tunggu build, atau cek build log di tab Actions.
+- **Tidak ada `bun test` atau `tsc` yang menyentuh `docs/`.** Verifikasi satu-satunya adalah `mint dev` / `mint broken-links` dan diff di `git status`.
+- **`npx mint` butuh Node + jaringan.** Tidak ada di image `oven/bun`, dan memang tidak perlu ada: build-nya terjadi di runner GitHub, bukan di container lokal.
+
 ### Yang sudah diverifikasi
 
 | Pemeriksaan | Hasil |
@@ -262,6 +278,7 @@ cd docs && npx mint broken-links                   # validasi link
 
 ### Jebakan di area dokumentasi
 
+- **Situs di GitHub Pages bisa menampilkan versi lama setelah `docs/` di-push.** Build Pages butuh waktu, dan kegagalan build tidak muncul di terminal. Cek tab Actions, jangan menyimpulkan push-nya gagal.
 - **`mint broken-links` bisa lulus sementara `mint dev` gagal.** `docs.json` pernah salah bentuk (`tabs` di level atas, bukan di dalam `navigation.tabs`) dan lolos link check, tapi prebuild menolaknya. Selalu coba `mint dev` kalau suspect ada perubahan struktural di `docs.json`.
 - **Generator gagal dengan sengaja kalau ada ketidakcocokan** (kategori tak terdaftar di `CATEGORY_ORDER`, atau tipe WPS tanpa kategori). Itu bukan bug — itu cara mencegah laporan baru lolos tanpa kategori. Jangan bypass.
 - Empat laporan tidak punya nama stored procedure di kode (`penjualan-lokal`, `total-bagus-kulit-rambung`, `penerimaan-kayu-bulat-per-supplier`, dan `rekap-mutasi` yang memang docblock-nya menyatakan sengaja tidak memanggil SP). Halamannya menulis "Belum terdokumentasi di kode" — itu memang belum dikerjakan, di `development`.

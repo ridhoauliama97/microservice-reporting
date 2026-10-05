@@ -12,3 +12,7 @@ storage/*
 *.log
 dist/
 .DS_Store
+
+# Working notes for documentation agents. Local only: it references absolute
+# paths of whoever set it up and is rewritten as the docs workflow changes.
+docs/AGENT-PROMPT.md
