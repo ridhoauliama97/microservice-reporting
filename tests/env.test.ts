@@ -63,7 +63,7 @@ describe('config/env', () => {
 
   test('applies defaults for omitted variables', () => {
     const result = runEnvScript(DUMP, VALID_MINIMAL)
-    expect(result.stdout).toContain('"port":5003')
+    expect(result.stdout).toContain('"port":5006')
     expect(result.stdout).toContain('"corsOrigins":["http://localhost:5173"]')
   })
 })

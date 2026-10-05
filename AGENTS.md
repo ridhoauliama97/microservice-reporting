@@ -95,7 +95,7 @@ bun test tests/wps-sawmill-reports.test.ts     # satu file
 
 ```sh
 docker compose -f docker-compose.dev.yml up -d
-bun run dev          # API di :5003
+bun run dev          # API di :5006
 bun run dev:worker   # worker, proses terpisah
 bun run dev:token budi [jam]     # token testing (default user "tester", 1 jam)
 bun run scripts/ws-test.ts <jobId> <token>
@@ -166,9 +166,14 @@ Export Excel, rate limiting, S3/MinIO, multi-tenant, streaming query untuk lapor
 
 ---
 
-## 9. Yang masih terbuka (jangan dianggap final)
+## 9. Yang sudah dipastian, dan yang masih terbuka
 
-- `JWT_USERNAME_CLAIM` dan `JWT_ALG` masih nilai default (`username` / `HS256`), **belum dikonfirmasi** ke token WPS asli.
+**Sudah dipastikan** — jangan lagi dicantumkan sebagai asumsi:
+
+- Nama field username di payload JWT WPS adalah `username`, algoritmanya `HS256`. Sudah dicek langsung ke token WPS asli, jadi nilai default di `config/env.ts` (`JWT_USERNAME_CLAIM`, `JWT_ALG`) sudah benar dan bukan lagi tebakan.
+
+**Masih terbuka**:
+
 - Batas lebar `qc-sawmill-summary` untuk periode panjang (satu kolom per tanggal QC) belum diputuskan.
 - Sebagian besar laporan **belum punya regression test**; yang ada hanya beberapa `tests/wps-*.test.ts`. Laporan yang sudah dipakai tanpa test = bug senyap belum tertutup.
 

@@ -11,5 +11,5 @@ COPY package.json tsconfig.json ./
 COPY src ./src
 RUN mkdir -p /app/storage && chown -R bun:bun /app
 USER bun
-EXPOSE 5003
+EXPOSE 5006
 CMD ["bun", "run", "src/index.ts"]

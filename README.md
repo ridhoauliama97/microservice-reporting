@@ -27,14 +27,14 @@ Prasyarat: [Bun](https://bun.sh) 1.2+, Docker (untuk Redis & Gotenberg).
 bun install                                        # install dependency
 cp .env.example .env                               # lalu isi kredensial DB
 docker compose -f docker-compose.dev.yml up -d     # infra: Redis + Gotenberg
-bun run dev                                        # API di port 5003
+bun run dev                                        # API di port 5006
 bun run dev:worker                                 # worker (proses terpisah)
 bun run dev:token budi                             # buat JWT testing (username: budi)
 ```
 
-Verifikasi cepat: `bun run typecheck`, `bun test`, dan `curl.exe http://localhost:5003/health`.
+Verifikasi cepat: `bun run typecheck`, `bun test`, dan `curl.exe http://localhost:5006/health`.
 
-Dokumentasi interaktif API: buka `http://localhost:5003/docs` (spec mentah di `/docs/openapi.json`).
+Dokumentasi interaktif API: buka `http://localhost:5006/docs` (spec mentah di `/docs/openapi.json`).
 
 ## Menjalankan dengan Docker (full stack)
 
@@ -228,7 +228,7 @@ Hanya `qc-sawmill*` punya regression test (`tests/wps-qc-sawmill.test.ts`). Semb
 Contoh:
 
 ```sh
-curl.exe -X POST http://localhost:5003/reports -H "Authorization: Bearer <token>" -H "Content-Type: application/json" -d "{\"type\":\"mutasi-kayu-bulat\",\"params\":{\"tglAwal\":\"2025-01-01\",\"tglAkhir\":\"2025-01-31\"}}"
+curl.exe -X POST http://localhost:5006/reports -H "Authorization: Bearer <token>" -H "Content-Type: application/json" -d "{\"type\":\"mutasi-kayu-bulat\",\"params\":{\"tglAwal\":\"2025-01-01\",\"tglAkhir\":\"2025-01-31\"}}"
 ```
 
 ## Menambah laporan baru
