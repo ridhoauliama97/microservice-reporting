@@ -185,3 +185,60 @@ Export Excel, rate limiting, S3/MinIO, multi-tenant, streaming query untuk lapor
 - [ ] Laporan baru: terdaftar di `registry.ts`, punya unit test, CSS di `styles.ts`/reference sheet (bukan di file laporan), empty state lewat template.
 - [ ] Tidak ada nama kolom/pembagi yang ditebak; asumsi yang belum terverifikasi tertulis di file + README.
 - [ ] Laporkan ke user: ringkasan, hasil verifikasi, sisa item terbuka.
+
+---
+
+## 11. Branch `docs` — dokumentasi API (situs Mintlify)
+
+### Apa yang sudah ada
+
+`docs/` berisi situs dokumentasi Mintlify. **Semua isinya di-generate atau ditulis tangan; tidak ada file lain di repo yang ikut berubah.**
+
+| Isi | File | Cara dibuat |
+|---|---|---|
+| Halaman API | `introduction`, `authentication`, `errors`, `endpoints/*` (6) | Tulis tangan |
+| Katalog 180 laporan WPS | `reports/overview` + 16 halaman kategori | `bun run docs/scripts/generate-catalog.ts` |
+| Navigasi | `docs/docs.json` | Generator yang sama |
+
+Isi katalog: `type`, judul, bentuk `params`, nama stored procedure, nama parameter SP (kalau berbeda dari field `params`), orientasi, dan satu contoh Request Body per bentuk params.
+
+### Aturan alur kerja
+
+- **Semua perubahan dokumentasi masuk branch `docs`.** Jangan menyentuh `src/`, `tests/`, atau `package.json` dari branch itu. Kalau katalog perlu data baru dari kode (mis. laporan baru), buat commit di `development` lebih dulu, lalu merge ke `docs`.
+- **`docs/reports/` dan `docs/docs.json` jangan diedit manual** — generator menimpanya. Yang boleh diedit manual hanya 9 halaman API dan `docs/scripts/`.
+- Setelah menambah/mengubah laporan di `development`, merge ke `docs` lalu jalankan generator. Kalau tidak, katalognya basi.
+
+### Perintah
+
+```sh
+cd docs && npx mint dev                            # pratinjau lokal
+bun run docs/scripts/generate-catalog.ts           # regenerasi katalog
+bun run docs/scripts/generate-catalog.ts --check   # gagal kalau katalog basi
+cd docs && npx mint broken-links                   # validasi link
+```
+
+### Yang sudah diverifikasi
+
+| Pemeriksaan | Hasil |
+|---|---|
+| Katalog vs registry | 180 laporan WPS = 180, cocok 1:1 |
+| `example` | Tidak masuk katalog (bukan laporan WPS) |
+| Navigasi `docs.json` | 26 halaman = 26 file |
+| Spot-check tipe params | 5 tipe cocok dengan skema Zod |
+| Istilah yang tidak ada di kode | Nol (tidak ada Rate Limiting / Pagination / Versioning / Webhook) |
+| `mint dev` / `mint broken-links` | Boot / sukses |
+
+### Fakta sumber categorize yang tidak obvious
+
+- **Kategori proses diambil dari menu WPS `open-api-report`**, dibaca dari `resources/views/welcome.blade.php` — **bukan** dari struktur folder `resources/views/reports/`. Folder itu tidak mencerminkan proses dan sudah tidak relevan. Route di menu itu 1:1 dengan tipe registry, jadi bisa dipetakan.
+- Konsekuensinya: **tidak ada kategori "Mutasi" atau "Dashboard"**. Laporan `mutasi-s4s` dan `dashboard-sanding` masuk kategori produknya, mengikuti menu.
+- `Kayu Bulat` dan `Kayu Bulat (Rambang)` proses terpisah; yang Rambung berisi laporan KG.
+- **Kartu SPK di menu itu di-comment-out**, jadi bukan kategori aktif: `spk-sawmill` ada di Sawn Timber.
+- Nama route di menu tidak selalu sama dengan `type` registry. Peta rename-nya ada di `OVERRIDES` pada generator, **dikunci per route penuh** (bukan per segment terakhir) karena `reports.mutasi.sanding` dan `dashboard.sanding` sama-sama berakhiran `sanding` padahal berbeda laporan.
+
+### Jebakan di area dokumentasi
+
+- **`mint broken-links` bisa lulus sementara `mint dev` gagal.** `docs.json` pernah salah bentuk (`tabs` di level atas, bukan di dalam `navigation.tabs`) dan lolos link check, tapi prebuild menolaknya. Selalu coba `mint dev` kalau suspect ada perubahan struktural di `docs.json`.
+- **Generator gagal dengan sengaja kalau ada ketidakcocokan** (kategori tak terdaftar di `CATEGORY_ORDER`, atau tipe WPS tanpa kategori). Itu bukan bug — itu cara mencegah laporan baru lolos tanpa kategori. Jangan bypass.
+- Empat laporan tidak punya nama stored procedure di kode (`penjualan-lokal`, `total-bagus-kulit-rambung`, `penerimaan-kayu-bulat-per-supplier`, dan `rekap-mutasi` yang memang docblock-nya menyatakan sengaja tidak memanggil SP). Halamannya menulis "Belum terdokumentasi di kode" — itu memang belum dikerjakan, di `development`.
+- Nama kategori `Kayu Bulat (Rambung)` mudah salah ketik. Kalau order navigasi terasa acak, cek dulu ejaan kategori di `CATEGORY_ORDER`.
