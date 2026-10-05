@@ -1,0 +1,191 @@
+---
+title: "Kayu Bulat (Rambung)"
+description: "Laporan dalam kelompok Kayu Bulat (Rambung)."
+---
+
+15 jenis laporan.
+
+| type | Judul | Params | Stored procedure | Orientasi |
+| --- | --- | --- | --- | --- |
+| `mutasi-kayu-bulat-kg` | Mutasi Kayu Bulat - Timbang KG | `tglAwal`, `tglAkhir` | `SP_Mutasi_KayuBulatKG` | — |
+| `mutasi-kayu-bulat-kg-gantung` | Mutasi Kayu Bulat (Gantung) - Timbang KG | `tglAwal`, `tglAkhir` | `SP_Mutasi_KayuBulatKGV2` | — |
+| `penerimaan-kayu-bulat-ext-kg` | Penerimaan Kayu Bulat - (KG) | `noKayuBulat` | `SP_PenKBOutTon_KG` | — |
+| `penerimaan-kayu-bulat-kg` | Penerimaan Kayu Bulat - (KG) | `noKayuBulat` | `SP_PenKBInTon_KG` | — |
+| `penerimaan-kayu-bulat-per-supplier-kg` | Penerimaan Kayu Bulat Per-Supplier - Timbang KG | `tglAwal`, `tglAkhir` | `SP_LapPenerimaanKBPerSupplier` | landscape |
+| `perbandingan-kb-masuk-periode-1-dan-2-kg` | Laporan Perbanding KB Masuk Periode 1 dan 2 - Timbang KG | `periode1Awal`, `periode1Akhir`, `periode2Awal`, `periode2Akhir` | `sp_LapPerbandinganKBMasukPeriode1dan2KG` | portrait |
+| `rekap-pembelian-kayu-bulat-kg` | Laporan Rekap Pembelian Kayu Bulat (Ton) - Timbang KG | `tglAwal`, `tglAkhir` | `SP_LapRekapPembelianKayuBulat` | landscape |
+| `rekap-penerimaan-st-dari-sawmill-kg` | Laporan Rekap Penerimaan ST Dari Sawmill - Timbang KG | `tglAwal`, `tglAkhir` | `SP_LapRekapPenerimaanSTDariSawmill` | portrait |
+| `rekap-penerimaan-st-sawmill-costing-rambung` | Laporan Rekap Penerimaan ST Dari Sawmill + Costing (Rambung) | `tglAwal`, `tglAkhir`, `upahRacip`?, `supplier`? | `SPWps_LapRekapPenerimaanSawmilRp`, `SPWps_LapSubRekapPenerimaanSawmilRp` | portrait |
+| `rekap-rendemen-rambung-per-supplier` | Laporan Rekap Rendemen Rambung Per Supplier | `tglAwal`, `tglAkhir` | `SP_LapRekapRendemenRambungPerSupplier`, `SP_LapRekapRendemenRambungPerSupplierSUB` | portrait |
+| `saldo-hidup-kayu-bulat-kg` | Laporan Saldo Hidup Kayu Bulat - Timbang KG | tanpa params | `SP_LapSaldoHidupKayuBulatKG`, `SP_LapSaldoHidupKayuBulatKGSub` | portrait |
+| `supplier-intel` | Laporan Supplier Intel | `tglAwal`, `tglAkhir` | `SP_LapSupplierIntel` | portrait |
+| `timeline-kb-bulanan-rambung-kg` | Laporan Timeline KB - Bulanan (Rambung) | `tglAwal`, `tglAkhir` | `SP_LapTimelineKBBulananKG` | portrait |
+| `timeline-kb-harian-rambung-kg` | Laporan Timeline KB - Harian (Rambung) | `tglAwal`, `tglAkhir` | `SP_LapTimelineKBHarianKG` | portrait |
+| `umur-kayu-bulat-rambung` | Laporan Umur Kayu Bulat (Rambung) | `tglAwal`, `tglAkhir` | `SPWps_LapUmurKayuBulatRambung` | portrait |
+
+## Sumber data
+
+### `mutasi-kayu-bulat-kg`
+
+- Stored procedure: `SP_Mutasi_KayuBulatKG`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `mutasi-kayu-bulat-kg-gantung`
+
+- Stored procedure: `SP_Mutasi_KayuBulatKGV2`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `penerimaan-kayu-bulat-ext-kg`
+
+- Stored procedure: `SP_PenKBOutTon_KG`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `penerimaan-kayu-bulat-kg`
+
+- Stored procedure: `SP_PenKBInTon_KG`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `penerimaan-kayu-bulat-per-supplier-kg`
+
+- Stored procedure: `SP_LapPenerimaanKBPerSupplier`
+- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Orientasi: landscape
+
+### `perbandingan-kb-masuk-periode-1-dan-2-kg`
+
+- Stored procedure: `sp_LapPerbandinganKBMasukPeriode1dan2KG`
+- Nama parameter SP: `EndDate1`, `EndDate2`, `StartDate1`, `StartDate2` (berbeda dari nama field di `params`)
+- Orientasi: portrait
+
+### `rekap-pembelian-kayu-bulat-kg`
+
+- Stored procedure: `SP_LapRekapPembelianKayuBulat`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: landscape
+
+### `rekap-penerimaan-st-dari-sawmill-kg`
+
+- Stored procedure: `SP_LapRekapPenerimaanSTDariSawmill`
+- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Orientasi: portrait
+
+### `rekap-penerimaan-st-sawmill-costing-rambung`
+
+- Stored procedure: `SPWps_LapRekapPenerimaanSawmilRp`, `SPWps_LapSubRekapPenerimaanSawmilRp`
+- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Orientasi: portrait
+
+### `rekap-rendemen-rambung-per-supplier`
+
+- Stored procedure: `SP_LapRekapRendemenRambungPerSupplier`, `SP_LapRekapRendemenRambungPerSupplierSUB`
+- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Orientasi: portrait
+
+### `saldo-hidup-kayu-bulat-kg`
+
+- Stored procedure: `SP_LapSaldoHidupKayuBulatKG`, `SP_LapSaldoHidupKayuBulatKGSub`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: portrait
+
+### `supplier-intel`
+
+- Stored procedure: `SP_LapSupplierIntel`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: portrait
+
+### `timeline-kb-bulanan-rambung-kg`
+
+- Stored procedure: `SP_LapTimelineKBBulananKG`
+- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Orientasi: portrait
+
+### `timeline-kb-harian-rambung-kg`
+
+- Stored procedure: `SP_LapTimelineKBHarianKG`
+- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Orientasi: portrait
+
+### `umur-kayu-bulat-rambung`
+
+- Stored procedure: `SPWps_LapUmurKayuBulatRambung`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: portrait
+
+<Warning>
+Laporan di bawah ini mengikat nama parameter SP yang **berbeda** dari nama field di `params`. KalauSP-nya diganti nama, nama parameter pun harus ikut menyesuaikan.
+</Warning>
+
+| type | Nama field di params | Nama parameter SP |
+| --- | --- | --- |
+| `penerimaan-kayu-bulat-per-supplier-kg` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
+| `perbandingan-kb-masuk-periode-1-dan-2-kg` | `periode1Awal`, `periode1Akhir`, `periode2Awal`, `periode2Akhir` | `EndDate1`, `EndDate2`, `StartDate1`, `StartDate2` |
+| `rekap-penerimaan-st-dari-sawmill-kg` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
+| `rekap-penerimaan-st-sawmill-costing-rambung` | `tglAwal`, `tglAkhir`, `upahRacip`?, `supplier`? | `EndDate`, `StartDate` |
+| `rekap-rendemen-rambung-per-supplier` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
+| `timeline-kb-bulanan-rambung-kg` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
+| `timeline-kb-harian-rambung-kg` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
+
+## Contoh Request Body
+
+### Bentuk `PeriodParams`
+
+```json
+{
+  "type": "mutasi-kayu-bulat-kg",
+  "params": {
+    "tglAwal": "2026-09-01",
+    "tglAkhir": "2026-09-30"
+  }
+}
+```
+
+### Bentuk `ParamsPenerimaanKayuBulatIntTon`
+
+```json
+{
+  "type": "penerimaan-kayu-bulat-ext-kg",
+  "params": {
+    "noKayuBulat": "A.017234"
+  }
+}
+```
+
+### Bentuk `ParamsPerbandinganKbMasukPeriode1Dan2`
+
+```json
+{
+  "type": "perbandingan-kb-masuk-periode-1-dan-2-kg",
+  "params": {
+    "periode1Awal": "2026-09-01",
+    "periode1Akhir": "2026-09-30",
+    "periode2Awal": "2026-09-01",
+    "periode2Akhir": "2026-09-30"
+  }
+}
+```
+
+### Bentuk `ParamsRekapPenerimaanStSawmillCostingRambung`
+
+```json
+{
+  "type": "rekap-penerimaan-st-sawmill-costing-rambung",
+  "params": {
+    "tglAwal": "2026-09-01",
+    "tglAkhir": "2026-09-30",
+    "upahRacip": 450000,
+    "supplier": ""
+  }
+}
+```
+
+### Bentuk `NoParams` — tanpa params
+
+```json
+{
+  "type": "saldo-hidup-kayu-bulat-kg"
+}
+```

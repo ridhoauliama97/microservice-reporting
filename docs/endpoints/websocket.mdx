@@ -1,0 +1,186 @@
+---
+title: "WebSocket"
+description: "Progress realtime satu job lewat WebSocket."
+---
+
+`GET /ws/reports/{jobId}?token=<jwt>`
+
+Mengirim progres job secara realtime. Hanya satu `jobId` per koneksi; untuk memantau banyak job, buka banyak koneksi.
+
+## Request
+
+### Path Parameters
+
+<ParamField path="jobId" type="string" required>
+`jobId` yang diterima dari `POST /reports`.
+</ParamField>
+
+### Query Parameters
+
+<ParamField query="token" type="string" required>
+JWT untuk autentikasi.
+</ParamField>
+
+<Note>
+Query parameter `token` **hanya** berlaku untuk WebSocket. Untuk Endpoint HTTP, Token tetap lewat header `Authorization` — lihat [Authentication](/authentication).
+</Note>
+
+<CodeGroup>
+
+```javascript JavaScript
+const ws = new WebSocket(
+  `ws://localhost:5006/ws/reports/${jobId}?token=${encodeURIComponent(token)}`,
+)
+
+ws.addEventListener('message', (event) => {
+  console.log(JSON.parse(event.data))
+})
+
+ws.addEventListener('close', (event) => {
+  console.log('closed', event.code, event.reason)
+})
+```
+
+```bash Request
+# Token tidak pernah di-log server, tapi URL ini bisa muncul di log browser.
+websocat "ws://localhost:5006/ws/reports/$JOB_ID?token=$TOKEN"
+```
+
+</CodeGroup>
+
+## Kegagalan sebelum upgrade
+
+Autentikasi dan pemeriksaan kepemilikan job berjalan **sebelum** handshake WebSocket. Kalau salah satu gagal, klien menerima **Response HTTP biasa** — bukan pesan WebSocket:
+
+| Kondisi | HTTP Status Code | Body |
+| --- | --- | --- |
+| Token hilang, salah, atau kedaluwarsa | `401` | JSON dengan `code` `UNAUTHORIZED` |
+| Job tidak ada atau bukan milik pemanggil | `404` | JSON dengan `code` `NOT_FOUND` |
+
+Artinya klien harus bisa membedakan antara "gagal connect dengan HTTP error" dan "connect berhasil lalu dapat pesan".
+
+<Warning>
+Kalau koneksi ditolak, jangan menunggu pesan WebSocket — tidak akan pernah datang. Periksa HTTP Status Code dari handshake.
+</Warning>
+
+## Message dari server
+
+Semua pesan berupa JSON dengan field `type`. Urutannya: `snapshot` selalu pertama, lalu `progress` berulang, lalu satu pesan terminal.
+
+### snapshot
+
+<ResponseField name="type" type="string" required>
+Selalu `"snapshot"`.
+</ResponseField>
+
+<ResponseField name="jobId" type="string" required>
+Identifier job.
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+Status job saat koneksi dibuka.
+</ResponseField>
+
+<ResponseField name="progress" type="number" required>
+Progres 0 sampai 100.
+</ResponseField>
+
+<Note>
+`snapshot` **selalu** dikirim lebih dulu, karena job bisa saja sudah selesai sebelum WebSocket tersambung.
+</Note>
+
+### progress
+
+<ResponseField name="type" type="string" required>
+Selalu `"progress"`.
+</ResponseField>
+
+<ResponseField name="jobId" type="string" required>
+Identifier job.
+</ResponseField>
+
+<ResponseField name="progress" type="number" required>
+Progres terbaru.
+</ResponseField>
+
+### completed
+
+<ResponseField name="type" type="string" required>
+Selalu `"completed"`.
+</ResponseField>
+
+<ResponseField name="jobId" type="string" required>
+Identifier job.
+</ResponseField>
+
+<ResponseField name="result" type="object" required>
+Objek hasil yang sama dengan `result` di [Get Report Status](/endpoints/get-report-status).
+</ResponseField>
+
+### failed
+
+<ResponseField name="type" type="string" required>
+Selalu `"failed"`.
+</ResponseField>
+
+<ResponseField name="jobId" type="string" required>
+Identifier job.
+</ResponseField>
+
+<ResponseField name="error" type="string" required>
+Alasan kegagalan.
+</ResponseField>
+
+## Close codes
+
+| Code | Arti | Kapan |
+| --- | --- | --- |
+| `1000` | `Selesai` | Setelah pesan `completed` atau `failed`. Server menutup koneksi |
+| `1008` | `Laporan tidak ditemukan` | Job hilang saat koneksi dibuka |
+
+<Note>
+Server menutup koneksi setelah pesan terminal. Kalau butuh memantau job berikutnya, buka koneksi baru.
+</Note>
+
+## Contoh alur
+
+### Job yang sedang berjalan
+
+```json
+{ "type": "snapshot", "jobId": "5c78...", "status": "processing", "progress": 10 }
+{ "type": "progress", "jobId": "5c78...", "progress": 50 }
+{ "type": "progress", "jobId": "5c78...", "progress": 85 }
+{ "type": "completed", "jobId": "5c78...", "result": { "fileName": "report-5c78....pdf", "size": 33115, "generatedAt": "2026-09-30T02:10:22.481Z" } }
+```
+
+Koneksi ditutup dengan code `1000`.
+
+### Job yang sudah selesai sebelum WebSocket dibuka
+
+```json
+{ "type": "snapshot", "jobId": "5c78...", "status": "completed", "progress": 100 }
+{ "type": "completed", "jobId": "5c78...", "result": { "fileName": "report-5c78....pdf", "size": 33115, "generatedAt": "2026-09-30T02:10:22.481Z" } }
+```
+
+Langsung dua pesan lalu ditutup dengan code `1000` — tidak ada `progress` sama sekali. Ini yang membuat `snapshot` wajib dikirim pertama.
+
+### Job yang gagal
+
+```json
+{ "type": "snapshot", "jobId": "5c78...", "status": "failed", "progress": 10 }
+{ "type": "failed", "jobId": "5c78...", "error": "Jenis laporan tidak dikenal" }
+```
+
+Koneksi ditutup dengan code `1000`.
+
+## Helper untuk pengujian
+
+```sh
+bun run scripts/ws-test.ts <jobId> <token>
+```
+
+Script ini mencetak setiap pesan yang diterima dan keluar otomatis setelah pesan terminal.
+
+<Note>
+Bila WebSocket ditolak dengan error `Expected 101`, penyebabnya hampir selalu Token yang salah atau kedaluwarsa, atau job milik user lain. Token dev bisa dibuat dengan `bun run dev:token <username>`.
+</Note>

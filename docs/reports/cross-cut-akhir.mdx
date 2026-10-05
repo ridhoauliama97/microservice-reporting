@@ -1,0 +1,105 @@
+---
+title: "Cross Cut Akhir"
+description: "Laporan dalam kelompok Cross Cut Akhir."
+---
+
+7 jenis laporan.
+
+| type | Judul | Params | Stored procedure | Orientasi |
+| --- | --- | --- | --- | --- |
+| `cross-cut-akhir-hidup-detail` | Laporan Cross Cut Akhir (Hidup) Detail | tanpa params | `SP_LapCCAkhirHidupDetail` | — |
+| `dashboard-cross-cut-akhir` | Laporan Dashboard Cross Cut Akhir | `tglAwal`, `tglAkhir` | `SPWps_LapDashboardCCAkhir` | — |
+| `ketahanan-barang-cc-akhir` | Laporan Ketahanan Barang Dagang CC Akhir | `tglAwal`, `tglAkhir` | `SP_LapKetahananBarangCCAkhir` | — |
+| `mutasi-cross-cut-akhir` | Laporan Mutasi Cross Cut Akhir (m3) | `tglAwal`, `tglAkhir` | `SP_Mutasi_CCAkhir`, `SP_SubMutasi_CCAkhir` | landscape |
+| `rekap-produksi-cross-cut-akhir-consolidated` | Laporan Rekap Produksi CCAkhir Consolidated | `tglAwal`, `tglAkhir` | `SP_LapRekapProduksiCrossCutAkhirConsolidated` | landscape |
+| `rekap-produksi-cross-cut-akhir-per-jenis-per-grade` | Laporan Rekap Produksi CCAkhir Per-Jenis & Per-Grade (m3) | `tglAwal`, `tglAkhir` | `SP_LapRekapProduksiCCAkhirPerJenisPerGrade` | portrait |
+| `umur-cross-cut-akhir-detail` | Laporan Umur CCAkhir Detail | `umur1`?, `umur2`?, `umur3`?, `umur4`? | `SP_LapUmurCrossCutAkhir` | — |
+
+## Sumber data
+
+### `cross-cut-akhir-hidup-detail`
+
+- Stored procedure: `SP_LapCCAkhirHidupDetail`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `dashboard-cross-cut-akhir`
+
+- Stored procedure: `SPWps_LapDashboardCCAkhir`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `ketahanan-barang-cc-akhir`
+
+- Stored procedure: `SP_LapKetahananBarangCCAkhir`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `mutasi-cross-cut-akhir`
+
+- Stored procedure: `SP_Mutasi_CCAkhir`, `SP_SubMutasi_CCAkhir`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: landscape
+
+### `rekap-produksi-cross-cut-akhir-consolidated`
+
+- Stored procedure: `SP_LapRekapProduksiCrossCutAkhirConsolidated`
+- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Orientasi: landscape
+
+### `rekap-produksi-cross-cut-akhir-per-jenis-per-grade`
+
+- Stored procedure: `SP_LapRekapProduksiCCAkhirPerJenisPerGrade`
+- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Orientasi: portrait
+
+### `umur-cross-cut-akhir-detail`
+
+- Stored procedure: `SP_LapUmurCrossCutAkhir`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+<Warning>
+Laporan di bawah ini mengikat nama parameter SP yang **berbeda** dari nama field di `params`. KalauSP-nya diganti nama, nama parameter pun harus ikut menyesuaikan.
+</Warning>
+
+| type | Nama field di params | Nama parameter SP |
+| --- | --- | --- |
+| `rekap-produksi-cross-cut-akhir-consolidated` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
+| `rekap-produksi-cross-cut-akhir-per-jenis-per-grade` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
+
+## Contoh Request Body
+
+### Bentuk `NoParams` — tanpa params
+
+```json
+{
+  "type": "cross-cut-akhir-hidup-detail"
+}
+```
+
+### Bentuk `PeriodParams`
+
+```json
+{
+  "type": "dashboard-cross-cut-akhir",
+  "params": {
+    "tglAwal": "2026-09-01",
+    "tglAkhir": "2026-09-30"
+  }
+}
+```
+
+### Bentuk `ParamsUmurLaminatingDetail`
+
+```json
+{
+  "type": "umur-cross-cut-akhir-detail",
+  "params": {
+    "umur1": 15,
+    "umur2": 30,
+    "umur3": 60,
+    "umur4": 90
+  }
+}
+```

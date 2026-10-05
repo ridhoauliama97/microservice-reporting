@@ -1,0 +1,84 @@
+---
+title: "Rendemen Kayu"
+description: "Laporan dalam kelompok Rendemen Kayu."
+---
+
+4 jenis laporan.
+
+| type | Judul | Params | Stored procedure | Orientasi |
+| --- | --- | --- | --- | --- |
+| `produksi-per-spk` | Laporan Produksi Per SPK | `noSpk` | `SP_LapProduksiPerSPK` | portrait |
+| `rekap-rendemen-non-rambung` | Laporan Rekap Rendemen Non Rambung | `tahun`, `bulan` | `SP_LapRekapRendemenNonRambung` | — |
+| `rekap-rendemen-rambung` | Laporan Rekap Rendemen Rambung | `tahun`, `bulan` | `SP_LapRekapRendemenRambung` | — |
+| `rendemen-semua-proses` | Laporan Rendemen Semua Proses | `tglAwal`, `tglAkhir` | `SP_LapRekapRendemenSemuaProses` | landscape |
+
+## Sumber data
+
+### `produksi-per-spk`
+
+- Stored procedure: `SP_LapProduksiPerSPK`
+- Nama parameter SP: `NoSPK` (berbeda dari nama field di `params`)
+- Orientasi: portrait
+
+### `rekap-rendemen-non-rambung`
+
+- Stored procedure: `SP_LapRekapRendemenNonRambung`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `rekap-rendemen-rambung`
+
+- Stored procedure: `SP_LapRekapRendemenRambung`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `rendemen-semua-proses`
+
+- Stored procedure: `SP_LapRekapRendemenSemuaProses`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: landscape
+
+<Warning>
+Laporan di bawah ini mengikat nama parameter SP yang **berbeda** dari nama field di `params`. KalauSP-nya diganti nama, nama parameter pun harus ikut menyesuaikan.
+</Warning>
+
+| type | Nama field di params | Nama parameter SP |
+| --- | --- | --- |
+| `produksi-per-spk` | `noSpk` | `NoSPK` |
+
+## Contoh Request Body
+
+### Bentuk `ParamsProduksiPerSpk`
+
+```json
+{
+  "type": "produksi-per-spk",
+  "params": {
+    "noSpk": "2026-97"
+  }
+}
+```
+
+### Bentuk `ParamsRekapRendemenNonRambung`
+
+```json
+{
+  "type": "rekap-rendemen-non-rambung",
+  "params": {
+    "tahun": 2026,
+    "bulan": 9
+  }
+}
+```
+
+### Bentuk `PeriodParams`
+
+```json
+{
+  "type": "rendemen-semua-proses",
+  "params": {
+    "tglAwal": "2026-09-01",
+    "tglAkhir": "2026-09-30"
+  }
+}
+```

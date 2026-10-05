@@ -1,0 +1,93 @@
+---
+title: "Health Ready"
+description: "Readiness check untuk database, Redis, dan Gotenberg."
+---
+
+`GET /health/ready`
+
+Memeriksa ketiga komponen yang benar-benar dipakai worker. **Tidak** memerlukan autentikasi.
+
+<ResponseField name="status" type="string" required>
+`"ok"` jika semua komponen sehat, `"degraded"` jika ada yang tidak.
+</ResponseField>
+
+<ResponseField name="components" type="object" required>
+Status per komponen, semuanya boolean.
+</ResponseField>
+
+<ResponseField name="components.db" type="boolean" required>
+`true` bila SQL Server answering query `SELECT 1`.
+</ResponseField>
+
+<ResponseField name="components.redis" type="boolean" required>
+`true` bila perintah antrian BullMQ berhasil dibalas Redis, dengan batas waktu 3000 ms.
+</ResponseField>
+
+<ResponseField name="components.gotenberg" type="boolean" required>
+`true` bila `GET {GOTENBERG_URL}/health` menjawab sukses, dengan batas waktu 3000 ms.
+</ResponseField>
+
+## Request
+
+Tidak ada Headers, Path Parameters, Query Parameters, maupun Request Body.
+
+<CodeGroup>
+
+```bash Request
+curl.exe http://localhost:5006/health/ready
+```
+
+```javascript JavaScript
+const res = await fetch('http://localhost:5006/health/ready')
+const body = await res.json()
+console.log(res.status, body)
+```
+
+</CodeGroup>
+
+## Response
+
+Status HTTP-nya yang membedakan kondisi: `200` kalau semua sehat, `503` kalau ada yang gagal. Bentuk JSON-nya sama di kedua kasus.
+
+<CodeGroup>
+
+```json 200 Semua komponen sehat
+{
+  "status": "ok",
+  "components": {
+    "db": true,
+    "redis": true,
+    "gotenberg": true
+  }
+}
+```
+
+```json 503 Ada komponen tidak sehat
+{
+  "status": "degraded",
+  "components": {
+    "db": false,
+    "redis": true,
+    "gotenberg": true
+  }
+}
+```
+
+```json Error
+{
+  "error": {
+    "code": "INTERNAL_ERROR",
+    "message": "Terjadi kesalahan internal pada server"
+  }
+}
+```
+
+</CodeGroup>
+
+<Note>
+Endpoint ini sengaja **hanya** melaporkan boolean, tanpa detail error. Penyebab kegagalan tidak dikembalikan ke klien; dibaca dari log server.
+</Note>
+
+<ResponseField name="Interval pemanggilan">
+Belum terdokumentasi di kode. Kode tidak membatasi frekuensi pemanggilan endpoint ini.
+</ResponseField>

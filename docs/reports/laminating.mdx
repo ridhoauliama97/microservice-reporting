@@ -1,0 +1,105 @@
+---
+title: "Laminating"
+description: "Laporan dalam kelompok Laminating."
+---
+
+7 jenis laporan.
+
+| type | Judul | Params | Stored procedure | Orientasi |
+| --- | --- | --- | --- | --- |
+| `dashboard-laminating` | Laporan Dashboard Laminating | `tglAwal`, `tglAkhir` | `SPWps_LapDashboardLaminating` | — |
+| `ketahanan-barang-laminating` | Laporan Ketahanan Barang Dagang Laminating | `tglAwal`, `tglAkhir` | `SP_LapKetahananBarangLaminating` | — |
+| `laminating-hidup-detail` | Laporan Laminating (Hidup) Detail | tanpa params | `SP_LapLaminatingHidupDetail` | — |
+| `mutasi-laminating` | Laporan Mutasi Laminating (m3) | `tglAwal`, `tglAkhir` | `SP_Mutasi_Laminating`, `SP_SubMutasi_Laminating` | landscape |
+| `rekap-produksi-laminating-consolidated` | Laporan Rekap Produksi Laminating Consolidated | `tglAwal`, `tglAkhir` | `SP_LapRekapProduksiLaminatingConsolidated` | portrait |
+| `rekap-produksi-laminating-per-jenis-per-grade` | Laporan Rekap Produksi Laminating Per-Jenis & Per-Grade (m3) | `tglAwal`, `tglAkhir` | `SP_LapRekapProduksiLaminatingPerJenisPerGrade` | portrait |
+| `umur-laminating-detail` | Laporan Umur Laminating Detail | `umur1`?, `umur2`?, `umur3`?, `umur4`? | `SP_LapUmurLaminating` | — |
+
+## Sumber data
+
+### `dashboard-laminating`
+
+- Stored procedure: `SPWps_LapDashboardLaminating`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `ketahanan-barang-laminating`
+
+- Stored procedure: `SP_LapKetahananBarangLaminating`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `laminating-hidup-detail`
+
+- Stored procedure: `SP_LapLaminatingHidupDetail`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `mutasi-laminating`
+
+- Stored procedure: `SP_Mutasi_Laminating`, `SP_SubMutasi_Laminating`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: landscape
+
+### `rekap-produksi-laminating-consolidated`
+
+- Stored procedure: `SP_LapRekapProduksiLaminatingConsolidated`
+- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Orientasi: portrait
+
+### `rekap-produksi-laminating-per-jenis-per-grade`
+
+- Stored procedure: `SP_LapRekapProduksiLaminatingPerJenisPerGrade`
+- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Orientasi: portrait
+
+### `umur-laminating-detail`
+
+- Stored procedure: `SP_LapUmurLaminating`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+<Warning>
+Laporan di bawah ini mengikat nama parameter SP yang **berbeda** dari nama field di `params`. KalauSP-nya diganti nama, nama parameter pun harus ikut menyesuaikan.
+</Warning>
+
+| type | Nama field di params | Nama parameter SP |
+| --- | --- | --- |
+| `rekap-produksi-laminating-consolidated` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
+| `rekap-produksi-laminating-per-jenis-per-grade` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
+
+## Contoh Request Body
+
+### Bentuk `PeriodParams`
+
+```json
+{
+  "type": "dashboard-laminating",
+  "params": {
+    "tglAwal": "2026-09-01",
+    "tglAkhir": "2026-09-30"
+  }
+}
+```
+
+### Bentuk `NoParams` — tanpa params
+
+```json
+{
+  "type": "laminating-hidup-detail"
+}
+```
+
+### Bentuk `ParamsUmurLaminatingDetail`
+
+```json
+{
+  "type": "umur-laminating-detail",
+  "params": {
+    "umur1": 15,
+    "umur2": 30,
+    "umur3": 60,
+    "umur4": 90
+  }
+}
+```

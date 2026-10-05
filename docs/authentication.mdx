@@ -1,0 +1,103 @@
+---
+title: "Authentication"
+description: "Verifikasi Bearer Token JWT yang diterbitkan WPS backend."
+---
+
+## Prinsip
+
+Token JWT diterbitkan oleh **WPS backend**, bukan oleh layanan ini. `report-service` hanya memverifikasi signature dan masa berlaku, lalu membaca `username` dari payload untuk menentukan kepemilikan job.
+
+Implikasi penting: layanan ini **tidak punya endpoint untuk membuat Token**. Setiap pemanggil API harus memperoleh Token dari WPS backend terlebih dahulu.
+
+## Mekanisme verifikasi
+
+Tersedia di `src/middleware/auth.ts`, satu implementasi untuk HTTP maupun WebSocket:
+
+| Langkah | Detail |
+| --- | --- |
+| Ambil Token | Header `Authorization: Bearer <token>` |
+| Verifikasi | `verify(token, JWT_SECRET, JWT_ALG)` — memeriksa signature **dan** `exp` |
+| Ambil username | `payload[JWT_USERNAME_CLAIM]` |
+| Simpan ke context | `c.set('username', username)` |
+
+<Warning>
+Verifikasi harus selalu memakai `verify`, **bukan** decode saja. Decode tanpa verifikasi tidak memeriksa signature, sehingga siapa pun bisa membuat Token palsu.
+</Warning>
+
+## Konfigurasi
+
+| Environment variable | Default | Description |
+| --- | --- | --- |
+| `JWT_SECRET` | — | Wajib. Harus **sama persis** dengan `JWT_SECRET` di WPS backend. Panjang minimum 8 karakter |
+| `JWT_ALG` | `HS256` | Algoritma. Pilihan: `HS256`, `HS384`, `HS512` |
+| `JWT_USERNAME_CLAIM` | `username` | Nama field yang berisi username di payload |
+
+Nilai `username` dan `HS256` untuk service ini sudah dicek langsung ke Token WPS asli, jadi bukan lagi asumsi.
+
+Setiap kegagalan autentikasi — Token hilang, signature salah, atau kedaluwarsa — menghasilkan **respon 401 yang identik**:
+
+```json
+{
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Token tidak valid atau kedaluwarsa"
+  }
+}
+```
+
+<Note>
+Pesan yang sama dipakai untuk ketiga kondisi sengaja, supaya klien tidak bisa membedakan "Token tidak ada" dari "Token kedaluwarsa".
+</Note>
+
+## Kepemilikan job
+
+`username` dari Token menentukan job mana yang bisa diakses. Kalau `job.data.requestedBy` tidak sama dengan `username` pemanggil, layanan menjawab **`404 NOT_FOUND`**, bukan `403`.
+
+<Warning>
+`**403` disengaja tidak dipakai: dengan `403`, klien bisa mengetahui bahwa sebuah `jobId` benar-benar ada. Dengan `404`, keberadaan job tidak bocor. Berlaku untuk status, download, dan WebSocket.
+</Warning>
+
+## WebSocket: Token lewat query parameter
+
+Browser tidak bisa mengirim header `Authorization` saat membuka koneksi WebSocket. Karena itu, khusus WebSocket, Token boleh dikirim lewat query parameter:
+
+```
+GET /ws/reports/{jobId}?token=<jwt>
+```
+
+Query parameter `token` **hanya** dibaca pada route WebSocket. Untuk Endpoint HTTP, Token tetap harus lewat header.
+
+<Note>
+Karena Token ada di query string, URL WebSocket bisa muncul di log browser. Token tidak pernah ditulis ke log server.
+</Note>
+
+## Mendapatkan Token untuk pengembangan
+
+Ada helper yang membuat Token lokal memakai `JWT_SECRET` yang sama:
+
+```sh
+bun run dev:token                 # username "tester", berlaku 1 jam
+bun run dev:token budi            # username "budi", berlaku 1 jam
+bun run dev:token budi 24         # username "budi", berlaku 24 jam
+```
+
+Helper ini **menolak berjalan** kalau `NODE_ENV=production`, dan maksimumnya 30 hari.
+
+<CodeGroup>
+
+```bash Request
+TOKEN=$(bun run dev:token budi)
+```
+
+```javascript JavaScript
+const res = await fetch('http://localhost:5006/reports', {
+  method: 'POST',
+  headers: {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({ type: 'mutasi-kayu-bulat', params: {} }),
+})
+```
+
+</CodeGroup>

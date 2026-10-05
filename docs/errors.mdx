@@ -1,0 +1,142 @@
+---
+title: "Errors"
+description: "Amplop error seragam, Error Codes, dan HTTP Status Codes."
+---
+
+## Amplop error
+
+Seluruh kegagalan memakai satu bentuk yang sama, didefinisikan di `src/lib/errors.ts`:
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Input tidak valid",
+    "details": []
+  }
+}
+```
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `error` | object | Ya | Amplop error |
+| `error.code` | string | Ya | Kode stabil untuk diparsing program. Lihat [Error Codes](#error-codes) |
+| `error.message` | string | Ya | Pesan dalam Bahasa Indonesia, untuk dibaca manusia |
+| `error.details` | unknown | Tidak | Hanya pada `VALIDATION_ERROR`. Daftar isu dari validasi Zod |
+
+<Note>
+Program sebaiknya membandingkan `error.code`, bukan `error.message`. `message` bisa berubah, sedangkan `code` adalah kontrak yang stabil.
+</Note>
+
+Untuk error di luar `AppError`, layanan selalu menjawab `500 INTERNAL_ERROR` **tanpa** membocorkan detail internal. Detail sebenarnya hanya ditulis ke log server.
+
+## Error Codes
+
+Seluruh kode di bawah ini didefinisikan sebagai fungsi di `src/lib/errors.ts`. Tidak ada kode lain yang muncul di luar daftar ini.
+
+| Code | HTTP Status Code | Kapan muncul |
+| --- | --- | --- |
+| `VALIDATION_ERROR` | 400 | Body atau params gagal validasi Zod |
+| `UNKNOWN_REPORT_TYPE` | 400 | `type` tidak ada di registry |
+| `UNAUTHORIZED` | 401 | Token hilang, signature salah, atau kedaluwarsa |
+| `NOT_FOUND` | 404 | Job tidak ada, **atau** job milik user lain |
+| `REPORT_NOT_READY` | 409 | Download dipanggil sebelum job `completed` |
+| `FILE_EXPIRED` | 410 | File PDF sudah dihapus oleh retensi |
+| `PAYLOAD_TOO_LARGE` | 413 | Request Body lebih dari 1 MB |
+| `INTERNAL_ERROR` | 500 | Error tak terduga di server |
+
+## HTTP Status Codes
+
+| HTTP Status Code | Endpoint | Kapan |
+| --- | --- | --- |
+| `200` | `GET /health` | Service hidup |
+| `200` | `GET /health/ready` | Semua komponen sehat |
+| `200` | `GET /reports/{id}` | Status job berhasil dibaca |
+| `200` | `GET /reports/{id}/download` | PDF dikirim |
+| `202` | `POST /reports` | Job diterima, belum dikerjakan |
+| `400` | `POST /reports` | `VALIDATION_ERROR` atau `UNKNOWN_REPORT_TYPE` |
+| `401` | Semua Endpoint kecuali `/health*` | `UNAUTHORIZED` |
+| `404` | `GET /reports/{id}` | Job tidak ada atau bukan milik pemanggil |
+| `404` | `GET /reports/{id}/download` | Job tidak ada atau bukan milik pemanggil |
+| `404` | Route yang tidak dikenal | Route tidak ditemukan |
+| `409` | `GET /reports/{id}/download` | `REPORT_NOT_READY` |
+| `410` | `GET /reports/{id}/download` | `FILE_EXPIRED` |
+| `413` | Seluruh Endpoint | `PAYLOAD_TOO_LARGE` |
+| `500` | Seluruh Endpoint | `INTERNAL_ERROR` |
+| `503` | `GET /health/ready` | Minimal satu komponen tidak sehat |
+
+## Contoh Response error
+
+<CodeGroup>
+
+```json 400 VALIDATION_ERROR
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Input tidak valid",
+    "details": [
+      {
+        "code": "invalid_format",
+        "path": ["tglAkhir"],
+        "message": "Format tanggal harus YYYY-MM-DD"
+      }
+    ]
+  }
+}
+```
+
+```json 400 UNKNOWN_REPORT_TYPE
+{
+  "error": {
+    "code": "UNKNOWN_REPORT_TYPE",
+    "message": "Jenis laporan tidak dikenal: tidak-ada-laporan-ini"
+  }
+}
+```
+
+```json 401 UNAUTHORIZED
+{
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Token tidak valid atau kedaluwarsa"
+  }
+}
+```
+
+```json 404 NOT_FOUND
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Laporan tidak ditemukan"
+  }
+}
+```
+
+```json 409 REPORT_NOT_READY
+{
+  "error": {
+    "code": "REPORT_NOT_READY",
+    "message": "Laporan belum selesai dibuat"
+  }
+}
+```
+
+```json 410 FILE_EXPIRED
+{
+  "error": {
+    "code": "FILE_EXPIRED",
+    "message": "File laporan sudah tidak tersedia (kedaluwarsa)"
+  }
+}
+```
+
+```json 500 INTERNAL_ERROR
+{
+  "error": {
+    "code": "INTERNAL_ERROR",
+    "message": "Terjadi kesalahan internal pada server"
+  }
+}
+```
+
+</CodeGroup>

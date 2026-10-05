@@ -1,0 +1,723 @@
+---
+title: "Reports"
+description: "Katalog laporan WPS dan bentuk parameternya."
+---
+
+Ada **180** jenis laporan WPS di `src/reports/registry.ts`. Registry itulah sumber kebenarannya — daftar ini digenerate darinya, mengikuti menu WPS `open-api-report` (`resources/views/welcome.blade.php`).
+
+<Note>`example` ada di registry tapi tidak ada di sini: itu laporan contoh dengan data dummy di memori untuk membuktikan pipeline, bukan laporan WPS. Jadi hitungannya 180, bukan 181.</Note>
+
+## Cara mengirim params
+
+Setiap laporan punya `paramsSchema` sendiri, jadi bentuk `params` berbeda-beda. Ada **25** bentuk yang berbeda. Kirim `params` sesuai bentuk laporan yang dipilih:
+
+```json
+{
+  "type": "<jenis laporan>",
+  "params": { "...": "sesuai bentuk laporan itu" }
+}
+```
+
+Validasi dilakukan ulang terhadap `paramsSchema` laporan tersebut. Kalau tidak cocok, dijawab `400 VALIDATION_ERROR` dengan `details` berisi field yang bermasalah.
+
+> Header body dan contoh: [Create Report](/endpoints/create-report).
+
+## Bentuk params
+
+| Bentuk | Jumlah laporan | Field |
+| --- | --- | --- |
+| `PeriodParams` | 108 | `tglAwal` (string), `tglAkhir` (string) |
+| `NoParams` | 19 | — |
+| `AsOfDateParams` | 8 | `tglAkhir` (string) |
+| `ParamsUmurLaminatingDetail` | 8 | `umur1`? (number), `umur2`? (number), `umur3`? (number), `umur4`? (number) |
+| `ParamsProduksiFjPerNomorProduksi` | 7 | `noProduksi` (string) |
+| `ParamsPenerimaanKayuBulatIntTon` | 4 | `noKayuBulat` (string) |
+| `ParamsLabelS4sHidupPerJenisKayu` | 3 | — |
+| `ParamsPenjualanBarangJadiM3` | 2 | `noJual` (string) |
+| `ParamsRekapRendemenNonRambung` | 2 | `tahun` (number), `bulan` (number) |
+| `ParamsPerbandinganKbMasukPeriode1Dan2` | 2 | `periode1Awal` (string), `periode1Akhir` (string), `periode2Awal` (string), `periode2Akhir` (string) |
+| `ParamsSerahTerimaStKamarKd` | 2 | `noProcKd` (string) |
+| `ParamsStockStBasah` | 2 | `tglAkhir` (string) |
+| `ParamsKoordinatTanah` | 1 | `noSpk` (string) |
+| `ParamsProduksiPerSpk` | 1 | `noSpk` (string) |
+| `ParamsRekapStockOnHand` | 1 | `tglAwal` (string), `tglAkhir` (string), `sections`? (array) |
+| `ParamsRekapPenerimaanStSawmillCostingRambung` | 1 | `tglAwal` (string), `tglAkhir` (string), `upahRacip`? (number), `supplier`? (string) |
+| `ParamsKdKeluarMasuk` | 1 | `tglAwal` (string), `tglAkhir` (string), `noRuangKd`? (number) |
+| `ParamsKdUpahPerNoProcKdDetail` | 1 | `noProcKd` (string) |
+| `ParamsLembarPerhitunganUpahBoronganSawmill` | 1 | `noProduksi` (string) |
+| `ParamsSpkSawmill` | 1 | `noSpk` (string), `idProduk` (number) |
+| `ParamsStHidupKering` | 1 | `hari` (number), `include`? (boolean), `exclude`? (boolean) |
+| `ParamsTotalBagusKulitRambung` | 1 | `tanggal` (string) |
+| `ParamsTracingSt` | 1 | `noProduk` (string) |
+| `ParamsUmurSawnTimberDetailTon` | 1 | `umur1`? (number), `umur2`? (number), `umur3`? (number), `umur4`? (number) |
+| `ParamsPenerimaanStHasilSawmill` | 1 | `noPenST` (string) |
+
+Field bertanda `?` berarti opsional.
+
+### `PeriodParams` — 108 laporan
+
+Rentang tanggal wajib; tglAkhir tidak boleh mendahului tglAwal.
+
+```json
+{
+  "type": "balok-sudah-semprot",
+  "params": {
+    "tglAwal": "2026-09-01",
+    "tglAkhir": "2026-09-30"
+  }
+}
+```
+
+<details>
+<summary>Laporan yang memakai bentuk ini (108)</summary>
+
+- `balok-sudah-semprot`
+- `dashboard-barang-jadi`
+- `dashboard-cross-cut-akhir`
+- `dashboard-finger-joint`
+- `dashboard-laminating`
+- `dashboard-moulding`
+- `dashboard-reproses`
+- `dashboard-s4s`
+- `dashboard-s4s-v2`
+- `dashboard-sanding`
+- `dashboard-sawn-timber`
+- `detail-lembar-tally-hasil-sawmill`
+- `discrepancy-rekap-mutasi`
+- `flow-produksi-per-periode`
+- `grade-abc-harian`
+- `hasil-produksi-mesin-lembur-dan-non-lembur`
+- `kapasitas-racip-kayu-bulat-hidup`
+- `kayu-bulat-hidup`
+- `ketahanan-barang-cc-akhir`
+- `ketahanan-barang-finger-joint`
+- `ketahanan-barang-laminating`
+- `ketahanan-barang-moulding`
+- `ketahanan-barang-reproses`
+- `ketahanan-barang-s4s`
+- `ketahanan-barang-sanding`
+- `ketahanan-barang-st`
+- `label-perhari`
+- `moulding-hidup-detail`
+- `mutasi-barang-jadi`
+- `mutasi-barang-jadi-per-jenis-per-ukuran`
+- `mutasi-cross-cut-akhir`
+- `mutasi-finger-joint`
+- `mutasi-hasil-racip`
+- `mutasi-kayu-bulat`
+- `mutasi-kayu-bulat-gantung`
+- `mutasi-kayu-bulat-kg`
+- `mutasi-kayu-bulat-kg-gantung`
+- `mutasi-kd`
+- `mutasi-laminating`
+- `mutasi-moulding`
+- `mutasi-racip-detail`
+- `mutasi-reproses`
+- `mutasi-s4s`
+- `mutasi-sanding`
+- `mutasi-sawn-timber-ton`
+- `output-produksi-s4s-per-grade`
+- `pemakaian-obat-vacuum`
+- `pembelian-st-per-supplier-ton`
+- `pembelian-st-timeline-ton`
+- `penerimaan-kayu-bulat-per-supplier`
+- `penerimaan-kayu-bulat-per-supplier-grafik`
+- `penerimaan-kayu-bulat-per-supplier-group`
+- `penerimaan-kayu-bulat-per-supplier-kg`
+- `penerimaan-st-sawmill-kg`
+- `penjualan-lokal`
+- `produksi-hulu-hilir`
+- `produksi-semua-mesin`
+- `qc-sawmill`
+- `qc-sawmill-discrepancy`
+- `qc-sawmill-summary`
+- `rangkuman-jumlah-label-input`
+- `rekap-hasil-sawmill-per-meja`
+- `rekap-hasil-sawmill-per-meja-semua-meja`
+- `rekap-hasil-sawmill-per-meja-upah-borongan`
+- `rekap-kamar-kd`
+- `rekap-mutasi`
+- `rekap-mutasi-cross-tab`
+- `rekap-pcs-telly-hasil-sawmill`
+- `rekap-pembelian-kayu-bulat`
+- `rekap-pembelian-kayu-bulat-kg`
+- `rekap-penerimaan-st-dari-sawmill-kg`
+- `rekap-penerimaan-st-non-rambung`
+- `rekap-penjualan-ekspor-per-buyer-per-produk`
+- `rekap-penjualan-ekspor-per-produk-per-buyer`
+- `rekap-penjualan-per-produk`
+- `rekap-produksi-barang-jadi-consolidated`
+- `rekap-produksi-cross-cut-akhir-consolidated`
+- `rekap-produksi-cross-cut-akhir-per-jenis-per-grade`
+- `rekap-produksi-finger-joint-consolidated`
+- `rekap-produksi-finger-joint-per-jenis-per-grade`
+- `rekap-produksi-laminating-consolidated`
+- `rekap-produksi-laminating-per-jenis-per-grade`
+- `rekap-produksi-moulding-consolidated`
+- `rekap-produksi-moulding-per-jenis-per-grade`
+- `rekap-produksi-packing-per-jenis-per-grade`
+- `rekap-produksi-s4s-consolidated`
+- `rekap-produksi-s4s-per-jenis-per-grade`
+- `rekap-produksi-s4s-rambung-per-grade`
+- `rekap-produksi-sanding-consolidated`
+- `rekap-produksi-sanding-per-jenis-per-grade`
+- `rekap-produktivitas-sawmill`
+- `rekap-rendemen-rambung-per-supplier`
+- `rekap-st-penjualan`
+- `rendemen-semua-proses`
+- `saldo-kayu-bulat`
+- `st-masuk-per-group`
+- `st-sawmill-hari-tebal-lebar`
+- `st-sawmill-masuk-per-group`
+- `supplier-intel`
+- `target-masuk-bb-bulanan`
+- `target-masuk-bb-harian`
+- `timeline-kayu-bulat-bulanan`
+- `timeline-kayu-bulat-harian`
+- `timeline-kb-bulanan-rambung-kg`
+- `timeline-kb-harian-rambung-kg`
+- `timeline-rekap-penjualan-per-produk`
+- `umur-kayu-bulat-non-rambung`
+- `umur-kayu-bulat-rambung`
+
+</details>
+
+### `NoParams` — 19 laporan
+
+Snapshot langsung: procedure tidak punya parameter sama sekali.
+
+```json
+{
+  "type": "barang-jadi-hidup-detail"
+}
+```
+
+<details>
+<summary>Laporan yang memakai bentuk ini (19)</summary>
+
+- `barang-jadi-hidup-detail`
+- `cross-cut-akhir-hidup-detail`
+- `finger-joint-hidup-detail`
+- `hidup-kb-per-group`
+- `kb-khusus-bangkang`
+- `kd-upah-per-customer`
+- `label-nyangkut`
+- `label-st-hidup-detail`
+- `laminating-hidup-detail`
+- `reproses-hidup-detail`
+- `s4s-hidup-detail`
+- `saldo-barang-jadi-hidup-per-jenis-per-produk`
+- `saldo-hidup-kayu-bulat-kg`
+- `saldo-st-hidup-per-produk`
+- `sanding-hidup-detail`
+- `st-basah-hidup-per-umur-kayu-ton`
+- `st-hidup-per-spk`
+- `st-rambung-mc1-mc2-detail`
+- `st-rambung-mc1-mc2-rangkuman`
+
+</details>
+
+### `AsOfDateParams` — 8 laporan
+
+Satu tanggal acuan. Procedure-nya hanya mendeklarasikan @TglAwal, jadi nilai dikirim ke sana.
+
+```json
+{
+  "type": "bahan-terpakai",
+  "params": {
+    "tglAkhir": "2026-09-30"
+  }
+}
+```
+
+<details>
+<summary>Laporan yang memakai bentuk ini (8)</summary>
+
+- `bahan-terpakai`
+- `bahan-yang-dihasilkan`
+- `dashboard-ru`
+- `hasil-output-racip-harian`
+- `rangkuman-bongkar-susun`
+- `stock-hidup-per-nospk`
+- `stock-hidup-per-nospk-discrepancy`
+- `stock-racip-kayu-lat`
+
+</details>
+
+### `ParamsUmurLaminatingDetail` — 8 laporan
+
+Parameter khusus laporan ini.
+
+```json
+{
+  "type": "umur-barang-jadi-detail",
+  "params": {
+    "umur1": 15,
+    "umur2": 30,
+    "umur3": 60,
+    "umur4": 90
+  }
+}
+```
+
+<details>
+<summary>Laporan yang memakai bentuk ini (8)</summary>
+
+- `umur-barang-jadi-detail`
+- `umur-cross-cut-akhir-detail`
+- `umur-finger-joint-detail`
+- `umur-laminating-detail`
+- `umur-moulding-detail`
+- `umur-reproses-detail`
+- `umur-s4s-detail`
+- `umur-sanding-detail`
+
+</details>
+
+### `ParamsProduksiFjPerNomorProduksi` — 7 laporan
+
+Parameter khusus laporan ini.
+
+```json
+{
+  "type": "produksi-cc-akhir-per-nomor-produksi",
+  "params": {
+    "noProduksi": "SA.004791"
+  }
+}
+```
+
+<details>
+<summary>Laporan yang memakai bentuk ini (7)</summary>
+
+- `produksi-cc-akhir-per-nomor-produksi`
+- `produksi-fj-per-nomor-produksi`
+- `produksi-laminating-per-nomor-produksi`
+- `produksi-moulding-per-nomor-produksi`
+- `produksi-packing-per-nomor-produksi`
+- `produksi-s4s-per-nomor-produksi`
+- `produksi-sanding-per-nomor-produksi`
+
+</details>
+
+### `ParamsPenerimaanKayuBulatIntTon` — 4 laporan
+
+Parameter khusus laporan ini.
+
+```json
+{
+  "type": "penerimaan-kayu-bulat-ext-kg",
+  "params": {
+    "noKayuBulat": "A.017234"
+  }
+}
+```
+
+<details>
+<summary>Laporan yang memakai bentuk ini (4)</summary>
+
+- `penerimaan-kayu-bulat-ext-kg`
+- `penerimaan-kayu-bulat-ext-ton`
+- `penerimaan-kayu-bulat-int-ton`
+- `penerimaan-kayu-bulat-kg`
+
+</details>
+
+### `ParamsLabelS4sHidupPerJenisKayu` — 3 laporan
+
+Parameter khusus laporan ini.
+
+```json
+{
+  "type": "label-s4s-hidup-per-jenis-kayu"
+}
+```
+
+<details>
+<summary>Laporan yang memakai bentuk ini (3)</summary>
+
+- `label-s4s-hidup-per-jenis-kayu`
+- `label-s4s-hidup-per-produk-per-jenis-kayu`
+- `stock-opname-kb`
+
+</details>
+
+### `ParamsPenjualanBarangJadiM3` — 2 laporan
+
+Parameter khusus laporan ini.
+
+```json
+{
+  "type": "penjualan-barang-jadi-m3",
+  "params": {
+    "noJual": "G.002618"
+  }
+}
+```
+
+<details>
+<summary>Laporan yang memakai bentuk ini (2)</summary>
+
+- `penjualan-barang-jadi-m3`
+- `surat-jalan`
+
+</details>
+
+### `ParamsRekapRendemenNonRambung` — 2 laporan
+
+Parameter khusus laporan ini.
+
+```json
+{
+  "type": "rekap-rendemen-non-rambung",
+  "params": {
+    "tahun": 2026,
+    "bulan": 9
+  }
+}
+```
+
+<details>
+<summary>Laporan yang memakai bentuk ini (2)</summary>
+
+- `rekap-rendemen-non-rambung`
+- `rekap-rendemen-rambung`
+
+</details>
+
+### `ParamsPerbandinganKbMasukPeriode1Dan2` — 2 laporan
+
+Parameter khusus laporan ini.
+
+```json
+{
+  "type": "perbandingan-kb-masuk-periode-1-dan-2",
+  "params": {
+    "periode1Awal": "2026-09-01",
+    "periode1Akhir": "2026-09-30",
+    "periode2Awal": "2026-09-01",
+    "periode2Akhir": "2026-09-30"
+  }
+}
+```
+
+<details>
+<summary>Laporan yang memakai bentuk ini (2)</summary>
+
+- `perbandingan-kb-masuk-periode-1-dan-2`
+- `perbandingan-kb-masuk-periode-1-dan-2-kg`
+
+</details>
+
+### `ParamsSerahTerimaStKamarKd` — 2 laporan
+
+Parameter khusus laporan ini.
+
+```json
+{
+  "type": "serah-terima-st-kamar-kd",
+  "params": {
+    "noProcKd": "H.001277"
+  }
+}
+```
+
+<details>
+<summary>Laporan yang memakai bentuk ini (2)</summary>
+
+- `serah-terima-st-kamar-kd`
+- `stok-opname-st-detail-kd`
+
+</details>
+
+### `ParamsStockStBasah` — 2 laporan
+
+Parameter khusus laporan ini.
+
+```json
+{
+  "type": "stock-st-basah",
+  "params": {
+    "tglAkhir": "2026-09-30"
+  }
+}
+```
+
+<details>
+<summary>Laporan yang memakai bentuk ini (2)</summary>
+
+- `stock-st-basah`
+- `stock-st-kering`
+
+</details>
+
+### `ParamsKoordinatTanah` — 1 laporan
+
+Parameter khusus laporan ini.
+
+```json
+{
+  "type": "koordinat-tanah",
+  "params": {
+    "noSpk": "2026-97"
+  }
+}
+```
+
+<details>
+<summary>Laporan yang memakai bentuk ini (1)</summary>
+
+- `koordinat-tanah`
+
+</details>
+
+### `ParamsProduksiPerSpk` — 1 laporan
+
+Parameter khusus laporan ini.
+
+```json
+{
+  "type": "produksi-per-spk",
+  "params": {
+    "noSpk": "2026-97"
+  }
+}
+```
+
+<details>
+<summary>Laporan yang memakai bentuk ini (1)</summary>
+
+- `produksi-per-spk`
+
+</details>
+
+### `ParamsRekapStockOnHand` — 1 laporan
+
+Parameter khusus laporan ini.
+
+```json
+{
+  "type": "rekap-stock-on-hand",
+  "params": {
+    "tglAwal": "2026-09-01",
+    "tglAkhir": "2026-09-30"
+  }
+}
+```
+
+<details>
+<summary>Laporan yang memakai bentuk ini (1)</summary>
+
+- `rekap-stock-on-hand`
+
+</details>
+
+### `ParamsRekapPenerimaanStSawmillCostingRambung` — 1 laporan
+
+Parameter khusus laporan ini.
+
+```json
+{
+  "type": "rekap-penerimaan-st-sawmill-costing-rambung",
+  "params": {
+    "tglAwal": "2026-09-01",
+    "tglAkhir": "2026-09-30",
+    "upahRacip": 450000,
+    "supplier": ""
+  }
+}
+```
+
+<details>
+<summary>Laporan yang memakai bentuk ini (1)</summary>
+
+- `rekap-penerimaan-st-sawmill-costing-rambung`
+
+</details>
+
+### `ParamsKdKeluarMasuk` — 1 laporan
+
+Parameter khusus laporan ini.
+
+```json
+{
+  "type": "kd-keluar-masuk",
+  "params": {
+    "tglAwal": "2026-09-01",
+    "tglAkhir": "2026-09-30",
+    "noRuangKd": 1
+  }
+}
+```
+
+<details>
+<summary>Laporan yang memakai bentuk ini (1)</summary>
+
+- `kd-keluar-masuk`
+
+</details>
+
+### `ParamsKdUpahPerNoProcKdDetail` — 1 laporan
+
+Parameter khusus laporan ini.
+
+```json
+{
+  "type": "kd-upah-per-no-proc-kd-detail",
+  "params": {
+    "noProcKd": "H.001277"
+  }
+}
+```
+
+<details>
+<summary>Laporan yang memakai bentuk ini (1)</summary>
+
+- `kd-upah-per-no-proc-kd-detail`
+
+</details>
+
+### `ParamsLembarPerhitunganUpahBoronganSawmill` — 1 laporan
+
+Parameter khusus laporan ini.
+
+```json
+{
+  "type": "lembar-perhitungan-upah-borongan-sawmill",
+  "params": {
+    "noProduksi": "SA.004791"
+  }
+}
+```
+
+<details>
+<summary>Laporan yang memakai bentuk ini (1)</summary>
+
+- `lembar-perhitungan-upah-borongan-sawmill`
+
+</details>
+
+### `ParamsSpkSawmill` — 1 laporan
+
+Parameter khusus laporan ini.
+
+```json
+{
+  "type": "spk-sawmill",
+  "params": {
+    "noSpk": "2026-97"
+  }
+}
+```
+
+<details>
+<summary>Laporan yang memakai bentuk ini (1)</summary>
+
+- `spk-sawmill`
+
+</details>
+
+### `ParamsStHidupKering` — 1 laporan
+
+Parameter khusus laporan ini.
+
+```json
+{
+  "type": "st-hidup-kering",
+  "params": {
+    "hari": 30,
+    "include": false,
+    "exclude": false
+  }
+}
+```
+
+<details>
+<summary>Laporan yang memakai bentuk ini (1)</summary>
+
+- `st-hidup-kering`
+
+</details>
+
+### `ParamsTotalBagusKulitRambung` — 1 laporan
+
+Parameter khusus laporan ini.
+
+```json
+{
+  "type": "total-bagus-kulit-rambung",
+  "params": {
+    "tanggal": "2026-09-30"
+  }
+}
+```
+
+<details>
+<summary>Laporan yang memakai bentuk ini (1)</summary>
+
+- `total-bagus-kulit-rambung`
+
+</details>
+
+### `ParamsTracingSt` — 1 laporan
+
+Parameter khusus laporan ini.
+
+```json
+{
+  "type": "tracing-st",
+  "params": {
+    "noProduk": "E.520353"
+  }
+}
+```
+
+<details>
+<summary>Laporan yang memakai bentuk ini (1)</summary>
+
+- `tracing-st`
+
+</details>
+
+### `ParamsUmurSawnTimberDetailTon` — 1 laporan
+
+Parameter khusus laporan ini.
+
+```json
+{
+  "type": "umur-sawn-timber-detail-ton",
+  "params": {
+    "umur1": 0,
+    "umur2": 0,
+    "umur3": 0,
+    "umur4": 0
+  }
+}
+```
+
+<details>
+<summary>Laporan yang memakai bentuk ini (1)</summary>
+
+- `umur-sawn-timber-detail-ton`
+
+</details>
+
+### `ParamsPenerimaanStHasilSawmill` — 1 laporan
+
+Parameter khusus laporan ini.
+
+```json
+{
+  "type": "penerimaan-st-hasil-sawmill",
+  "params": {
+    "noPenST": "B.162237"
+  }
+}
+```
+
+<details>
+<summary>Laporan yang memakai bentuk ini (1)</summary>
+
+- `penerimaan-st-hasil-sawmill`
+
+</details>

@@ -1,0 +1,143 @@
+---
+title: "Management"
+description: "Laporan dalam kelompok Management."
+---
+
+12 jenis laporan.
+
+| type | Judul | Params | Stored procedure | Orientasi |
+| --- | --- | --- | --- | --- |
+| `dashboard-ru` | Laporan Dashboard RU | `tglAkhir` | `SP_LapProduktivitasDashboard` | landscape |
+| `discrepancy-rekap-mutasi` | Laporan Discrepancy Rekap Mutasi | `tglAwal`, `tglAkhir` | `SP_LapRekapMutasiV2` | landscape |
+| `flow-produksi-per-periode` | Laporan Flow Produksi Per-Periode | `tglAwal`, `tglAkhir` | `SPWps_LapFlowProduksiPerPeriode` | landscape |
+| `hasil-produksi-mesin-lembur-dan-non-lembur` | Laporan Hasil Produksi Mesin Lembur Dan Non Lembur | `tglAwal`, `tglAkhir` | `SPWps_LapLemburPerMesin` | portrait |
+| `label-perhari` | Laporan Label Perhari | `tglAwal`, `tglAkhir` | `SPWps_LapLabelPerhari` | portrait |
+| `produksi-hulu-hilir` | Laporan Produksi Hulu Hilir | `tglAwal`, `tglAkhir` | `SPWps_LapProduksiSemuaMesinV2` | landscape |
+| `produksi-semua-mesin` | Laporan Semua Mesin | `tglAwal`, `tglAkhir` | `SPWps_LapProduksiSemuaMesin` | landscape |
+| `rekap-mutasi` | Laporan Rekap Mutasi | `tglAwal`, `tglAkhir` | Belum terdokumentasi di kode | portrait |
+| `rekap-mutasi-cross-tab` | Laporan Rekap Mutasi (Cross Tab) | `tglAwal`, `tglAkhir` | `SP_LapRekapMutasi` | landscape |
+| `rekap-stock-on-hand` | Laporan Rekap Stock On Hand | `tglAwal`, `tglAkhir`, `sections`? | `SPWps_LapRekapStockOnHand_SubBJ`, `SPWps_LapRekapStockOnHand_SubCCAkhir`, `SPWps_LapRekapStockOnHand_SubFJ`, `SPWps_LapRekapStockOnHand_SubKB`, `SPWps_LapRekapStockOnHand_SubLMT`, `SPWps_LapRekapStockOnHand_SubMoulding`, `SPWps_LapRekapStockOnHand_SubReproses`, `SPWps_LapRekapStockOnHand_SubS4S`, `SPWps_LapRekapStockOnHand_SubST`, `SPWps_LapRekapStockOnHand_SubSanding` | portrait |
+| `stock-hidup-per-nospk` | Laporan Stock Hidup Per No SPK | `tglAkhir` | `SP_LapSemuaStockHidupPerSPK` | portrait |
+| `stock-hidup-per-nospk-discrepancy` | Laporan Stock Hidup Per No SPK (Discrepancy) | `tglAkhir` | `SP_LapSemuaStockHidupPerSPK` | portrait |
+
+## Sumber data
+
+### `dashboard-ru`
+
+- Stored procedure: `SP_LapProduktivitasDashboard`
+- Nama parameter SP: `Periode` (berbeda dari nama field di `params`)
+- Orientasi: landscape
+
+### `discrepancy-rekap-mutasi`
+
+- Stored procedure: `SP_LapRekapMutasiV2`
+- Nama parameter SP: `UsingMode` (berbeda dari nama field di `params`)
+- Orientasi: landscape
+
+### `flow-produksi-per-periode`
+
+- Stored procedure: `SPWps_LapFlowProduksiPerPeriode`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: landscape
+
+### `hasil-produksi-mesin-lembur-dan-non-lembur`
+
+- Stored procedure: `SPWps_LapLemburPerMesin`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: portrait
+
+### `label-perhari`
+
+- Stored procedure: `SPWps_LapLabelPerhari`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: portrait
+
+### `produksi-hulu-hilir`
+
+- Stored procedure: `SPWps_LapProduksiSemuaMesinV2`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: landscape
+
+### `produksi-semua-mesin`
+
+- Stored procedure: `SPWps_LapProduksiSemuaMesin`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: landscape
+
+### `rekap-mutasi`
+
+- Stored procedure: Belum terdokumentasi di kode
+- Nama parameter SP: Belum terdokumentasi di kode
+- Orientasi: portrait
+
+### `rekap-mutasi-cross-tab`
+
+- Stored procedure: `SP_LapRekapMutasi`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: landscape
+
+### `rekap-stock-on-hand`
+
+- Stored procedure: `SPWps_LapRekapStockOnHand_SubBJ`, `SPWps_LapRekapStockOnHand_SubCCAkhir`, `SPWps_LapRekapStockOnHand_SubFJ`, `SPWps_LapRekapStockOnHand_SubKB`, `SPWps_LapRekapStockOnHand_SubLMT`, `SPWps_LapRekapStockOnHand_SubMoulding`, `SPWps_LapRekapStockOnHand_SubReproses`, `SPWps_LapRekapStockOnHand_SubS4S`, `SPWps_LapRekapStockOnHand_SubST`, `SPWps_LapRekapStockOnHand_SubSanding`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: portrait
+
+### `stock-hidup-per-nospk`
+
+- Stored procedure: `SP_LapSemuaStockHidupPerSPK`
+- Nama parameter SP: `UsingMode` (berbeda dari nama field di `params`)
+- Orientasi: portrait
+
+### `stock-hidup-per-nospk-discrepancy`
+
+- Stored procedure: `SP_LapSemuaStockHidupPerSPK`
+- Nama parameter SP: `UsingMode` (berbeda dari nama field di `params`)
+- Orientasi: portrait
+
+<Warning>
+Laporan di bawah ini mengikat nama parameter SP yang **berbeda** dari nama field di `params`. KalauSP-nya diganti nama, nama parameter pun harus ikut menyesuaikan.
+</Warning>
+
+| type | Nama field di params | Nama parameter SP |
+| --- | --- | --- |
+| `dashboard-ru` | `tglAkhir` | `Periode` |
+| `discrepancy-rekap-mutasi` | `tglAwal`, `tglAkhir` | `UsingMode` |
+| `stock-hidup-per-nospk` | `tglAkhir` | `UsingMode` |
+| `stock-hidup-per-nospk-discrepancy` | `tglAkhir` | `UsingMode` |
+
+## Contoh Request Body
+
+### Bentuk `AsOfDateParams`
+
+```json
+{
+  "type": "dashboard-ru",
+  "params": {
+    "tglAkhir": "2026-09-30"
+  }
+}
+```
+
+### Bentuk `PeriodParams`
+
+```json
+{
+  "type": "discrepancy-rekap-mutasi",
+  "params": {
+    "tglAwal": "2026-09-01",
+    "tglAkhir": "2026-09-30"
+  }
+}
+```
+
+### Bentuk `ParamsRekapStockOnHand`
+
+```json
+{
+  "type": "rekap-stock-on-hand",
+  "params": {
+    "tglAwal": "2026-09-01",
+    "tglAkhir": "2026-09-30"
+  }
+}
+```

@@ -1,0 +1,104 @@
+---
+title: "Introduction"
+description: "Microservice pembuat laporan PDF asynchronous untuk sistem WPS."
+---
+
+## Apa ini
+
+`report-service` membuat **laporan PDF secara asynchronous** untuk WPS (Wood Processing System). Klien mengirim permintaan, menerima `jobId` segera, lalu mengambil hasilnya setelah worker selesai merender HTML menjadi PDF melalui Gotenberg.
+
+Layanan ini **tidak menerbitkan Token**. Token JWT diterbitkan oleh WPS backend; layanan ini hanya memverifikasinya. Lihat [Authentication](/authentication).
+
+<Note>
+Dokumentasi OpenAPI interaktif sudah tersedia di service yang sedang berjalan: Swagger UI di `/docs`, spesifikasi mentahnya di `/docs/openapi.json`. Halaman-halaman di sini menambahkan penjelasan, contoh Request/Response, dan detail internal yang tidak ada di spec.
+</Note>
+
+## Alur asynchronous
+
+```
+Client ──POST /reports (Bearer Token)──▶ API (Hono)
+                                        │ verifikasi Token, validasi Zod
+                                        │ masukkan job ke BullMQ  ──▶ Redis
+                                        ▼
+                                     balas 202 + jobId
+Worker ◀── ambil job dari Redis
+  │  1. ambil data dari SQL Server (mssql)
+  │  2. render HTML dari template
+  │  3. HTML → PDF via Gotenberg (HTTP)
+  │  4. simpan file ke storage/
+  ▼
+Client ◀── WebSocket (progress) / GET /reports/{id} / GET /reports/{id}/download
+```
+
+Progres bisa dipantau dengan salah satu dari dua cara:
+
+| Cara | Endpoint | Catatan |
+| --- | --- | --- |
+| Polling | `GET /reports/{id}` | Selalu tersedia, paling sederhana |
+| WebSocket | `GET /ws/reports/{jobId}?token=<jwt>` | Progress realtime, hanya untuk satu `jobId` |
+
+## Base URL
+
+Tidak ada prefix. Semua path relatif terhadap origin.
+
+| Environment | Base URL |
+| --- | --- |
+| Lokal | `http://localhost:5006` |
+| Docker Compose | `http://localhost:5006` (port host, dipetakan dari `PORT`) |
+
+Port diambil dari environment variable `PORT`, dengan default `5006`.
+
+## Request Format
+
+| Item | Nilai |
+| --- | --- |
+| Content-Type | `application/json` untuk seluruh Request Body |
+| Header wajib | `Authorization: Bearer <token>` |
+| Body limit | 1 MB |
+
+Endpoint yang **tidak** memerlukan autentikasi hanya dua: `/health` dan `/health/ready`. Sisanya memerlukan `Authorization`.
+
+Bentuk `params` pada `POST /reports` bergantung pada nilai `type`, karena setiap laporan punya skema param sendiri. Lihat [Reports](/reports/overview).
+
+<Note>
+Field `message` pada seluruh Response error berbahasa Indonesia, karena pesan itu ditulis untuk dibaca manusia, bukan untuk diparsing program. Yang dipakai program adalah field `code`.
+</Note>
+
+## Response Format
+
+Seluruh Response sukses berupa JSON dengan `Content-Type: application/json`, kecuali `GET /reports/{id}/download` yang mengembalikan biner PDF.
+
+Response error selalu memakai amplop yang sama:
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Input tidak valid",
+    "details": []
+  }
+}
+```
+
+Field `details` hanya muncul pada `VALIDATION_ERROR`, berisi daftar isu dari validasi Zod. Lihat [Errors](/errors).
+
+## Limits
+
+Hanya dua batasan yang ada di kode:
+
+| Limit | Nilai | Sumber | Dampak |
+| --- | --- | --- | --- |
+| Ukuran Request Body | 1 MB | `src/app.ts` | `413 PAYLOAD_TOO_LARGE` |
+| CORS origins | `CORS_ORIGINS` | env | Header CORS hanya untuk origin terdaftar |
+
+Rincian CORS:
+
+| Item | Nilai |
+| --- | --- |
+| Header yang diizinkan | `Authorization`, `Content-Type` |
+| Method yang diizinkan | `GET`, `POST`, `OPTIONS` |
+| Origins | Daftar dari `CORS_ORIGINS`, dipisah koma dan dip-trim |
+
+## Retensi file
+
+File PDF disimpan di `STORAGE_DIR` dan dibersihkan setelah `FILE_RETENTION_DAYS` (default 7 hari). Setelah dihapus, `GET /reports/{id}/download` menjawab `410 FILE_EXPIRED`.Job di Redis punya masa simpan sendiri yang lebih panjang, jadi status job masih bisa dibaca setelah file-nya hilang.

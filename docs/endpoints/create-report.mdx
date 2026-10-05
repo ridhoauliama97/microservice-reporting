@@ -1,0 +1,168 @@
+---
+title: "Create Report"
+description: "Membuat job laporan dan menerima jobId."
+---
+
+`POST /reports`
+
+Mendaftarkan job laporan ke antrian BullMQ dan langsung mengembalikan `202` dengan `jobId`, **tanpa menunggu** PDF selesai. Pembuatan PDF terjadi di proses worker.
+
+<ResponseField name="jobId" type="string (uuid)" required>
+Identifier job. Dibuat dengan `crypto.randomUUID()`, jadi tidak bisa ditebak.
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+Selalu `"pending"` pada respons ini.
+</ResponseField>
+
+## Request
+
+### Headers
+
+<ParamField header="Authorization" type="string" required>
+`Bearer <token>`. Wajib.
+</ParamField>
+
+<ParamField header="Content-Type" type="string" required>
+`application/json`.
+</ParamField>
+
+### Request Body
+
+<ParamField body="type" type="string" required>
+Jenis laporan. Harus salah satu nilai dari registry — 180 laporan WPS yang tersedia, lihat [Reports](/reports/overview). Kalau tidak dikenal, dijawab `400 UNKNOWN_REPORT_TYPE`.
+</ParamField>
+
+<ParamField body="params" type="object">
+Parameter laporan. Bentuknya **bergantung pada `type`**. Skema params diambil langsung dari definisi tiap laporan, jadi mustahil melenceng dari kode.
+</ParamField>
+
+<Note>
+`params` boleh dihilangkan untuk laporan tanpa parameter — `params: {}` memberikan hasil yang sama. Untuk laporan yang butuh periode, `params` adalah wajib.
+</Note>
+
+### Contoh Request Body
+
+<CodeGroup>
+
+```json Periode (tglAwal + tglAkhir)
+{
+  "type": "mutasi-kayu-bulat",
+  "params": {
+    "tglAwal": "2026-09-01",
+    "tglAkhir": "2026-09-30"
+  }
+}
+```
+
+```json Satu tanggal acuan (tglAkhir)
+{
+  "type": "bahan-terpakai",
+  "params": {
+    "tglAkhir": "2026-09-30"
+  }
+}
+```
+
+```json Tanpa parameter
+{
+  "type": "s4s-hidup-detail"
+}
+```
+
+```json Dengan lookup
+{
+  "type": "produksi-fj-per-nomor-produksi",
+  "params": {
+    "noProduksi": "SA.004791"
+  }
+}
+```
+
+</CodeGroup>
+
+## Contoh Request
+
+<CodeGroup>
+
+```bash Request
+curl.exe -X POST http://localhost:5006/reports -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d "@body.json"
+```
+
+```javascript JavaScript
+const res = await fetch('http://localhost:5006/reports', {
+  method: 'POST',
+  headers: {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    type: 'mutasi-kayu-bulat',
+    params: { tglAwal: '2026-09-01', tglAkhir: '2026-09-30' },
+  }),
+})
+const { jobId, status } = await res.json()
+```
+
+</CodeGroup>
+
+<Warning>
+Di PowerShell, pakai `curl.exe` **bukan** `curl` — `curl` di sana adalah alias `Invoke-WebRequest` yang punya sintaks berbeda. Untuk body JSON, simpan ke file lalu kirim dengan `-d "@body.json"` supaya tidak bentrok dengan parsing tanda kutip shell.
+</Warning>
+
+## Response
+
+<CodeGroup>
+
+```json 202 Job diterima
+{
+  "jobId": "5c78cb40-1f2a-4c31-9d0e-7b6a2f4e91aa",
+  "status": "pending"
+}
+```
+
+```json 400 UNKNOWN_REPORT_TYPE
+{
+  "error": {
+    "code": "UNKNOWN_REPORT_TYPE",
+    "message": "Jenis laporan tidak dikenal: tidak-ada-laporan-ini"
+  }
+}
+```
+
+```json 400 VALIDATION_ERROR
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Input tidak valid",
+    "details": [
+      {
+        "code": "invalid_format",
+        "path": ["tglAkhir"],
+        "message": "Format tanggal harus YYYY-MM-DD"
+      }
+    ]
+  }
+}
+```
+
+```json 401 UNAUTHORIZED
+{
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Token tidak valid atau kedaluwarsa"
+  }
+}
+```
+
+```json 413 PAYLOAD_TOO_LARGE
+{
+  "error": {
+    "code": "PAYLOAD_TOO_LARGE",
+    "message": "Ukuran request terlalu besar"
+  }
+}
+```
+
+</CodeGroup>
+
