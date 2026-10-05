@@ -1,0 +1,116 @@
+---
+title: "Penjualan Kayu"
+description: "Laporan dalam kelompok Penjualan Kayu."
+---
+
+8 jenis laporan.
+
+| type | Judul | Params | Stored procedure | Orientasi |
+| --- | --- | --- | --- | --- |
+| `koordinat-tanah` | Laporan Koordinat Tanah | `noSpk` | `SP_PrintCariKoordinatTanah`, `SP_PrintPersentaseCariKoordinat` | portrait |
+| `penjualan-barang-jadi-m3` | Laporan Penjualan Barang Jadi (m3) | `noJual` | `SP_LapPenjualanBarangJadi` | portrait |
+| `penjualan-lokal` | Laporan Penjualan Lokal | `tglAwal`, `tglAkhir` | Belum terdokumentasi di kode | portrait |
+| `rekap-penjualan-ekspor-per-buyer-per-produk` | Laporan Rekap Penjualan Ekspor Per-Buyer dan Per-Produk | `tglAwal`, `tglAkhir` | `SP_LapJualPerBuyerPerProduk` | — |
+| `rekap-penjualan-ekspor-per-produk-per-buyer` | Laporan Rekap Penjualan Ekspor Per-Produk dan Per-Buyer | `tglAwal`, `tglAkhir` | `SP_LapJualPerProdukPerBuyer` | — |
+| `rekap-penjualan-per-produk` | Laporan Rekap Penjualan Per-Produk | `tglAwal`, `tglAkhir` | `SP_LapJualPerProduk` | portrait |
+| `surat-jalan` | Laporan Surat Jalan | `noJual` | `SP_CetakSuratJalan` | portrait |
+| `timeline-rekap-penjualan-per-produk` | Laporan Timeline Rekap Penjualan Per-Produk | `tglAwal`, `tglAkhir` | `SP_LapJualPerProdukTimeLine` | portrait |
+
+## Sumber data
+
+### `koordinat-tanah`
+
+- Stored procedure: `SP_PrintCariKoordinatTanah`, `SP_PrintPersentaseCariKoordinat`
+- Nama parameter SP: `NoSPK` (berbeda dari nama field di `params`)
+- Orientasi: portrait
+
+### `penjualan-barang-jadi-m3`
+
+- Stored procedure: `SP_LapPenjualanBarangJadi`
+- Nama parameter SP: `NoJual` (berbeda dari nama field di `params`)
+- Orientasi: portrait
+
+### `penjualan-lokal`
+
+- Stored procedure: Belum terdokumentasi di kode
+- Nama parameter SP: Belum terdokumentasi di kode
+- Orientasi: portrait
+
+### `rekap-penjualan-ekspor-per-buyer-per-produk`
+
+- Stored procedure: `SP_LapJualPerBuyerPerProduk`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `rekap-penjualan-ekspor-per-produk-per-buyer`
+
+- Stored procedure: `SP_LapJualPerProdukPerBuyer`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `rekap-penjualan-per-produk`
+
+- Stored procedure: `SP_LapJualPerProduk`
+- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Orientasi: portrait
+
+### `surat-jalan`
+
+- Stored procedure: `SP_CetakSuratJalan`
+- Nama parameter SP: `NoJual` (berbeda dari nama field di `params`)
+- Orientasi: portrait
+
+### `timeline-rekap-penjualan-per-produk`
+
+- Stored procedure: `SP_LapJualPerProdukTimeLine`
+- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Orientasi: portrait
+
+<Warning>
+Laporan di bawah ini mengikat nama parameter SP yang **berbeda** dari nama field di `params`. KalauSP-nya diganti nama, nama parameter pun harus ikut menyesuaikan.
+</Warning>
+
+| type | Nama field di params | Nama parameter SP |
+| --- | --- | --- |
+| `koordinat-tanah` | `noSpk` | `NoSPK` |
+| `penjualan-barang-jadi-m3` | `noJual` | `NoJual` |
+| `penjualan-lokal` | `tglAwal`, `tglAkhir` | `tglAkhir`, `tglAwal` |
+| `rekap-penjualan-per-produk` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
+| `surat-jalan` | `noJual` | `NoJual` |
+| `timeline-rekap-penjualan-per-produk` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
+
+## Contoh Request Body
+
+### Bentuk `ParamsKoordinatTanah`
+
+```json
+{
+  "type": "koordinat-tanah",
+  "params": {
+    "noSpk": "2026-97"
+  }
+}
+```
+
+### Bentuk `ParamsPenjualanBarangJadiM3`
+
+```json
+{
+  "type": "penjualan-barang-jadi-m3",
+  "params": {
+    "noJual": "G.002618"
+  }
+}
+```
+
+### Bentuk `PeriodParams`
+
+```json
+{
+  "type": "penjualan-lokal",
+  "params": {
+    "tglAwal": "2026-09-01",
+    "tglAkhir": "2026-09-30"
+  }
+}
+```

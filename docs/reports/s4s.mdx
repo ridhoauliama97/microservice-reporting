@@ -1,0 +1,156 @@
+---
+title: "S4S"
+description: "Laporan dalam kelompok S4S."
+---
+
+13 jenis laporan.
+
+| type | Judul | Params | Stored procedure | Orientasi |
+| --- | --- | --- | --- | --- |
+| `dashboard-s4s` | Laporan Dashboard S4S | `tglAwal`, `tglAkhir` | `SPWps_LapDashboardS4S` | — |
+| `dashboard-s4s-v2` | Laporan Dashboard S4S v2 | `tglAwal`, `tglAkhir` | `SPWps_LapDashboardS4S2` | — |
+| `grade-abc-harian` | Laporan Grade ABC Harian | `tglAwal`, `tglAkhir` | `SPWps_LapGradeABCHarian` | portrait |
+| `ketahanan-barang-s4s` | Laporan Ketahanan Barang Dagang S4S | `tglAwal`, `tglAkhir` | `SP_LapKetahananBarangS4S` | — |
+| `label-s4s-hidup-per-jenis-kayu` | Laporan Label S4S (Hidup) Per-Jenis Kayu | tanpa params | `SP_LapS4SPerJenisKayu` | — |
+| `label-s4s-hidup-per-produk-per-jenis-kayu` | Laporan Label S4S (Hidup) Per-Produk dan Per-Jenis Kayu | tanpa params | `SP_LapS4SHidupPerProdukdanPerJenis` | — |
+| `mutasi-s4s` | Laporan Mutasi S4S (m3) | `tglAwal`, `tglAkhir` | `SP_Mutasi_S4S`, `SP_SubMutasi_S4S` | landscape |
+| `output-produksi-s4s-per-grade` | Laporan Output Produksi S4S Per Grade | `tglAwal`, `tglAkhir` | `SPWps_LapProduksiOutputS4SPerGrade` | landscape |
+| `rekap-produksi-s4s-consolidated` | Laporan Rekap Produksi S4S Consolidated | `tglAwal`, `tglAkhir` | `SP_LapRekapProduksiS4SConsolidated` | portrait |
+| `rekap-produksi-s4s-per-jenis-per-grade` | Laporan Rekap Produksi S4S Per-Jenis & Per-Grade (m3) | `tglAwal`, `tglAkhir` | `SP_LapRekapProduksiS4SPerJenisPerGrade` | portrait |
+| `rekap-produksi-s4s-rambung-per-grade` | Laporan Rekap Produksi S4S Rambung Per Grade | `tglAwal`, `tglAkhir` | `SP_LapRekapProduksiS4SRambungPerGrade` | landscape |
+| `s4s-hidup-detail` | Laporan Label S4S (Hidup) | tanpa params | `SP_LapS4SHidupDetail` | — |
+| `umur-s4s-detail` | Laporan Umur S4S Detail | `umur1`?, `umur2`?, `umur3`?, `umur4`? | `SP_LapUmurS4S` | — |
+
+## Sumber data
+
+### `dashboard-s4s`
+
+- Stored procedure: `SPWps_LapDashboardS4S`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `dashboard-s4s-v2`
+
+- Stored procedure: `SPWps_LapDashboardS4S2`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `grade-abc-harian`
+
+- Stored procedure: `SPWps_LapGradeABCHarian`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: portrait
+
+### `ketahanan-barang-s4s`
+
+- Stored procedure: `SP_LapKetahananBarangS4S`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `label-s4s-hidup-per-jenis-kayu`
+
+- Stored procedure: `SP_LapS4SPerJenisKayu`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `label-s4s-hidup-per-produk-per-jenis-kayu`
+
+- Stored procedure: `SP_LapS4SHidupPerProdukdanPerJenis`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `mutasi-s4s`
+
+- Stored procedure: `SP_Mutasi_S4S`, `SP_SubMutasi_S4S`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: landscape
+
+### `output-produksi-s4s-per-grade`
+
+- Stored procedure: `SPWps_LapProduksiOutputS4SPerGrade`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: landscape
+
+### `rekap-produksi-s4s-consolidated`
+
+- Stored procedure: `SP_LapRekapProduksiS4SConsolidated`
+- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Orientasi: portrait
+
+### `rekap-produksi-s4s-per-jenis-per-grade`
+
+- Stored procedure: `SP_LapRekapProduksiS4SPerJenisPerGrade`
+- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Orientasi: portrait
+
+### `rekap-produksi-s4s-rambung-per-grade`
+
+- Stored procedure: `SP_LapRekapProduksiS4SRambungPerGrade`
+- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Orientasi: landscape
+
+### `s4s-hidup-detail`
+
+- Stored procedure: `SP_LapS4SHidupDetail`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `umur-s4s-detail`
+
+- Stored procedure: `SP_LapUmurS4S`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+<Warning>
+Laporan di bawah ini mengikat nama parameter SP yang **berbeda** dari nama field di `params`. KalauSP-nya diganti nama, nama parameter pun harus ikut menyesuaikan.
+</Warning>
+
+| type | Nama field di params | Nama parameter SP |
+| --- | --- | --- |
+| `rekap-produksi-s4s-consolidated` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
+| `rekap-produksi-s4s-per-jenis-per-grade` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
+| `rekap-produksi-s4s-rambung-per-grade` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
+
+## Contoh Request Body
+
+### Bentuk `PeriodParams`
+
+```json
+{
+  "type": "dashboard-s4s",
+  "params": {
+    "tglAwal": "2026-09-01",
+    "tglAkhir": "2026-09-30"
+  }
+}
+```
+
+### Bentuk `ParamsLabelS4sHidupPerJenisKayu` — tanpa params
+
+```json
+{
+  "type": "label-s4s-hidup-per-jenis-kayu"
+}
+```
+
+### Bentuk `NoParams` — tanpa params
+
+```json
+{
+  "type": "s4s-hidup-detail"
+}
+```
+
+### Bentuk `ParamsUmurLaminatingDetail`
+
+```json
+{
+  "type": "umur-s4s-detail",
+  "params": {
+    "umur1": 15,
+    "umur2": 30,
+    "umur3": 60,
+    "umur4": 90
+  }
+}
+```

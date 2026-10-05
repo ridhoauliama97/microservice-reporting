@@ -1,0 +1,152 @@
+---
+title: "Get Report Status"
+description: "Membaca status dan progres satu job."
+---
+
+`GET /reports/{id}`
+
+Mengembalikan status job beserta progresnya. Ini cara paling sederhana untuk memantau pekerjaan; alternatifnya adalah [WebSocket](/endpoints/websocket).
+
+<ResponseField name="id" type="string" required>
+Identifier job, sama dengan `jobId` dari `POST /reports`.
+</ResponseField>
+
+<ResponseField name="type" type="string" required>
+Jenis laporan yang diminta.
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+Salah satu dari `pending`, `processing`, `completed`, `failed`. Lihat [Status job](#status-job).
+</ResponseField>
+
+<ResponseField name="progress" type="number" required>
+Progres 0 sampai 100. Nilainya 0 bila worker belum melapor progres.
+</ResponseField>
+
+<ResponseField name="result" type="object">
+Hanya ada saat `status` adalah `completed`.
+</ResponseField>
+
+<ResponseField name="result.fileName" type="string">
+Nama file di `STORAGE_DIR`, selalu berbentuk `report-<jobId>.pdf`.
+</ResponseField>
+
+<ResponseField name="result.size" type="number">
+Ukuran file dalam byte.
+</ResponseField>
+
+<ResponseField name="result.generatedAt" type="string">
+Waktu selesai dalam ISO-8601.
+</ResponseField>
+
+<ResponseField name="error" type="string">
+Hanya ada saat `status` adalah `failed`. Berisi alasan kegagalan.
+</ResponseField>
+
+<ResponseField name="createdAt" type="string" required>
+Waktu job dibuat dalam ISO-8601.
+</ResponseField>
+
+## Status job
+
+Status API dipetakan dari status internal antrian BullMQ:
+
+| Status API | Status BullMQ |
+| --- | --- |
+| `pending` | `waiting`, `delayed`, `prioritized`, `waiting-children` |
+| `processing` | `active` |
+| `completed` | `completed` |
+| `failed` | `failed` |
+
+## Request
+
+### Headers
+
+<ParamField header="Authorization" type="string" required>
+`Bearer <token>`. Wajib.
+</ParamField>
+
+### Path Parameters
+
+<ParamField path="id" type="string" required>
+`jobId` yang diterima dari `POST /reports`.
+</ParamField>
+
+<CodeGroup>
+
+```bash Request
+curl.exe http://localhost:5006/reports/$JOB_ID -H "Authorization: Bearer $TOKEN"
+```
+
+```javascript JavaScript
+const res = await fetch(`http://localhost:5006/reports/${jobId}`, {
+  headers: { Authorization: `Bearer ${token}` },
+})
+const job = await res.json()
+```
+
+</CodeGroup>
+
+## Response
+
+<CodeGroup>
+
+```json 200 Belum selesai
+{
+  "id": "5c78cb40-1f2a-4c31-9d0e-7b6a2f4e91aa",
+  "type": "mutasi-kayu-bulat",
+  "status": "processing",
+  "progress": 50,
+  "createdAt": "2026-09-30T02:10:11.000Z"
+}
+```
+
+```json 200 Selesai
+{
+  "id": "5c78cb40-1f2a-4c31-9d0e-7b6a2f4e91aa",
+  "type": "mutasi-kayu-bulat",
+  "status": "completed",
+  "progress": 100,
+  "result": {
+    "fileName": "report-5c78cb40-1f2a-4c31-9d0e-7b6a2f4e91aa.pdf",
+    "size": 33115,
+    "generatedAt": "2026-09-30T02:10:22.481Z"
+  },
+  "createdAt": "2026-09-30T02:10:11.000Z"
+}
+```
+
+```json 200 Gagal
+{
+  "id": "5c78cb40-1f2a-4c31-9d0e-7b6a2f4e91aa",
+  "type": "mutasi-kayu-bulat",
+  "status": "failed",
+  "progress": 10,
+  "error": "Jenis laporan tidak dikenal",
+  "createdAt": "2026-09-30T02:10:11.000Z"
+}
+```
+
+```json 404 NOT_FOUND
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Laporan tidak ditemukan"
+  }
+}
+```
+
+```json 401 UNAUTHORIZED
+{
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Token tidak valid atau kedaluwarsa"
+  }
+}
+```
+
+</CodeGroup>
+
+<Warning>
+`404` juga dipakai untuk job yang **milik user lain**, bukan hanya job yang tidak ada. Ini disengaja supaya keberadaan sebuah `jobId` tidak bocor. Lihat [Authentication](/authentication).
+</Warning>

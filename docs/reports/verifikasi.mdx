@@ -1,0 +1,94 @@
+---
+title: "Verifikasi"
+description: "Laporan dalam kelompok Verifikasi."
+---
+
+6 jenis laporan.
+
+| type | Judul | Params | Stored procedure | Orientasi |
+| --- | --- | --- | --- | --- |
+| `bahan-terpakai` | Laporan Rangkuman Bahan Terpakai | `tglAkhir` | `SPWps_LapBahanTerpakai`, `SPWps_LapSubBahanTerpakai` | portrait |
+| `bahan-yang-dihasilkan` | Laporan Rangkuman Bahan Yang Di Hasilkan | `tglAkhir` | `SPWps_LapBahanYangDihasilkan` | portrait |
+| `kapasitas-racip-kayu-bulat-hidup` | Laporan Kapasitas Racip Kayu Bulat Hidup (Ton) | `tglAwal`, `tglAkhir` | `SP_KapasitasRacipKayuBulatHidup`, `SP_KapasitasRacipKayuBulatHidupJmlhHK`, `SP_KapasitasRacipKayuBulatHidupJmlhMeja`, `SP_KapasitasRacipKayuBulatHidupKG` | portrait |
+| `label-nyangkut` | Laporan Label Nyangkut | tanpa params | `SPWps_LapLabelNyangkut` | portrait |
+| `rangkuman-bongkar-susun` | Laporan Rangkuman Bongkar Susun | `tglAkhir` | `SPWps_LapRangkumanBongkarSusun` | portrait |
+| `rangkuman-jumlah-label-input` | Laporan Rangkuman Jumlah Label Input | `tglAwal`, `tglAkhir` | `SPWps_LapRangkumanJlhLabelInput` | portrait |
+
+## Sumber data
+
+### `bahan-terpakai`
+
+- Stored procedure: `SPWps_LapBahanTerpakai`, `SPWps_LapSubBahanTerpakai`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: portrait
+
+### `bahan-yang-dihasilkan`
+
+- Stored procedure: `SPWps_LapBahanYangDihasilkan`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: portrait
+
+### `kapasitas-racip-kayu-bulat-hidup`
+
+- Stored procedure: `SP_KapasitasRacipKayuBulatHidup`, `SP_KapasitasRacipKayuBulatHidupJmlhHK`, `SP_KapasitasRacipKayuBulatHidupJmlhMeja`, `SP_KapasitasRacipKayuBulatHidupKG`
+- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Orientasi: portrait
+
+### `label-nyangkut`
+
+- Stored procedure: `SPWps_LapLabelNyangkut`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: portrait
+
+### `rangkuman-bongkar-susun`
+
+- Stored procedure: `SPWps_LapRangkumanBongkarSusun`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: portrait
+
+### `rangkuman-jumlah-label-input`
+
+- Stored procedure: `SPWps_LapRangkumanJlhLabelInput`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: portrait
+
+<Warning>
+Laporan di bawah ini mengikat nama parameter SP yang **berbeda** dari nama field di `params`. KalauSP-nya diganti nama, nama parameter pun harus ikut menyesuaikan.
+</Warning>
+
+| type | Nama field di params | Nama parameter SP |
+| --- | --- | --- |
+| `kapasitas-racip-kayu-bulat-hidup` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
+
+## Contoh Request Body
+
+### Bentuk `AsOfDateParams`
+
+```json
+{
+  "type": "bahan-terpakai",
+  "params": {
+    "tglAkhir": "2026-09-30"
+  }
+}
+```
+
+### Bentuk `PeriodParams`
+
+```json
+{
+  "type": "kapasitas-racip-kayu-bulat-hidup",
+  "params": {
+    "tglAwal": "2026-09-01",
+    "tglAkhir": "2026-09-30"
+  }
+}
+```
+
+### Bentuk `NoParams` — tanpa params
+
+```json
+{
+  "type": "label-nyangkut"
+}
+```

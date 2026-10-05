@@ -1,0 +1,96 @@
+---
+title: "Finger Joint"
+description: "Laporan dalam kelompok Finger Joint."
+---
+
+7 jenis laporan.
+
+| type | Judul | Params | Stored procedure | Orientasi |
+| --- | --- | --- | --- | --- |
+| `dashboard-finger-joint` | Laporan Dashboard Finger Joint | `tglAwal`, `tglAkhir` | `SPWps_LapDashboardFJ` | — |
+| `finger-joint-hidup-detail` | Laporan Finger Joint (Hidup) Detail | tanpa params | `SP_LapFingerJointHidupDetail` | — |
+| `ketahanan-barang-finger-joint` | Laporan Ketahanan Barang Dagang Finger Joint | `tglAwal`, `tglAkhir` | `SP_LapKetahananBarangFingerJoint` | — |
+| `mutasi-finger-joint` | Laporan Mutasi Finger Joint (m3) | `tglAwal`, `tglAkhir` | `SP_Mutasi_FingerJoint`, `SP_SubMutasi_FingerJoint` | landscape |
+| `rekap-produksi-finger-joint-consolidated` | Laporan Rekap Produksi Finger Joint Consolidated | `tglAwal`, `tglAkhir` | `SP_LapRekapProduksiFingerJointConsolidated` | portrait |
+| `rekap-produksi-finger-joint-per-jenis-per-grade` | Laporan Rekap Produksi Finger Joint Per-Jenis & Per-Grade (m3) | `tglAwal`, `tglAkhir` | `SP_LapRekapProduksiFingerJointPerJenisPerGrade` | portrait |
+| `umur-finger-joint-detail` | Laporan Umur Finger Joint Detail | `umur1`?, `umur2`?, `umur3`?, `umur4`? | `SP_LapUmurFingerJoint` | — |
+
+## Sumber data
+
+### `dashboard-finger-joint`
+
+- Stored procedure: `SPWps_LapDashboardFJ`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `finger-joint-hidup-detail`
+
+- Stored procedure: `SP_LapFingerJointHidupDetail`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `ketahanan-barang-finger-joint`
+
+- Stored procedure: `SP_LapKetahananBarangFingerJoint`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `mutasi-finger-joint`
+
+- Stored procedure: `SP_Mutasi_FingerJoint`, `SP_SubMutasi_FingerJoint`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: landscape
+
+### `rekap-produksi-finger-joint-consolidated`
+
+- Stored procedure: `SP_LapRekapProduksiFingerJointConsolidated`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: portrait
+
+### `rekap-produksi-finger-joint-per-jenis-per-grade`
+
+- Stored procedure: `SP_LapRekapProduksiFingerJointPerJenisPerGrade`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: portrait
+
+### `umur-finger-joint-detail`
+
+- Stored procedure: `SP_LapUmurFingerJoint`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+## Contoh Request Body
+
+### Bentuk `PeriodParams`
+
+```json
+{
+  "type": "dashboard-finger-joint",
+  "params": {
+    "tglAwal": "2026-09-01",
+    "tglAkhir": "2026-09-30"
+  }
+}
+```
+
+### Bentuk `NoParams` — tanpa params
+
+```json
+{
+  "type": "finger-joint-hidup-detail"
+}
+```
+
+### Bentuk `ParamsUmurLaminatingDetail`
+
+```json
+{
+  "type": "umur-finger-joint-detail",
+  "params": {
+    "umur1": 15,
+    "umur2": 30,
+    "umur3": 60,
+    "umur4": 90
+  }
+}
+```

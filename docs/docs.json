@@ -1,0 +1,55 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "report-service",
+  "colors": {
+    "primary": "#1a3a5c",
+    "light": "#eef2f8",
+    "dark": "#0f1a2b"
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "API",
+        "pages": [
+          "introduction",
+          "authentication",
+          "errors"
+        ]
+      },
+      {
+        "tab": "Endpoints",
+        "pages": [
+          "endpoints/health",
+          "endpoints/health-ready",
+          "endpoints/create-report",
+          "endpoints/get-report-status",
+          "endpoints/download-report",
+          "endpoints/websocket"
+        ]
+      },
+      {
+        "tab": "Reports",
+        "pages": [
+          "reports/overview",
+          "reports/kayu-bulat",
+          "reports/kayu-bulat-rambung",
+          "reports/sawn-timber",
+          "reports/s4s",
+          "reports/sanding",
+          "reports/laminating",
+          "reports/moulding",
+          "reports/finger-joint",
+          "reports/cross-cut-akhir",
+          "reports/barang-jadi",
+          "reports/reproses",
+          "reports/proses-produksi",
+          "reports/rendemen-kayu",
+          "reports/penjualan-kayu",
+          "reports/management",
+          "reports/verifikasi"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,104 @@
+---
+title: "Download Report"
+description: "Mengunduh file PDF hasil laporan."
+---
+
+`GET /reports/{id}/download`
+
+Mengirim file PDF sebagai attachment. Hanya bisa dipanggil setelah job berstatus `completed`.
+
+## Request
+
+### Headers
+
+<ParamField header="Authorization" type="string" required>
+`Bearer <token>`. Wajib.
+</ParamField>
+
+### Path Parameters
+
+<ParamField path="id" type="string" required>
+`jobId` yang diterima dari `POST /reports`.
+</ParamField>
+
+<CodeGroup>
+
+```bash Request
+curl.exe http://localhost:5006/reports/$JOB_ID/download -H "Authorization: Bearer $TOKEN" -o laporan.pdf
+```
+
+```javascript JavaScript
+const res = await fetch(`http://localhost:5006/reports/${jobId}/download`, {
+  headers: { Authorization: `Bearer ${token}` },
+})
+if (!res.ok) throw new Error((await res.json()).error.code)
+const blob = await res.blob()
+```
+
+</CodeGroup>
+
+## Response
+
+### Headers
+
+<ParamField header="Content-Type" type="string" required>
+Selalu `application/pdf`.
+</ParamField>
+
+<ParamField header="Content-Disposition" type="string" required>
+`attachment; filename="<type>-<jobId>.pdf"`. Nama file yang dilihat pengguna, bukan path di server.
+</ParamField>
+
+<CodeGroup>
+
+```http 200 PDF dikirim
+HTTP/1.1 200 OK
+Content-Type: application/pdf
+Content-Disposition: attachment; filename="mutasi-kayu-bulat-5c78cb40-1f2a-4c31-9d0e-7b6a2f4e91aa.pdf"
+```
+
+```json 409 REPORT_NOT_READY
+{
+  "error": {
+    "code": "REPORT_NOT_READY",
+    "message": "Laporan belum selesai dibuat"
+  }
+}
+```
+
+```json 410 FILE_EXPIRED
+{
+  "error": {
+    "code": "FILE_EXPIRED",
+    "message": "File laporan sudah tidak tersedia (kedaluwarsa)"
+  }
+}
+```
+
+```json 404 NOT_FOUND
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Laporan tidak ditemukan"
+  }
+}
+```
+
+```json 401 UNAUTHORIZED
+{
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Token tidak valid atau kedaluwarsa"
+  }
+}
+```
+
+</CodeGroup>
+
+<Note>
+Nama file **di disk** selalu `report-<jobId>.pdf` — generik, dan tidak bergantung pada nilai `type` dari klien. Ini mencegah path traversal. Nama file **saat diunduh** boleh lebih deskriptif karena hanya nama yang dilihat pengguna. Perbedaan ini disengaja, bukan bug.
+</Note>
+
+<Warning>
+File PDF dihapus setelah `FILE_RETENTION_DAYS` (default 7 hari). Setelah itu endpoint ini menjawab `410 FILE_EXPIRED`, sedangkan `GET /reports/{id}` masih bisa dibaca karena job di Redis bertahan lebih lama. Kalau `410` muncul, buat ulang job-nya.
+</Warning>

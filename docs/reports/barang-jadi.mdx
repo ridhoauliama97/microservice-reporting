@@ -1,0 +1,112 @@
+---
+title: "Barang Jadi"
+description: "Laporan dalam kelompok Barang Jadi."
+---
+
+8 jenis laporan.
+
+| type | Judul | Params | Stored procedure | Orientasi |
+| --- | --- | --- | --- | --- |
+| `barang-jadi-hidup-detail` | Laporan Barang Jadi (Hidup) Detail | tanpa params | `SP_LapBJHidupDetail` | portrait |
+| `dashboard-barang-jadi` | Laporan Dashboard Barang Jadi | `tglAwal`, `tglAkhir` | `SPWps_LapDashboardBJ` | portrait |
+| `mutasi-barang-jadi` | Mutasi Barang Jadi | `tglAwal`, `tglAkhir` | `SP_Mutasi_BarangJadi`, `SP_SubMutasi_BarangJadi` | landscape |
+| `mutasi-barang-jadi-per-jenis-per-ukuran` | Laporan Mutasi Barang Jadi Per-Jenis Per-Ukuran (m3) | `tglAwal`, `tglAkhir` | `SP_LapMutasiBJPerJenisPerUkuran` | landscape |
+| `rekap-produksi-barang-jadi-consolidated` | Laporan Rekap Produksi Packing Consolidated | `tglAwal`, `tglAkhir` | `SP_LapRekapProduksiBarangJadiConsolidated` | landscape |
+| `rekap-produksi-packing-per-jenis-per-grade` | Laporan Rekap Produksi Packing Per-Jenis & Per-Grade (m3) | `tglAwal`, `tglAkhir` | `SP_LapRekapProduksiBarangJadiPerJenisPerGrade` | portrait |
+| `saldo-barang-jadi-hidup-per-jenis-per-produk` | Laporan Saldo Barang Jadi Hidup Per-Jenis Per-Produk | tanpa params | `SP_LapBJHidupPerProduk` | portrait |
+| `umur-barang-jadi-detail` | Laporan Umur Barang Jadi Detail | `umur1`?, `umur2`?, `umur3`?, `umur4`? | `SP_LapUmurBarangJadi` | portrait |
+
+## Sumber data
+
+### `barang-jadi-hidup-detail`
+
+- Stored procedure: `SP_LapBJHidupDetail`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: portrait
+
+### `dashboard-barang-jadi`
+
+- Stored procedure: `SPWps_LapDashboardBJ`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: portrait
+
+### `mutasi-barang-jadi`
+
+- Stored procedure: `SP_Mutasi_BarangJadi`, `SP_SubMutasi_BarangJadi`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: landscape
+
+### `mutasi-barang-jadi-per-jenis-per-ukuran`
+
+- Stored procedure: `SP_LapMutasiBJPerJenisPerUkuran`
+- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Orientasi: landscape
+
+### `rekap-produksi-barang-jadi-consolidated`
+
+- Stored procedure: `SP_LapRekapProduksiBarangJadiConsolidated`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: landscape
+
+### `rekap-produksi-packing-per-jenis-per-grade`
+
+- Stored procedure: `SP_LapRekapProduksiBarangJadiPerJenisPerGrade`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: portrait
+
+### `saldo-barang-jadi-hidup-per-jenis-per-produk`
+
+- Stored procedure: `SP_LapBJHidupPerProduk`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: portrait
+
+### `umur-barang-jadi-detail`
+
+- Stored procedure: `SP_LapUmurBarangJadi`
+- Nama parameter SP: `Umur1`, `Umur2`, `Umur3`, `Umur4` (berbeda dari nama field di `params`)
+- Orientasi: portrait
+
+<Warning>
+Laporan di bawah ini mengikat nama parameter SP yang **berbeda** dari nama field di `params`. KalauSP-nya diganti nama, nama parameter pun harus ikut menyesuaikan.
+</Warning>
+
+| type | Nama field di params | Nama parameter SP |
+| --- | --- | --- |
+| `mutasi-barang-jadi-per-jenis-per-ukuran` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
+| `umur-barang-jadi-detail` | `umur1`?, `umur2`?, `umur3`?, `umur4`? | `Umur1`, `Umur2`, `Umur3`, `Umur4` |
+
+## Contoh Request Body
+
+### Bentuk `NoParams` — tanpa params
+
+```json
+{
+  "type": "barang-jadi-hidup-detail"
+}
+```
+
+### Bentuk `PeriodParams`
+
+```json
+{
+  "type": "dashboard-barang-jadi",
+  "params": {
+    "tglAwal": "2026-09-01",
+    "tglAkhir": "2026-09-30"
+  }
+}
+```
+
+### Bentuk `ParamsUmurLaminatingDetail`
+
+```json
+{
+  "type": "umur-barang-jadi-detail",
+  "params": {
+    "umur1": 15,
+    "umur2": 30,
+    "umur3": 60,
+    "umur4": 90
+  }
+}
+```

@@ -1,0 +1,73 @@
+---
+title: "Proses Produksi"
+description: "Laporan dalam kelompok Proses Produksi."
+---
+
+7 jenis laporan.
+
+| type | Judul | Params | Stored procedure | Orientasi |
+| --- | --- | --- | --- | --- |
+| `produksi-cc-akhir-per-nomor-produksi` | Laporan Produksi Per Nomor Produksi CC Akhir | `noProduksi` | `SPWps_LapProduksiCCAkhir` | — |
+| `produksi-fj-per-nomor-produksi` | Laporan Produksi Per Nomor Produksi Finger Joint | `noProduksi` | `SPWps_LapProduksiFJ` | — |
+| `produksi-laminating-per-nomor-produksi` | Laporan Produksi Per Nomor Produksi Laminating | `noProduksi` | `SPWps_LapProduksiLaminating` | — |
+| `produksi-moulding-per-nomor-produksi` | Laporan Produksi Per Nomor Produksi Moulding | `noProduksi` | `SPWps_LapProduksiMoulding` | — |
+| `produksi-packing-per-nomor-produksi` | Laporan Produksi Per Nomor Produksi Packing | `noProduksi` | `SPWps_LapProduksiPacking` | — |
+| `produksi-s4s-per-nomor-produksi` | Laporan Produksi Per Nomor Produksi S4S | `noProduksi` | `SPWps_LapProduksiS4S` | — |
+| `produksi-sanding-per-nomor-produksi` | Laporan Produksi Per Nomor Produksi Sanding | `noProduksi` | `SPWps_LapProduksiSanding` | — |
+
+## Sumber data
+
+### `produksi-cc-akhir-per-nomor-produksi`
+
+- Stored procedure: `SPWps_LapProduksiCCAkhir`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `produksi-fj-per-nomor-produksi`
+
+- Stored procedure: `SPWps_LapProduksiFJ`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `produksi-laminating-per-nomor-produksi`
+
+- Stored procedure: `SPWps_LapProduksiLaminating`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `produksi-moulding-per-nomor-produksi`
+
+- Stored procedure: `SPWps_LapProduksiMoulding`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `produksi-packing-per-nomor-produksi`
+
+- Stored procedure: `SPWps_LapProduksiPacking`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `produksi-s4s-per-nomor-produksi`
+
+- Stored procedure: `SPWps_LapProduksiS4S`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+### `produksi-sanding-per-nomor-produksi`
+
+- Stored procedure: `SPWps_LapProduksiSanding`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: —
+
+## Contoh Request Body
+
+### Bentuk `ParamsProduksiFjPerNomorProduksi`
+
+```json
+{
+  "type": "produksi-cc-akhir-per-nomor-produksi",
+  "params": {
+    "noProduksi": "SA.004791"
+  }
+}
+```

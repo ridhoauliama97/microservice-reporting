@@ -1,0 +1,92 @@
+---
+title: "Reproses"
+description: "Laporan dalam kelompok Reproses."
+---
+
+5 jenis laporan.
+
+| type | Judul | Params | Stored procedure | Orientasi |
+| --- | --- | --- | --- | --- |
+| `dashboard-reproses` | Laporan Dashboard Reproses | `tglAwal`, `tglAkhir` | `SPWps_LapDashboardReproses` | landscape |
+| `ketahanan-barang-reproses` | Laporan Ketahanan Barang Dagang Reproses | `tglAwal`, `tglAkhir` | `SP_LapKetahananBarangReproses` | portrait |
+| `mutasi-reproses` | Laporan Mutasi Reproses | `tglAwal`, `tglAkhir` | `SP_Mutasi_Reproses`, `SP_SubMutasi_Reproses` | landscape |
+| `reproses-hidup-detail` | Laporan Reproses (Hidup) Detail | tanpa params | `SP_LapReprosesHidupDetail` | portrait |
+| `umur-reproses-detail` | Laporan Umur Reproses Detail | `umur1`?, `umur2`?, `umur3`?, `umur4`? | `SP_LapUmurReproses` | portrait |
+
+## Sumber data
+
+### `dashboard-reproses`
+
+- Stored procedure: `SPWps_LapDashboardReproses`
+- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Orientasi: landscape
+
+### `ketahanan-barang-reproses`
+
+- Stored procedure: `SP_LapKetahananBarangReproses`
+- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Orientasi: portrait
+
+### `mutasi-reproses`
+
+- Stored procedure: `SP_Mutasi_Reproses`, `SP_SubMutasi_Reproses`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: landscape
+
+### `reproses-hidup-detail`
+
+- Stored procedure: `SP_LapReprosesHidupDetail`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Orientasi: portrait
+
+### `umur-reproses-detail`
+
+- Stored procedure: `SP_LapUmurReproses`
+- Nama parameter SP: `Umur1`, `Umur2`, `Umur3`, `Umur4` (berbeda dari nama field di `params`)
+- Orientasi: portrait
+
+<Warning>
+Laporan di bawah ini mengikat nama parameter SP yang **berbeda** dari nama field di `params`. KalauSP-nya diganti nama, nama parameter pun harus ikut menyesuaikan.
+</Warning>
+
+| type | Nama field di params | Nama parameter SP |
+| --- | --- | --- |
+| `dashboard-reproses` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
+| `ketahanan-barang-reproses` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
+| `umur-reproses-detail` | `umur1`?, `umur2`?, `umur3`?, `umur4`? | `Umur1`, `Umur2`, `Umur3`, `Umur4` |
+
+## Contoh Request Body
+
+### Bentuk `PeriodParams`
+
+```json
+{
+  "type": "dashboard-reproses",
+  "params": {
+    "tglAwal": "2026-09-01",
+    "tglAkhir": "2026-09-30"
+  }
+}
+```
+
+### Bentuk `NoParams` — tanpa params
+
+```json
+{
+  "type": "reproses-hidup-detail"
+}
+```
+
+### Bentuk `ParamsUmurLaminatingDetail`
+
+```json
+{
+  "type": "umur-reproses-detail",
+  "params": {
+    "umur1": 15,
+    "umur2": 30,
+    "umur3": 60,
+    "umur4": 90
+  }
+}
+```
