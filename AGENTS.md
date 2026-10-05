@@ -206,7 +206,31 @@ Isi katalog: `type`, judul, bentuk `params`, nama stored procedure, nama paramet
 
 - **Semua perubahan dokumentasi masuk branch `docs`.** Jangan menyentuh `src/`, `tests/`, atau `package.json` dari branch itu. Kalau katalog perlu data baru dari kode (mis. laporan baru), buat commit di `development` lebih dulu, lalu merge ke `docs`.
 - **`docs/reports/` dan `docs/docs.json` jangan diedit manual** — generator menimpanya. Yang boleh diedit manual hanya 9 halaman API dan `docs/scripts/`.
-- Setelah menambah/mengubah laporan di `development`, merge ke `docs` lalu jalankan generator. Kalau tidak, katalognya basi.
+
+### Siklus perubahan katalog (dua arah)
+
+Katalog di `docs/` boleh berubah **hanya** lewat commit yang terlihat, tidak pernah diam-diam. Dua arah merge, keduanya wajib:
+
+```
+laporan baru ──▶ development (kode + registry + test)
+                     │
+                     ├─ merge development → docs
+                     │
+                     ▼
+              docs: bun run docs/scripts/generate-catalog.ts
+                     │  edit manual 9 halaman API bila perlu
+                     ▼
+              docs: commit EKSPLISIT  ── push docs
+                     │
+                     └─ merge docs → development   (biar development tidak tertinggal)
+```
+
+Aturan yang sering dilanggar:
+
+- **Jalankan generator hanya di branch `docs`, setelah `development` sudah ter-merge ke dalamnya.** Generator membaca `src/` dari branch tempat ia dijalankan. Dijalankan di `docs` yang `src/`-nya belum ter-merge, katalognya justru tertinggal dari registry.
+- **Hasil generator harus di-commit eksplisit** dengan pesan yang menyebut laporan apa yang masuk. Kalau `git status` bersih setelah generator dijalankan, itu artinya katalog memang sudah sinkron — bukan berarti melompati commit.
+- **Merge balik `docs` → `development` setelah setiap siklus.** Tanpa itu, `development` menyimpan `docs/` versi lama dan `--check` di sana akan langsung bilang basi.
+- `--check` wajib dijalankan sebelum push. Kalau gagal, jalankan generator **lalu commit**, jangan `--check` diabaikan dan jangan dipaksa.
 
 ### Perintah
 
@@ -242,3 +266,5 @@ cd docs && npx mint broken-links                   # validasi link
 - **Generator gagal dengan sengaja kalau ada ketidakcocokan** (kategori tak terdaftar di `CATEGORY_ORDER`, atau tipe WPS tanpa kategori). Itu bukan bug — itu cara mencegah laporan baru lolos tanpa kategori. Jangan bypass.
 - Empat laporan tidak punya nama stored procedure di kode (`penjualan-lokal`, `total-bagus-kulit-rambung`, `penerimaan-kayu-bulat-per-supplier`, dan `rekap-mutasi` yang memang docblock-nya menyatakan sengaja tidak memanggil SP). Halamannya menulis "Belum terdokumentasi di kode" — itu memang belum dikerjakan, di `development`.
 - Nama kategori `Kayu Bulat (Rambung)` mudah salah ketik. Kalau order navigasi terasa acak, cek dulu ejaan kategori di `CATEGORY_ORDER`.
+- **`--check` pernah bohong di Windows.** Karena `core.autocrlf=true`, `docs/` ter-checkout dengan CRLF sementara generator selalu menulis LF, jadi semua 18 file generated dilaporkan basi padahal isinya identik (`git diff --numstat` kosong). Sudah diperbaiki `.gitattributes` (`docs/** text eol=lf`) — kalau `--check` tiba-tiba gagal lagi, cek EOL dulu sebelum mengira katalognya benar-benar basi.
+- **`npx mint` bukan opsi di dalam image.** CLI Mintlify butuh Node + jaringan dan melaporkan versi `unknown`, jadi `docs/` tidak bisa dirender di container `oven/bun`. Menampilkan `.mdx` sebagai halaman harus lewat renderer sendiri, bukan Mintlify.
