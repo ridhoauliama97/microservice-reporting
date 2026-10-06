@@ -165,6 +165,9 @@ Kegagalan diam-dikan yang paling sering di repo ini: **kolom salah atau pembagi 
 - Redis (`6379`) dan Gotenberg (`3100`) dipublish ke `127.0.0.1`, bukan `0.0.0.0` — jadi `bun run dev` di host kena Redis yang sama dengan container. Kalau muncul 2 antrean atau job menggantung, periksa jangan sampai ada proses yang jalankan Redis sendiri di port itu.
 - `docker compose up -d` gagal start dengan "port is already allocated" = ada proses lokal sudah memakai 6379/3100. Matikan proses itu, jangan ganti port diam-diam — `.env.example` sudah menunjuk 6379/3100.
 - Dockerfile dipin ke `oven/bun:1.3.14`; lockfile berupa teks `bun.lock`. Kalau mengubah image, salin keduanya.
+- **Ada tahap `docs` di Dockerfile** yang menjalankan `mint export` (butuh Node, image `oven/bun` tidak punya). Jadi `docker compose build` **butuh internet**. Hasilnya disajikan service di `/docs`; lihat §11.
+- **Batas resource sudah ditetapkan** (`deploy.resources.limits`): gotenberg 2 CPU / 2 GB, worker 1.5 CPU / 1 GB, api dan redis 1 CPU / 512 MB. Acuan host 8 core / 7.7 GB, total terpakai ~5.5 core / 4 GB. Gotenberg dapat jatah terbesar karena Chromium. Kalau batasnya terlalu ketat, container dibunuh OOM di tengah render dan gejalanya muncul sebagai **job gagal tanpa pesan jelas**, bukan error yang mudah ditelusuri.
+- **PDF kedaluwarsa disapu berkala oleh worker**, bukan hanya saat start. `FILE_RETENTION_DAYS` (default 7) adalah umur file, `FILE_CLEANUP_INTERVAL_HOURS` (default 24) adalah frekuensi sapuan. Intervalnya sengaja lebih pendek dari retensi: kalau sama, file bisa hidup hampir dua kali lipat dari yang dimaksud. Penjadwalnya ada di `src/lib/repeat.ts` supaya bisa diuji tanpa menunggu berjam-jam.
 - **SQL Server tidak ada di compose.** Dari dalam container `DB_SERVER=localhost` pasti gagal — pakai `host.docker.internal`, dan pastikan SQL Server mengaktifkan TCP/IP dan port `1433` terbuka.
 - `api` dan `worker` **wajib** berbagi named volume `report-storage` (worker menulis PDF, API menyajikannya). Bind mount bermasalah izin tulis.
 - Matikan dengan `docker compose down` — **tanpa `-v`**. Volume `redis-data` dan `report-storage` menyimpan antrean dan PDF yang belum diunduh; `-v` menghapus keduanya.
@@ -264,12 +267,27 @@ Membacanya:
 cd docs && npx mint dev
 ```
 
-Dokumentasi disajikan service di `/docs` sebagai file statis hasil `mint export`; Swagger UI pindah ke `/swagger`, dan spec mentahnya tetap di `/docs/openapi.json`.
+Atau lewat service, yang menyajikan file statis hasil `mint export`:
+
+```sh
+docker compose build     # menjalankan mint export di dalam build
+docker compose up -d     # buka http://localhost:5006/docs
+```
+
+Swagger UI pindah ke `/swagger`; spec mentahnya tetap di `/docs/openapi.json`.
+
+**Cara situs itu disiapkan ada di `docs/scripts/rewrite-static-paths.mjs`**, dan ada dua langkah yang keduanya wajib — kalau salah satu dilewat, gejalanya berbeda:
+
+1. **Path di atribut HTML ditulis ulang** (`href`, `id`, `content`, `data-current-path`). Item sidebar menyimpan route sebagai `id`, jadi menulis ulang `href` saja tidak cukup.
+2. **Skrip klik disuntikkan.** Router Mintlify menavigasi dari data internalnya sendiri, bukan dari `href`. Jadi klik pada `href="/docs/authentication"` yang sudah benar tetap mendarat di `/authentication` — prefix hilang dan user dapat 404. Skrip itu memaksa navigasi ke `href` milik link tersebut.
+
+**Data JSON internal di payload sengaja TIDAK ditulis ulang.** Data itulah yang dipakai router untuk menentukan menu mana yang aktif; begitu di-prefix, perbandingannya gagal dan sidebar tampil kosong. Ini sudah pernah dicoba — jangan diulang.
 
 Yang perlu diingat:
 
 - **Tidak ada `bun test` atau `tsc` yang menyentuh `docs/`.** Verifikasi satu-satunya adalah `mint dev` / `mint broken-links` dan diff di `git status`.
-- **`npx mint` butuh Node + jaringan.** Tidak ada di image `oven/bun`, dan memang tidak perlu ada.
+- **`npx mint` butuh Node + jaringan.** Tidak ada di image `oven/bun`, dan memang tidak perlu ada. Karena itu `docker compose build` butuh internet.
+- **Verifikasi navigasi harus dengan benar-benar mengklik**, bukan membaca markup. Masalah aslinya justru tidak terlihat di markup: `href`-nya sudah benar, yang salah perilaku router saat diklik.
 - Kalau suatu saat publikasi diinginkan, itu keputusan terpisah: butuh file workflow, yang letaknya di luar `docs/`.
 
 ### Yang sudah diverifikasi
