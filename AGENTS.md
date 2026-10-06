@@ -91,10 +91,20 @@ bun test                                       # seluruh suite
 bun test tests/wps-sawmill-reports.test.ts     # satu file
 ```
 
-`typecheck` + `bun test` sudah cukup untuk perubahan logika/styling. Redis dan Gotenberg hanya perlu untuk alur end-to-end:
+`typecheck` + `bun test` sudah cukup untuk perubahan logika/styling. Redis dan Gotenberg hanya perlu untuk alur end-to-end.
+
+### Satu cara menjalankan saja
+
+Hanya ada **satu** compose file: `docker-compose.yml`. Empat container — `report-api`, `report-worker`, `report-redis`, `report-gotenberg`. Tidak ada compose kedua yang harus dihentikan atau dicocokkan.
 
 ```sh
-docker compose -f docker-compose.dev.yml up -d
+docker compose up -d
+curl.exe http://localhost:5006/health/ready
+```
+
+`api` dan `worker` satu image, hanya `command` yang beda. Redis dan Gotenberg dipublish ke `127.0.0.1` saja (`6379` dan `3100`) supaya **`bun run dev` di host memakai Redis yang sama** dengan container — bukan antrean kedua yang terpisah. Kalau ada proses lokal yang memakai port itu, compose gagal start; itu memang penanda bentrok, bukan kegagalan acak.
+
+```sh
 bun run dev          # API di :5006
 bun run dev:worker   # worker, proses terpisah
 bun run dev:token budi [jam]     # token testing (default user "tester", 1 jam)
@@ -104,7 +114,7 @@ bun run scripts/ws-test.ts <jobId> <token>
 **Menjalankan seluruh laporan sekaligus** (butuh API + worker + infra hidup):
 
 ```sh
-bun run e2e -- --from=2026-09-01 --to=2026-09-30 --base=http://localhost:5103
+bun run e2e -- --from=2026-09-01 --to=2026-09-30 --base=http://localhost:5006
 ```
 
 Param setiap laporan **diturunkan dari skema Zod-nya sendiri**, bukan dari daftar nama tipe — jadi laporan baru ikut teruji tanpa didaftarkan di script. Laporan yang berparam lookup (nomor produksi/SPK/kayu bulat/dll) nilainya di-harvest dari tabel yang dibaca stored procedure-nya, karena kunci tebakan hanya menghasilkan PDF kosong. Keluarannya: jumlah PDF per tipe, ukuran, dan daftar yang gagal.
@@ -151,10 +161,13 @@ Kegagalan diam-dikan yang paling sering di repo ini: **kolom salah atau pembagi 
 
 ## 7. Docker & environment
 
+- **Cuma ada satu compose file**, `docker-compose.yml` - 4 container: `report-api`, `report-worker`, `report-redis`, `report-gotenberg`. File `docker-compose.dev.yml` sudah dihapus; kalau suatu saat muncul compose kedua, itu kembali ke dual-stack yang lama dan harus dimatikan.
+- Redis (`6379`) dan Gotenberg (`3100`) dipublish ke `127.0.0.1`, bukan `0.0.0.0` — jadi `bun run dev` di host kena Redis yang sama dengan container. Kalau muncul 2 antrean atau job menggantung, periksa jangan sampai ada proses yang jalankan Redis sendiri di port itu.
+- `docker compose up -d` gagal start dengan "port is already allocated" = ada proses lokal sudah memakai 6379/3100. Matikan proses itu, jangan ganti port diam-diam — `.env.example` sudah menunjuk 6379/3100.
 - Dockerfile dipin ke `oven/bun:1.3.14`; lockfile berupa teks `bun.lock`. Kalau mengubah image, salin keduanya.
 - **SQL Server tidak ada di compose.** Dari dalam container `DB_SERVER=localhost` pasti gagal — pakai `host.docker.internal`, dan pastikan SQL Server mengaktifkan TCP/IP dan port `1433` terbuka.
 - `api` dan `worker` **wajib** berbagi named volume `report-storage` (worker menulis PDF, API menyajikannya). Bind mount bermasalah izin tulis.
-- Matikan dengan `docker compose down` — **tanpa `-v`**.
+- Matikan dengan `docker compose down` — **tanpa `-v`**. Volume `redis-data` dan `report-storage` menyimpan antrean dan PDF yang belum diunduh; `-v` menghapus keduanya.
 - Di disk, file PDF selalu `storage/report-<jobId>.pdf` (nama generik, anti path-traversal). Nama unduhan di `Content-Disposition` boleh `<type>-<jobId>.pdf`. **Ini bukan bug** — jangan disamakan.
 - `GET /health/ready` hanya melaporkan boolean per komponen (DB, Redis, Gotenberg) tanpa detail error. DB `false` karena kredensial contoh itu wajar, jangan dianggap gagal.
 

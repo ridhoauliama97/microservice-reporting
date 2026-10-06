@@ -19,37 +19,40 @@ Client ◀── WebSocket (progress) / GET /reports/:id / GET /reports/:id/down
 
 Service ini **tidak menerbitkan token**. Token JWT diterbitkan oleh WPS backend; service ini hanya **memverifikasi** dengan `JWT_SECRET` yang sama dan mengambil **username** dari payload (field yang dipakai diatur lewat `JWT_USERNAME_CLAIM`).
 
-## Menjalankan lokal (dev)
+## Menjalankan dengan Docker
 
-Prasyarat: [Bun](https://bun.sh) 1.2+, Docker (untuk Redis & Gotenberg).
+Satu-satunya cara menjalankan. Prasyarat: [Bun](https://bun.sh) 1.2+, Docker.
 
 ```sh
-bun install                                        # install dependency
-cp .env.example .env                               # lalu isi kredensial DB
-docker compose -f docker-compose.dev.yml up -d     # infra: Redis + Gotenberg
-bun run dev                                        # API di port 5006
-bun run dev:worker                                 # worker (proses terpisah)
-bun run dev:token budi                             # buat JWT testing (username: budi)
+bun install                        # install dependency
+cp .env.example .env               # lalu isi kredensial DB
+docker compose up -d
+docker compose ps                  # api (healthy), worker, redis (healthy), gotenberg
+curl.exe http://localhost:5006/health/ready
 ```
 
-Verifikasi cepat: `bun run typecheck`, `bun test`, dan `curl.exe http://localhost:5006/health`.
+Token testing (JWT dari username, bukan token WPS asli):
+
+```sh
+bun run dev:token budi             # default user "tester", berlaku 1 jam
+```
+
+Untuk ngoding dengan hot reload, jalankan API dan worker di host — Redis dan Gotenberg tetap yang di container, karena port `6379` dan `3100` dipublish ke `127.0.0.1`:
+
+```sh
+bun run dev          # API di :5006
+bun run dev:worker   # worker, proses terpisah
+```
+
+Jangan menjalankan Redis atau Gotenberg sendiri di luar Docker: nanti ada dua antrean terpisah, job tidak saling lihat, dan download membalas `409 REPORT_NOT_READY`.
 
 Dokumentasi interaktif API: buka `http://localhost:5006/docs` (spec mentah di `/docs/openapi.json`).
-
-## Menjalankan dengan Docker (full stack)
-
-```sh
-cp .env.example .env     # wajib ada sebelum compose up
-docker compose build
-docker compose up -d
-docker compose ps        # api (healthy), worker, redis (healthy), gotenberg
-```
 
 Catatan penting:
 
 - Di dalam container, `localhost` berarti container itu sendiri. Redis dan Gotenberg sudah di-override ke nama service-nya. **SQL Server** diambil dari `.env` — kalau DB ada di mesin host (Docker Desktop Windows), set `DB_SERVER=host.docker.internal`.
 - `api` dan `worker` berbagi named volume `report-storage` (worker menulis PDF, API menyajikannya).
-- Matikan stack dengan `docker compose down` — **jangan** pakai `-v` kecuali sengaja menghapus data.
+- Matikan stack dengan `docker compose down` — **jangan** pakai `-v` kecuali sengaja menghapus data (volume itu menyimpan antrean dan PDF yang belum diunduh).
 
 ## Endpoint
 
@@ -166,7 +169,7 @@ Yang tidak kelihatan dari nama kolom atau dari nama parameternya:
 - **`KD (Keluar - Masuk)` membuang Group di luar daftar enam kolom.** Tonnage-nya tidak masuk kolom manapun **dan tidak masuk Total baris**. Effectif, Total baris bisa lebih kecil dari `Ton` milik SP. Group juga dinormalisasi dulu: `JABON TGI`/`JABON TANGGUNG` → `JABON TG`, `RAMBUNG MC 1` → `RAMBUNG MC1`.
 - **Baris "masih" (belum keluar) selalu diurutkan terakhir**, apa pun tanggalnya, lalu diurutkan `TglKeluar`/`TglMasuk`. Mengurutkan murni tanggal akan mencampur dua seksi dan totalnya tidak akan cocok.
 - **`Pemakaian Obat Vacuum` footer bukan penjumlahan kolom.** Tiap rasio dihitung ulang dari angka yang sudah dijumlahkan (`sumBorax / sumSTTon`), satu-satunya cara benar menjumlahkan rasio. Menjumlahkan persentase harian menghasilkan angka yang tidak bermakna.
-- **`Upah Sawmill` mengulang hitungan berat, dan itu menentukan.** `Berat` dari SP bernilai **0** untuk baris yang dimensi penuhnya ada — barcode `D.040749`çontohnya. Yang dicetak adalah berat hasil hitung ulang dari `Tebal × Lebar × Panjang × JmlhBatang`, dengan pembagi取决于 `IdUOMTblLebar`/`IdUOMPanjang`; cabang inch/ft membagi 1.416 (faktor m3→ton). Pakai `Berat` apa adanya = lembar upah semua nol.
+- **`Upah Sawmill` mengulang hitungan berat, dan itu menentukan.** `Berat` dari SP bernilai **0** untuk baris yang dimensi penuhnya ada - barcode `D.040749` contohnya. Yang dicetak adalah berat hasil hitung ulang dari `Tebal x Lebar x Panjang x JmlhBatang`, dengan pembagi yang ditentukan `IdUOMTblLebar`/`IdUOMPanjang`; cabang inch/ft membagi 1.416 (faktor m3 ke ton). Pakai `Berat` apa adanya = lembar upah semua nol.
 - **`Penerimaan ST` harus mengisi ulang nama supplier.** Baris `InOut=0` (OUTPUT) tidak punya `NmSupplier` — namanya ada di `NmSupplier3`. Jadi baris `InOut=1` jadi sumber supplier kanonik untuk satu nomor penerimaan. Tanpa itu semua baris OUTPUT akan tercatat "Tanpa Supplier".
 - **Grade input dan output tidak bisa dipasangkan baris per baris.** `RAMBUNG - AFKIR-100` masuk, `AFKIR` keluar. Jadi masing-masing sisi dijumlahkan sendiri dan dibandingkan lewat `RENDEMEN` = ST total / KB total.
 
@@ -300,7 +303,7 @@ bun run generate:css -- --check   # gagal kalau file hasil generate sudah basi
 - Sumbernya `open-api-report`'s `resources/views/**-pdf.blade.php` (bisa diubah lewat `OPEN_API_REPORT_VIEWS`).
 - **Jangan edit `reference-css.ts` manual** — jalan berikutnya menimpanya. Ubah blade-nya, lalu jalankan ulang.
 - Koreksi per-laporan tidak ada di generator (itu keputusan, bukan turunan): ada di `src/reports/wps/reference-css-fixups.ts`.
-- Generator gagal dengan pesan jelas kalau nama variabel Blade tidak punya nilai — именно bug "nilai fontsize hilang" yang pernah membuat dua sheet tampil dengan ukuran font bawaan Chromium.
+- Generator gagal dengan pesan jelas kalau nama variabel Blade tidak punya nilai - ini bug "nilai fontsize hilang" yang pernah membuat dua sheet tampil dengan ukuran font bawaan Chromium.
 - Peta `type` → blade ada eksplisit di `scripts/generate-reference-css.ts` dan **namanya saling tertukar**: `st-masuk-per-group` memakai blade `st-sawmill-masuk-per-group`, dan sebaliknya memakai yang `-meja`.
 
 ## Testing
@@ -329,7 +332,7 @@ Script ini menjalankan **seluruh** jenis laporan: `POST /reports` → tunggu job
 ## Troubleshooting
 
 - **`/health/ready`: DB `false`** — SQL Server tidak terjangkau atau kredensial salah. Dari Docker, `DB_SERVER=localhost` pasti gagal; pakai `host.docker.internal`. Pastikan TCP/IP aktif dan port `1433` terbuka.
-- **`/health/ready`: Redis `false`** — infra belum jalan: `docker compose -f docker-compose.dev.yml up -d`.
+- **`/health/ready`: Redis `false`** — stack belum jalan: `docker compose up -d`.
 - **Gotenberg gagal start** — cek `docker compose logs gotenberg` (biasanya flag tidak dikenali oleh versi image).
 - **WebSocket ditolak (`Expected 101`)** — token salah/kedaluwarsa, atau job bukan milik Anda. Token dari `bun run dev:token <username>`.
 - **`409 REPORT_NOT_READY` saat download** — job belum `completed`; pantau lewat `GET /reports/:id` atau WebSocket.
