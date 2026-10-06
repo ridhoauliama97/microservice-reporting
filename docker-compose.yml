@@ -27,11 +27,43 @@ x-app: &app
     gotenberg:
       condition: service_healthy
 
+# Batas resource. Host acuan punya 8 core / 7.7 GB; angka di bawah memakai
+# sekitar 4 GB dan 5.5 core, jadi masih ada ruang untuk sistem.
+#
+# Gotenberg dapat jatah terbesar karena menjalankan Chromium - satu laporan
+# dengan tabel lebar bisa memakai memori jauh di atas kondisi idle (326 MB).
+# Kalau batas ini terlalu ketat, container-nya dibunuh OOM di tengah render,
+# dan gejalanya muncul sebagai job gagal, bukan sebagai error yang jelas.
+x-limits-gotenberg: &limits-gotenberg
+  resources:
+    limits:
+      cpus: "2.0"
+      memory: 2g
+
+x-limits-api: &limits-api
+  resources:
+    limits:
+      cpus: "1.0"
+      memory: 512m
+
+x-limits-worker: &limits-worker
+  resources:
+    limits:
+      cpus: "1.5"
+      memory: 1g
+
+x-limits-redis: &limits-redis
+  resources:
+    limits:
+      cpus: "1.0"
+      memory: 512m
+
 services:
   api:
     <<: *app
     container_name: report-api
     command: ["bun", "run", "src/index.ts"]
+    deploy: *limits-api
     ports:
       - "${PORT:-5006}:${PORT:-5006}"
     healthcheck:
@@ -45,6 +77,7 @@ services:
     <<: *app
     container_name: report-worker
     command: ["bun", "run", "src/worker.ts"]
+    deploy: *limits-worker
     # Worker tidak punya port HTTP, jadi yang diperiksa adalah hal yang paling
     # menentukan hidupnya: koneksi ke Redis. Kalau Redis tidak terjangkau,
     # worker tidak bisa mengambil job dan dianggap tidak sehat.
@@ -59,6 +92,7 @@ services:
     image: redis:7
     container_name: report-redis
     restart: unless-stopped
+    deploy: *limits-redis
     command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
     # Dipublish ke host supaya `bun run dev` di mesin ini memakai Redis yang sama
     # dengan api/worker di container - bukan antrean kedua yang terpisah.
@@ -82,6 +116,7 @@ services:
     image: gotenberg/gotenberg:8
     container_name: report-gotenberg
     restart: unless-stopped
+    deploy: *limits-gotenberg
     command:
       - gotenberg
       - --api-timeout=120s

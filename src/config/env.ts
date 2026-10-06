@@ -47,6 +47,11 @@ const envSchema = z.object({
   REPORT_CONCURRENCY: z.coerce.number().int().positive().default(2),
   STORAGE_DIR: z.string().min(1).default('storage'),
   FILE_RETENTION_DAYS: z.coerce.number().int().positive().default(7),
+  // How often the worker sweeps expired PDFs. Without a repeating sweep the
+  // cleanup only happens at startup, so a worker that stays up for months keeps
+  // every file past its retention. Defaults to FILE_RETENTION_DAYS worth of
+  // hours, which is the longest a file is meant to live anyway.
+  FILE_CLEANUP_INTERVAL_HOURS: z.coerce.number().int().positive().default(168),
 })
 
 const parsed = envSchema.safeParse(process.env)

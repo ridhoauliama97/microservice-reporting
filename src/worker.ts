@@ -2,6 +2,7 @@ import { Job, UnrecoverableError, Worker } from 'bullmq'
 import { env } from './config/env'
 import { closePool, lazyPool } from './db/mssql'
 import { logger } from './lib/logger'
+import { repeatEvery } from './lib/repeat'
 import { redisConnection } from './queue/connection'
 import {
   QUEUE_NAME,
@@ -84,10 +85,13 @@ worker.on('completed', (job) => {
 })
 
 let shuttingDown = false
+let stopCleanup: (() => void) | undefined
+
 async function shutdown(signal: string): Promise<void> {
   if (shuttingDown) return
   shuttingDown = true
   logger.info({ signal }, 'Worker shutting down')
+  stopCleanup?.()
   await worker.close()
   await closePool()
   process.exit(0)
@@ -96,10 +100,33 @@ async function shutdown(signal: string): Promise<void> {
 process.on('SIGTERM', () => void shutdown('SIGTERM'))
 process.on('SIGINT', () => void shutdown('SIGINT'))
 
+async function runCleanup(reason: 'startup' | 'interval'): Promise<void> {
+  try {
+    await cleanupExpiredReports()
+    logger.info({ reason }, 'Expired report files swept')
+  } catch (err) {
+    // A failed sweep must not take the worker down: the reports themselves are
+    // unaffected, and the next run will try again.
+    logger.error({ err, reason }, 'File cleanup failed')
+  }
+}
+
 async function main(): Promise<void> {
-  await cleanupExpiredReports()
+  await runCleanup('startup')
+
+  // The startup pass alone is not enough. The worker is meant to stay up for a
+  // long time, and it is the only thing that deletes expired PDFs, so without a
+  // repeating sweep the storage directory grows without bound.
+  const intervalMs = env.FILE_CLEANUP_INTERVAL_HOURS * 60 * 60 * 1000
+  stopCleanup = repeatEvery(intervalMs, () => runCleanup('interval'))
+
   logger.info(
-    { queue: QUEUE_NAME, concurrency: env.REPORT_CONCURRENCY },
+    {
+      queue: QUEUE_NAME,
+      concurrency: env.REPORT_CONCURRENCY,
+      retentionDays: env.FILE_RETENTION_DAYS,
+      cleanupIntervalHours: env.FILE_CLEANUP_INTERVAL_HOURS,
+    },
     'worker ready',
   )
 }
