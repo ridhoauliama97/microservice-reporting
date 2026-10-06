@@ -33,7 +33,7 @@ Entry point:
 Dokumentasi OpenAPI:
 
 - `/docs/openapi.json` **dirakit manual**, bukan `app.doc()`, karena `components.schemas` harus disuntik dari registry.
-- `/docs` = Swagger UI dari CDN lewat HTML statis di `app.ts`. Tidak menambah dependency npm.
+- `/docs` = situs Mintlify hasil `mint export`, dibangun ke dalam image oleh tahap `docs` di Dockerfile. `/swagger` = Swagger UI dari CDN lewat HTML statis di `app.ts` (tanpa dependency npm).
 
 Registry laporan:
 
@@ -254,21 +254,23 @@ bun run docs/scripts/generate-catalog.ts --check   # gagal kalau katalog basi
 cd docs && npx mint broken-links                   # validasi link
 ```
 
-### Publikasi: GitHub Pages
+### Situsnya lokal saja, tidak ada publikasi
 
-Dokumentasi ini **situs Mintlify asli**, bukan renderer buatan sendiri. Diterbitkan lewat **GitHub Pages dari branch `docs`, folder `/docs`**:
+Dokumentasi ini **situs Mintlify asli**, bukan renderer buatan sendiri. **Tidak ada deployment.** Repo ini tidak punya folder `.github/` sama sekali, jadi tidak ada workflow yang menerbitkan apa pun saat push. Cara memastikan: `ls .github` tidak mengembalikan apa-apa.
 
+Membacanya:
+
+```sh
+cd docs && npx mint dev
 ```
-https://<owner>.github.io/microservice-reporting/docs/
-```
 
-Tidak ada route di service untuk menyajikan dokumentasi — `/docs` tetap Swagger UI (dibangkitkan dari kode) dan **tidak** terkait dengan `docs/`. Kalau butuh membaca dokumentasi tanpa internet: `cd docs && npx mint dev` (lihat §11 Perintah).
+Dokumentasi disajikan service di `/docs` sebagai file statis hasil `mint export`; Swagger UI pindah ke `/swagger`, dan spec mentahnya tetap di `/docs/openapi.json`.
 
-Konsekuensi yang harus diingat:
+Yang perlu diingat:
 
-- **Perubahan `docs/` baru terlihat di situs setelah Pages selesai build.** Kalau pushed ke `docs` tapi situsnya masih isi lama, itu bukan bug — tunggu build, atau cek build log di tab Actions.
 - **Tidak ada `bun test` atau `tsc` yang menyentuh `docs/`.** Verifikasi satu-satunya adalah `mint dev` / `mint broken-links` dan diff di `git status`.
-- **`npx mint` butuh Node + jaringan.** Tidak ada di image `oven/bun`, dan memang tidak perlu ada: build-nya terjadi di runner GitHub, bukan di container lokal.
+- **`npx mint` butuh Node + jaringan.** Tidak ada di image `oven/bun`, dan memang tidak perlu ada.
+- Kalau suatu saat publikasi diinginkan, itu keputusan terpisah: butuh file workflow, yang letaknya di luar `docs/`.
 
 ### Yang sudah diverifikasi
 
@@ -285,16 +287,15 @@ Konsekuensi yang harus diingat:
 
 - **Kategori proses diambil dari menu WPS `open-api-report`**, dibaca dari `resources/views/welcome.blade.php` — **bukan** dari struktur folder `resources/views/reports/`. Folder itu tidak mencerminkan proses dan sudah tidak relevan. Route di menu itu 1:1 dengan tipe registry, jadi bisa dipetakan.
 - Konsekuensinya: **tidak ada kategori "Mutasi" atau "Dashboard"**. Laporan `mutasi-s4s` dan `dashboard-sanding` masuk kategori produknya, mengikuti menu.
-- `Kayu Bulat` dan `Kayu Bulat (Rambang)` proses terpisah; yang Rambung berisi laporan KG.
+- `Kayu Bulat` dan `Kayu Bulat (Rambung)` proses terpisah; yang Rambung berisi laporan KG.
 - **Kartu SPK di menu itu di-comment-out**, jadi bukan kategori aktif: `spk-sawmill` ada di Sawn Timber.
 - Nama route di menu tidak selalu sama dengan `type` registry. Peta rename-nya ada di `OVERRIDES` pada generator, **dikunci per route penuh** (bukan per segment terakhir) karena `reports.mutasi.sanding` dan `dashboard.sanding` sama-sama berakhiran `sanding` padahal berbeda laporan.
 
 ### Jebakan di area dokumentasi
 
-- **Situs di GitHub Pages bisa menampilkan versi lama setelah `docs/` di-push.** Build Pages butuh waktu, dan kegagalan build tidak muncul di terminal. Cek tab Actions, jangan menyimpulkan push-nya gagal.
 - **`mint broken-links` bisa lulus sementara `mint dev` gagal.** `docs.json` pernah salah bentuk (`tabs` di level atas, bukan di dalam `navigation.tabs`) dan lolos link check, tapi prebuild menolaknya. Selalu coba `mint dev` kalau suspect ada perubahan struktural di `docs.json`.
 - **Generator gagal dengan sengaja kalau ada ketidakcocokan** (kategori tak terdaftar di `CATEGORY_ORDER`, atau tipe WPS tanpa kategori). Itu bukan bug — itu cara mencegah laporan baru lolos tanpa kategori. Jangan bypass.
 - Empat laporan tidak punya nama stored procedure di kode (`penjualan-lokal`, `total-bagus-kulit-rambung`, `penerimaan-kayu-bulat-per-supplier`, dan `rekap-mutasi` yang memang docblock-nya menyatakan sengaja tidak memanggil SP). Halamannya menulis "Belum terdokumentasi di kode" — itu memang belum dikerjakan, di `development`.
 - Nama kategori `Kayu Bulat (Rambung)` mudah salah ketik. Kalau order navigasi terasa acak, cek dulu ejaan kategori di `CATEGORY_ORDER`.
 - **`--check` pernah bohong di Windows.** Karena `core.autocrlf=true`, `docs/` ter-checkout dengan CRLF sementara generator selalu menulis LF, jadi semua 18 file generated dilaporkan basi padahal isinya identik (`git diff --numstat` kosong). Sudah diperbaiki `.gitattributes` (`docs/** text eol=lf`) — kalau `--check` tiba-tiba gagal lagi, cek EOL dulu sebelum mengira katalognya benar-benar basi.
-- **`npx mint` bukan opsi di dalam image.** CLI Mintlify butuh Node + jaringan dan melaporkan versi `unknown`, jadi `docs/` tidak bisa dirender di container `oven/bun`. Menampilkan `.mdx` sebagai halaman harus lewat renderer sendiri, bukan Mintlify.
+- **`npx mint` tidak bisa jalan di dalam container.** CLI Mintlify butuh Node dan jaringan, sedangkan image `oven/bun` tidak punya Node. Jalankan di komputer, bukan lewat `docker exec`.

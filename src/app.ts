@@ -1,6 +1,8 @@
 import { OpenAPIHono } from '@hono/zod-openapi'
+import type { Context } from 'hono'
 import { bodyLimit } from 'hono/body-limit'
 import { cors } from 'hono/cors'
+import { existsSync } from 'node:fs'
 import { env } from './config/env'
 import { logger } from './lib/logger'
 import {
@@ -98,8 +100,82 @@ app.get('/docs/openapi.json', (c) => {
   })
 })
 
+// --- Documentation site at /docs ---
+//
+// `/docs` serves the Mintlify site that lives in `docs/`, not the Swagger UI.
+// It is baked into the image as static files by the `docs` stage of the
+// Dockerfile, which runs `mint export` and rewrites the links so the site works
+// under a `/docs` prefix.
+//
+// The export references its assets as absolute `/_next/...` paths and those are
+// left alone, so the same directory is also served at `/_next`. Serving the
+// assets at the root keeps the rewrite to `href` attributes only.
+//
+// When the static site is absent — a checkout without a Docker build — `/docs`
+// falls back to the Swagger UI, and `/swagger` is always available.
+const DOCS_SITE_DIR = 'docs-site'
+const docsSiteIndex = `${DOCS_SITE_DIR}/index.html`
+const hasDocsSite = existsSync(docsSiteIndex)
+
+const MIME_TYPES: Record<string, string> = {
+  '.html': 'text/html; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.js': 'application/javascript; charset=utf-8',
+  '.mjs': 'application/javascript; charset=utf-8',
+  '.json': 'application/json',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon',
+  '.webp': 'image/webp',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.ttf': 'font/ttf',
+  '.txt': 'text/plain; charset=utf-8',
+  '.xml': 'application/xml',
+  '.md': 'text/markdown; charset=utf-8',
+}
+
+/** Maps a URL path onto a file in the exported site, or undefined if there is none. */
+async function resolveDocsFile(relative: string): Promise<string | undefined> {
+  const clean = relative.replace(/^\/+/, '')
+  // Never walk out of the site directory.
+  if (clean.includes('..')) return undefined
+  for (const candidate of [
+    `${DOCS_SITE_DIR}/${clean}`,
+    `${DOCS_SITE_DIR}/${clean}/index.html`,
+    `${DOCS_SITE_DIR}/${clean}.html`,
+  ]) {
+    const file = Bun.file(candidate)
+    if (!(await file.exists())) continue
+    const stat = await file.stat()
+    if (stat && !stat.isDirectory()) return candidate
+  }
+  return undefined
+}
+
+async function serveDocsFile(c: Context<AppEnv>): Promise<Response> {
+  const path = c.req.path
+  let relative: string
+  if (path === '/docs' || path === '/docs/') relative = ''
+  else if (path.startsWith('/docs/')) relative = path.slice('/docs/'.length)
+  else if (path.startsWith('/_next/')) relative = path
+  else return c.notFound()
+
+  const file = await resolveDocsFile(relative)
+  if (!file) return c.notFound()
+
+  const dot = file.lastIndexOf('.')
+  const ext = dot === -1 ? '' : file.slice(dot).toLowerCase()
+  return new Response(Bun.file(file), {
+    headers: { 'content-type': MIME_TYPES[ext] ?? 'application/octet-stream' },
+  })
+}
+
 // Swagger UI served as static HTML from a CDN — no extra npm package needed.
-const docsHtml = `<!DOCTYPE html>
+const swaggerHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -120,7 +196,17 @@ const docsHtml = `<!DOCTYPE html>
 </body>
 </html>`
 
-app.get('/docs', (c) => c.html(docsHtml))
+app.get('/swagger', (c) => c.html(swaggerHtml))
+
+if (hasDocsSite) {
+  app.get('/docs', serveDocsFile)
+  app.get('/docs/*', serveDocsFile)
+  // The export points at these from the root, so they are served there too.
+  app.get('/_next/*', serveDocsFile)
+} else {
+  // No built site in this checkout: keep /docs working as it did before.
+  app.get('/docs', (c) => c.html(swaggerHtml))
+}
 
 // --- Error handling ---
 

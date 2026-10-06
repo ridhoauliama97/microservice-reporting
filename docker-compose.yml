@@ -1,5 +1,7 @@
 name: report-service
 
+# Nilai bersama untuk api dan worker. Keduanya memakai image yang sama, hanya
+# perintah jalannya yang berbeda.
 x-app: &app
   build: .
   image: report-service:local
@@ -13,11 +15,17 @@ x-app: &app
     STORAGE_DIR: /app/storage
   volumes:
     - report-storage:/app/storage
+  # Batasi ukuran log supaya disk tidak penuh setelah service lama berjalan.
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
   depends_on:
     redis:
       condition: service_healthy
     gotenberg:
-      condition: service_started
+      condition: service_healthy
 
 services:
   api:
@@ -37,6 +45,15 @@ services:
     <<: *app
     container_name: report-worker
     command: ["bun", "run", "src/worker.ts"]
+    # Worker tidak punya port HTTP, jadi yang diperiksa adalah hal yang paling
+    # menentukan hidupnya: koneksi ke Redis. Kalau Redis tidak terjangkau,
+    # worker tidak bisa mengambil job dan dianggap tidak sehat.
+    healthcheck:
+      test: ["CMD", "bun", "-e", "const s = await Bun.connect({ hostname: process.env.REDIS_HOST, port: Number(process.env.REDIS_PORT), socket: { data() {}, open() {}, error() {} } }); s.end()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
 
   redis:
     image: redis:7
@@ -45,6 +62,7 @@ services:
     command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
     # Dipublish ke host supaya `bun run dev` di mesin ini memakai Redis yang sama
     # dengan api/worker di container - bukan antrean kedua yang terpisah.
+    # Hanya 127.0.0.1, jadi tidak terbuka ke jaringan.
     ports:
       - "127.0.0.1:6379:6379"
     volumes:
@@ -54,6 +72,11 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   gotenberg:
     image: gotenberg/gotenberg:8
@@ -63,10 +86,23 @@ services:
       - gotenberg
       - --api-timeout=120s
       - --chromium-disable-javascript=true
-    # Sama seperti redis: untuk `bun run dev` di host. Hanya dares ke localhost,
-    # tidak dibuka ke jaringan.
+    # Sama seperti redis: untuk `bun run dev` di host. Hanya 127.0.0.1,
+    # jadi tidak terbuka ke jaringan.
     ports:
       - "127.0.0.1:3100:3000"
+    # Tanpa healthcheck, api dan worker mulai begitu container Gotenberg
+    # menyala - padahal Chromium di dalamnya belum siap menerima render.
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:3000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   report-storage:

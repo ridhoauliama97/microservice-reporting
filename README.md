@@ -101,7 +101,7 @@ Job hanya bisa diakses pemiliknya. Job milik user lain dibalas **404**, supaya k
 
 ## Dokumentasi
 
-- **Dokumentasi API di dalam service**: buka `http://localhost:5006/docs` saat service berjalan. Isinya penjelasan tiap endpoint, kode error, dan contoh Request/Response. Spec mentahnya di `/docs/openapi.json`.
+- **Situs dokumentasi**: buka `http://localhost:5006/docs` setelah `docker compose up -d`. Situsnya dibangun otomatis dari folder `docs/` saat `docker compose build`, jadi tidak perlu dijalankan terpisah. Swagger UI ada di `/swagger`, spec mentahnya di `/docs/openapi.json`.
 - **Situs dokumentasi** ada di folder `docs/` (Mintlify). Isinya 9 halaman API dan katalog seluruh jenis laporan yang dikelompokkan per proses. Untuk melihatnya:
 
   ```sh
