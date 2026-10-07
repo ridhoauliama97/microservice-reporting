@@ -3,8 +3,6 @@
 Microservice pembuat laporan **PDF asynchronous** untuk WPS (Bun + Hono + BullMQ/Redis + Gotenberg).
 `README.md` adalah dokumen layanan (daftar endpoint + katalog per-laporan); **file ini hanya soal cara bekerja di repo ini.**
 
-Bagian yang sudah usang (fase pembangunan, "struktur folder target", isi `package.json`/`tsconfig`/docker-compose sebagai target) sudah dihapus — semuanya sudah jadi dan sekarang bisa dibaca langsung dari filenya.
-
 ---
 
 ## 0. Aturan dasar
@@ -33,7 +31,7 @@ Entry point:
 Dokumentasi OpenAPI:
 
 - `/docs/openapi.json` **dirakit manual**, bukan `app.doc()`, karena `components.schemas` harus disuntik dari registry.
-- `/docs` = situs Mintlify hasil `mint export`, dibangun ke dalam image oleh tahap `docs` di Dockerfile. `/swagger` = Swagger UI dari CDN lewat HTML statis di `app.ts` (tanpa dependency npm).
+- `/docs` = situs Mintlify hasil `mint export`, dibangun ke dalam image oleh tahap `docs` di Dockerfile. `/swagger` = Swagger UI dari CDN lewat HTML statis di `app.ts` (tanpa dependency npm). Kalau `docs-site/` tidak ada (checkout biasa tanpa `docker compose build`), `/docs` **jatuh ke Swagger UI** — itu disengaja, bukan bug.
 
 Registry laporan:
 
@@ -117,7 +115,7 @@ bun run scripts/ws-test.ts <jobId> <token>
 bun run e2e -- --from=2026-09-01 --to=2026-09-30 --base=http://localhost:5006
 ```
 
-Param setiap laporan **diturunkan dari skema Zod-nya sendiri**, bukan dari daftar nama tipe — jadi laporan baru ikut teruji tanpa didaftarkan di script. Laporan yang berparam lookup (nomor produksi/SPK/kayu bulat/dll) nilainya di-harvest dari tabel yang dibaca stored procedure-nya, karena kunci tebakan hanya menghasilkan PDF kosong. Keluarannya: jumlah PDF per tipe, ukuran, dan daftar yang gagal.
+Param setiap laporan **diturunkan dari skema Zod-nya sendiri**, bukan dari daftar nama tipe — jadi laporan baru ikut teruji tanpa didaftarkan di script. Laporan yang berparam lookup (nomor produksi/SPK/kayu bulat/dll) nilainya di-harvest dari tabel yang dibaca stored procedure-nya, karena kunci tebakan hanya menghasilkan PDF kosong. Keluarannya: jumlah PDF per tipe, ukuran, dan daftar yang gagal; PDF tersimpan di `storage/e2e/` (bisa diganti dengan `--out=`).
 
 - Hasil "gagal" yang sebenarnya **`param-error`** hampir selalu bug harness, bukan bug aplikasi — cek dulu apakah parameternya bisa dibangun.
 - Laporan yang selesai tapi **kecil** (< 20 KB) kemungkinan merender empty state. Itu belum tentu bug: periode bisa memang kosong. Buktikan dengan menjalankan periodenya lebih luas, atau cek apakah HTML-nya berisi `Tidak ada data`.
@@ -182,7 +180,7 @@ Export Excel, rate limiting, S3/MinIO, multi-tenant, streaming query untuk lapor
 
 ---
 
-## 9. Yang sudah dipastian, dan yang masih terbuka
+## 9. Yang sudah dipastikan, dan yang masih terbuka
 
 **Sudah dipastikan** — jangan lagi dicantumkan sebagai asumsi:
 
@@ -222,6 +220,7 @@ Isi katalog: `type`, judul, bentuk `params`, nama stored procedure, nama paramet
 
 - **Semua perubahan dokumentasi masuk branch `docs`.** Jangan menyentuh `src/`, `tests/`, atau `package.json` dari branch itu. Kalau katalog perlu data baru dari kode (mis. laporan baru), buat commit di `development` lebih dulu, lalu merge ke `docs`.
 - **`docs/reports/` dan `docs/docs.json` jangan diedit manual** — generator menimpanya. Yang boleh diedit manual hanya 9 halaman API dan `docs/scripts/`.
+- `docs/AGENT-PROMPT.md` adalah catatan kerja agen yang **di-ignore Git** dan memuat path absolut mesin ini. Jangan diandalkan di checkout baru; aturan durable-nya ada di §11 ini.
 
 ### Siklus perubahan katalog (dua arah)
 
