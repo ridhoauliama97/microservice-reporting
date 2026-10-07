@@ -16,3 +16,8 @@ dist/
 # Working notes for documentation agents. Local only: it references absolute
 # paths of whoever set it up and is rewritten as the docs workflow changes.
 docs/AGENT-PROMPT.md
+
+# Graphify knowledge-graph output. Generated locally and rebuilt by the graphify
+# skill: it stores absolute machine paths (.graphify_python/.graphify_root) and
+# multi-MB artifacts (graph.json/graph.html), so it must not be committed.
+graphify-out/
