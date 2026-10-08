@@ -4,7 +4,7 @@
  *
  * Mintlify's export is built to be served at a root (its own `serve.js` does
  * exactly that), and subpath hosting is a Mintlify Cloud feature. Serving the
- * export under `/docs` therefore needs two things, and each one fixes a
+ * export under `/docs` therefore needs a few things, and each one fixes a
  * different symptom:
  *
  * 1. Rewrite the absolute paths in the HTML attributes.
@@ -18,7 +18,8 @@
  *    from its own embedded data rather than from the anchor, so a click on the
  *    already-correct `href="/docs/authentication"` still landed on
  *    `/authentication` - the prefix was dropped and the user got a 404. The shim
- *    forces navigation to the anchor's own href, which is correct.
+ *    forces navigation to the anchor's own href, and also re-adds the prefix to
+ *    any href the router re-rendered without it.
  *
  * What is deliberately NOT done: rewriting the paths inside the embedded JSON
  * payload. That data is what the router uses to decide which sidebar section is
@@ -30,8 +31,13 @@
  *    does not have - the search bar only shows "Run mint login in the cli to
  *    activate search". The Dockerfile docs stage runs Pagefind over the export;
  *    here the main content is marked with `data-pagefind-body` (a build-time
- *    indexing hint) and a Pagefind UI is injected to take over the search
- *    button, so the box actually searches the offline pages.
+ *    indexing hint) and the shim opens a Pagefind UI on the search button.
+ *
+ *    The Pagefind CSS/JS and the overlay are all created at RUNTIME from the one
+ *    injected script. Do not add <link>/<style>/<script> tags to <head> here:
+ *    extra head elements make React 19 hydration fail (#418), and the failed
+ *    re-render rewrites the sidebar hrefs without the /docs prefix, breaking
+ *    every menu link.
  *
  * Usage: node rewrite-static-paths.mjs <site-dir>
  */
@@ -58,69 +64,82 @@ function walk(dir) {
 // Any HTML attribute holding an absolute path -> prefix it with /docs.
 const HTML_ATTR = /([a-zA-Z-]+)="\/(?!_next\/|docs\/)/g
 
-// Injected first in <head>, so it is registered before the app boots.
+// The single injected script: navigation shim + offline search, in that order.
+// It must be the ONLY injected head element (see the header note on React 19).
 const SHIM = `<script>
 /* Served under /docs. Mintlify's client router navigates from its own data and
-   drops the prefix, so send the click to the anchor's own href instead. */
+   drops the prefix, so send the click to the anchor's own href instead. Offline
+   exports have no Mintlify search backend, so a Pagefind UI takes over the
+   search button. */
 (function () {
   var PREFIX = '/docs';
+  var overlay = null;
+  var loading = false;
+
+  function ensureOverlay() {
+    if (overlay) return overlay;
+    overlay = document.createElement('div');
+    overlay.id = 'pf-overlay';
+    overlay.innerHTML = '<div id="pf-panel"><div id="pf-search"></div></div>';
+    var style = document.createElement('style');
+    style.textContent = '#pf-overlay{position:fixed;inset:0;z-index:2147483000;display:none;padding:12vh 16px 16px;background:rgba(15,26,43,.5)}#pf-overlay.open{display:block}#pf-panel{max-width:640px;margin:0 auto;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 24px 64px rgba(0,0,0,.35)}@media (prefers-color-scheme:dark){#pf-panel{background:#0f1a2b}}#pf-panel .pagefind-ui{margin:0;padding:6px}';
+    document.head.appendChild(style);
+    var css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = PREFIX + '/pagefind/pagefind-ui.css';
+    document.head.appendChild(css);
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) closeSearch(); });
+    return overlay;
+  }
+
+  function closeSearch() {
+    if (overlay) overlay.classList.remove('open');
+  }
+
+  function openSearch() {
+    ensureOverlay();
+    function show() {
+      if (!overlay.querySelector('.pagefind-ui')) {
+        new PagefindUI({ element: '#pf-search', bundlePath: PREFIX + '/pagefind/', baseUrl: PREFIX, showSubResults: true });
+      }
+      overlay.classList.add('open');
+      var i = overlay.querySelector('input');
+      if (i) setTimeout(function () { i.focus(); }, 30);
+    }
+    if (window.PagefindUI) { show(); return; }
+    if (loading) return;
+    loading = true;
+    var s = document.createElement('script');
+    s.src = PREFIX + '/pagefind/pagefind-ui.js';
+    s.onload = show;
+    document.head.appendChild(s);
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeSearch();
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); e.stopImmediatePropagation(); openSearch(); }
+  }, true);
+
   document.addEventListener('click', function (e) {
-    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    var t = e.target;
+    if (!t || !t.closest) return;
+    if (t.closest('#search-bar-entry, #search-bar-entry-mobile, [aria-label="Open search"]')) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      openSearch();
+      return;
+    }
+    var a = t.closest('a[href]');
     if (!a) return;
     var href = a.getAttribute('href');
     if (!href || href.charAt(0) !== '/' || href.indexOf('//') === 0) return;
     if (href.indexOf('/_next/') === 0) return;
-    if (href.indexOf(PREFIX + '/') !== 0 && href !== PREFIX) return;
+    var target = (href === PREFIX || href.indexOf(PREFIX + '/') === 0) ? href : PREFIX + href;
     e.preventDefault();
     e.stopImmediatePropagation();
-    window.location.href = href;
+    window.location.href = target;
   }, true);
-})();
-</script>`
-
-// Injected alongside the shim: a Pagefind UI that replaces Mintlify's search,
-// which cannot work in an offline export. `defer` guarantees PagefindUI is
-// defined before the inline script's DOMContentLoaded handler runs.
-const SEARCH = `<link rel="stylesheet" href="/docs/pagefind/pagefind-ui.css">
-<script defer src="/docs/pagefind/pagefind-ui.js"></script>
-<style>
-  #pf-overlay { position: fixed; inset: 0; z-index: 2147483000; display: none; padding: 12vh 16px 16px; background: rgba(15, 26, 43, .5); }
-  #pf-overlay.open { display: block; }
-  #pf-panel { max-width: 640px; margin: 0 auto; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 24px 64px rgba(0, 0, 0, .35); }
-  @media (prefers-color-scheme: dark) { #pf-panel { background: #0f1a2b; } }
-  #pf-panel .pagefind-ui { margin: 0; padding: 6px; }
-</style>
-<script>
-/* Offline export has no Mintlify search backend - open a Pagefind UI instead. */
-(function () {
-  var PREFIX = '/docs';
-  function boot() {
-    if (!window.PagefindUI) return;
-    var ov = document.createElement('div');
-    ov.id = 'pf-overlay';
-    ov.innerHTML = '<div id="pf-panel"><div id="pf-search"></div></div>';
-    document.body.appendChild(ov);
-    new PagefindUI({ element: '#pf-search', bundlePath: PREFIX + '/pagefind/', baseUrl: PREFIX, showSubResults: true });
-    function open() {
-      if (!ov.isConnected) document.body.appendChild(ov);
-      ov.classList.add('open');
-      var i = ov.querySelector('input');
-      if (i) setTimeout(function () { i.focus(); }, 30);
-    }
-    function close() { ov.classList.remove('open'); }
-    ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') close();
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); e.stopImmediatePropagation(); open(); }
-    }, true);
-    document.addEventListener('click', function (e) {
-      var t = e.target && e.target.closest ? e.target.closest('#search-bar-entry, #search-bar-entry-mobile, [aria-label="Open search"]') : null;
-      if (!t) return;
-      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); open();
-    }, true);
-  }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else boot();
 })();
 </script>`
 
@@ -128,7 +147,6 @@ let pages = 0
 let changed = 0
 let attrs = 0
 let shimmed = 0
-let searched = 0
 let marked = 0
 
 for (const file of walk(root)) {
@@ -153,15 +171,9 @@ for (const file of walk(root)) {
     }
   }
 
-  if (after.includes('<head>')) {
-    let inject = ''
-    if (!after.includes("var PREFIX = '/docs'")) inject += SHIM
-    if (!after.includes('pagefind-ui.js')) inject += SEARCH
-    if (inject) {
-      after = after.replace('<head>', '<head>' + inject)
-      shimmed += 1
-      if (inject.includes('pagefind-ui.js')) searched += 1
-    }
+  if (after.includes('<head>') && !after.includes("var PREFIX = '/docs'")) {
+    after = after.replace('<head>', '<head>' + SHIM)
+    shimmed += 1
   }
 
   if (after !== before) {
@@ -176,5 +188,5 @@ if (pages === 0) {
 }
 
 console.log(
-  `prepared ${pages} pages: ${attrs} paths prefixed, head injected in ${shimmed}, Pagefind-marked ${marked}, search UI in ${searched} (${changed} files changed)`,
+  `prepared ${pages} pages: ${attrs} paths prefixed, shim in ${shimmed}, Pagefind-marked ${marked} (${changed} files changed)`,
 )
