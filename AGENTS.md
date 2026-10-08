@@ -71,6 +71,7 @@ Aturan yang sering dilanggar:
 
 - Laporan yang diport dari blade memakai stylesheet blade-nya sendiri: `extraCss: WPS_REFERENCE_CSS["<type>"]` (key = `type` registry).
 - **`reference-css.ts` itu generated** oleh `scripts/generate-reference-css.ts` — **jangan diedit manual**, jalan berikutnya menimpanya. Ubah blade di `open-api-report`, lalu `bun run generate:css`. `bun run generate:css -- --check` gagal kalau file hasil generate sudah basi.
+- **`generate:css -- --check` bisa false positive di Windows.** `reference-css.ts` belum di-pin di `.gitattributes`, jadi ter-checkout CRLF sementara generator menulis LF → dilaporkan basi padahal isinya identik (`git diff --numstat` kosong). Cek EOL dulu sebelum mengira CSS-nya benar-benar basi.
 - Koreksi per-laporan **tidak** ada di generator (itu keputusan, bukan turunan blade): di `src/reports/wps/reference-css-fixups.ts`.
 - **Peta `type` → blade di generator saling tertukar** dan itu disengaja: `st-masuk-per-group` memakai blade `st-sawmill-masuk-per-group`, `st-sawmill-masuk-per-group` memakai yang `-meja`. Jangan "menyederhanakan" peta itu jadi berbasis nama file.
 - Kalau blade-nya tidak ada, pakai preset `WpsReportStyle` yang sudah ada. Menulis CSS sendiri hanya untuk kasus luar biasa, dan ditaruh di `styles.ts`.
@@ -163,7 +164,7 @@ Kegagalan diam-dikan yang paling sering di repo ini: **kolom salah atau pembagi 
 - Redis (`6379`) dan Gotenberg (`3100`) dipublish ke `127.0.0.1`, bukan `0.0.0.0` — jadi `bun run dev` di host kena Redis yang sama dengan container. Kalau muncul 2 antrean atau job menggantung, periksa jangan sampai ada proses yang jalankan Redis sendiri di port itu.
 - `docker compose up -d` gagal start dengan "port is already allocated" = ada proses lokal sudah memakai 6379/3100. Matikan proses itu, jangan ganti port diam-diam — `.env.example` sudah menunjuk 6379/3100.
 - Dockerfile dipin ke `oven/bun:1.3.14`; lockfile berupa teks `bun.lock`. Kalau mengubah image, salin keduanya.
-- **Ada tahap `docs` di Dockerfile** yang menjalankan `mint export` (butuh Node, image `oven/bun` tidak punya). Jadi `docker compose build` **butuh internet**. Hasilnya disajikan service di `/docs`; lihat §11.
+- **Ada tahap `docs` di Dockerfile** yang menjalankan `mint export` lalu `pagefind` (butuh Node, image `oven/bun` tidak punya). Jadi `docker compose build` **butuh internet**. Hasilnya disajikan service di `/docs`; lihat §11.
 - **Batas resource sudah ditetapkan** (`deploy.resources.limits`): gotenberg 2 CPU / 2 GB, worker 1.5 CPU / 1 GB, api dan redis 1 CPU / 512 MB. Acuan host 8 core / 7.7 GB, total terpakai ~5.5 core / 4 GB. Gotenberg dapat jatah terbesar karena Chromium. Kalau batasnya terlalu ketat, container dibunuh OOM di tengah render dan gejalanya muncul sebagai **job gagal tanpa pesan jelas**, bukan error yang mudah ditelusuri.
 - **PDF kedaluwarsa disapu berkala oleh worker**, bukan hanya saat start. `FILE_RETENTION_DAYS` (default 7) adalah umur file, `FILE_CLEANUP_INTERVAL_HOURS` (default 24) adalah frekuensi sapuan. Intervalnya sengaja lebih pendek dari retensi: kalau sama, file bisa hidup hampir dua kali lipat dari yang dimaksud. Penjadwalnya ada di `src/lib/repeat.ts` supaya bisa diuji tanpa menunggu berjam-jam.
 - **SQL Server tidak ada di compose.** Dari dalam container `DB_SERVER=localhost` pasti gagal — pakai `host.docker.internal`, dan pastikan SQL Server mengaktifkan TCP/IP dan port `1433` terbuka.
@@ -256,9 +257,9 @@ bun run docs/scripts/generate-catalog.ts --check   # gagal kalau katalog basi
 cd docs && npx mint broken-links                   # validasi link
 ```
 
-### Situsnya lokal saja, tidak ada publikasi
+### Situsnya internal, tidak ada CI/CD
 
-Dokumentasi ini **situs Mintlify asli**, bukan renderer buatan sendiri. **Tidak ada deployment.** Repo ini tidak punya folder `.github/` sama sekali, jadi tidak ada workflow yang menerbitkan apa pun saat push. Cara memastikan: `ls .github` tidak mengembalikan apa-apa.
+Dokumentasi ini **situs Mintlify asli**, bukan renderer buatan sendiri. **Tidak ada CI/CD** — repo tidak punya folder `.github/` sama sekali, jadi tidak ada workflow yang menerbitkan apa pun saat push (`ls .github` kosong). Situs di-`mint export` + `pagefind` ke dalam image dan disajikan service di `/docs`; deploy-nya lewat `./deploy.sh` (lihat §12).
 
 Membacanya:
 
@@ -275,10 +276,11 @@ docker compose up -d     # buka http://localhost:5007/docs
 
 Swagger UI pindah ke `/swagger`; spec mentahnya tetap di `/docs/openapi.json`.
 
-**Cara situs itu disiapkan ada di `docs/scripts/rewrite-static-paths.mjs`**, dan ada dua langkah yang keduanya wajib — kalau salah satu dilewat, gejalanya berbeda:
+**Cara situs itu disiapkan ada di `docs/scripts/rewrite-static-paths.mjs`**, dan ada tiga langkah yang semuanya wajib — kalau salah satu dilewat, gejalanya berbeda:
 
 1. **Path di atribut HTML ditulis ulang** (`href`, `id`, `content`, `data-current-path`). Item sidebar menyimpan route sebagai `id`, jadi menulis ulang `href` saja tidak cukup.
-2. **Skrip klik disuntikkan.** Router Mintlify menavigasi dari data internalnya sendiri, bukan dari `href`. Jadi klik pada `href="/docs/authentication"` yang sudah benar tetap mendarat di `/authentication` — prefix hilang dan user dapat 404. Skrip itu memaksa navigasi ke `href` milik link tersebut.
+2. **Skrip klik disuntikkan.** Router Mintlify menavigasi dari data internalnya sendiri, bukan dari `href`. Jadi klik pada `href="/docs/authentication"` yang sudah benar tetap mendarat di `/authentication` — prefix hilang dan user dapat 404. Skrip itu memaksa navigasi ke `href` milik link tersebut, dan menambahkan `/docs` kalau router menulis ulang href tanpa prefix.
+3. **Offline search (Pagefind).** `mint export` (offline) **tidak mendukung search** — kotak search Mintlify hanya menampilkan "Run mint login in the cli to activate search". Jadi tahap `docs` di Dockerfile menjalankan `npx pagefind@1.5.2 --site /site` (versi di-pin: menentukan format index + UI), sementara script menandai `<main id="content-container">` dengan `data-pagefind-body` (hint index build-time) dan menyuntikkan UI Pagefind yang mengambil alih tombol search.
 
 **Data JSON internal di payload sengaja TIDAK ditulis ulang.** Data itulah yang dipakai router untuk menentukan menu mana yang aktif; begitu di-prefix, perbandingannya gagal dan sidebar tampil kosong. Ini sudah pernah dicoba — jangan diulang.
 
@@ -316,3 +318,31 @@ Yang perlu diingat:
 - Nama kategori `Kayu Bulat (Rambung)` mudah salah ketik. Kalau order navigasi terasa acak, cek dulu ejaan kategori di `CATEGORY_ORDER`.
 - **`--check` pernah bohong di Windows.** Karena `core.autocrlf=true`, `docs/` ter-checkout dengan CRLF sementara generator selalu menulis LF, jadi semua 18 file generated dilaporkan basi padahal isinya identik (`git diff --numstat` kosong). Sudah diperbaiki `.gitattributes` (`docs/** text eol=lf`) — kalau `--check` tiba-tiba gagal lagi, cek EOL dulu sebelum mengira katalognya benar-benar basi.
 - **`npx mint` tidak bisa jalan di dalam container.** CLI Mintlify butuh Node dan jaringan, sedangkan image `oven/bun` tidak punya Node. Jalankan di komputer, bukan lewat `docker exec`.
+- **Jangan menaruh `<link>`/`<style>`/`<script>` tambahan di `<head>` dari script injeksi.** React 19 menganggap elemen head ekstra sebagai mismatch saat hydration (#418); re-render-nya menulis ulang href sidebar **tanpa prefix `/docs`**, sehingga semua menu jadi 404. Aset Pagefind + overlay search dibuat **saat runtime** dari satu script injeksi saja.
+- **Tema search dibaca dari class `html.dark`**, bukan `prefers-color-scheme` — Mintlify punya toggle tema sendiri, dan `prefers-color-scheme` tidak ikut toggle itu. Set variabel `--pagefind-ui-*` untuk light & dark; kalau tidak, teks gelap Pagefind tampil di panel gelap dan tidak terbaca.
+- **Verifikasi search harus dengan benar-benar mengklik**, bukan cuma membaca markup: masalah #418 di atas tidak terlihat di HTML statis (href-nya sudah benar), hanya muncul setelah hydration saat diklik.
+
+---
+
+## 12. Deploy ke server (192.168.10.100)
+
+Produksi jalan di server Windows `UTAMA` (`192.168.10.100`) lewat Docker Desktop (Linux containers). **Auto-deploy-nya `./deploy.sh` di root repo — bukan CI.**
+
+```sh
+git add -A && git commit -m "..." && git push origin main   # deploy menarik origin/<branch>
+./deploy.sh                                                 # SSH → pull → build → up → health
+```
+
+`deploy.sh` SSH ke `Ridho@192.168.10.100`, `git pull` di `C:\services\report-service`, `docker compose build` + `up -d`, lalu menunggu `/health/ready` hijau. **Yang ter-deploy adalah `origin/<branch>`, bukan working tree lokal — push dulu.** Semua nilai bisa dioverride via env (`DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_DIR`, `DEPLOY_BRANCH`, `APP_PORT`).
+
+Yang **wajib tetap ada** di server (kalau hilang, pull image / deploy gagal):
+- OpenSSH Server + public key terdaftar (port 22).
+- Docker Desktop menyala (Linux containers). **Tidak auto-start** setelah server reboot.
+- Config Docker tanpa `credsStore` (`C:\Users\Ridho\.docker\config.json`, backup `config.json.bak`) + helper dummy `%USERPROFILE%\.docker-anon\bin\docker-credential-anon.bat`. Perlu karena sesi SSH tidak punya credential session Windows → pull gagal dengan "A specified logon session does not exist".
+
+Jebakan:
+- `docker` tidak ada di PATH sesi SSH (efek update Docker Desktop) — pakai path absolut `C:\Program Files\Docker\Docker\resources\bin\docker.exe`.
+- **Egress server flaky**: timeout ke Docker Hub, `deb.debian.org`, github.com, dan `*.actions.githubusercontent.com`. Semua langkah berjaringan harus **retry** — itu sebabnya `deploy.sh` mengulang pull/build.
+- BuildKit selalu resolve metadata base image dari registry; kalau macet, `DOCKER_BUILDKIT=0 docker build` memakai image lokal (tahap `docs` tetap butuh apt + npm).
+- **Self-hosted GitHub Actions runner tidak layak di server ini** — endpoint `*.actions.githubusercontent.com` timeout dan runner backoff sampai jam-an. Sudah dicoba, sudah dihapus; pakai `deploy.sh`.
+- Port `5007` di-publish ke LAN; aplikasi Laravel lama tetap di `5006` (jangan bentrok).
