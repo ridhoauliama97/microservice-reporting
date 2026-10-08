@@ -1,5 +1,7 @@
 name: report-service
 
+# Nilai bersama untuk api dan worker. Keduanya memakai image yang sama, hanya
+# perintah jalannya yang berbeda.
 x-app: &app
   build: .
   image: report-service:local
@@ -13,21 +15,59 @@ x-app: &app
     STORAGE_DIR: /app/storage
   volumes:
     - report-storage:/app/storage
+  # Batasi ukuran log supaya disk tidak penuh setelah service lama berjalan.
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
   depends_on:
     redis:
       condition: service_healthy
     gotenberg:
-      condition: service_started
+      condition: service_healthy
+
+# Batas resource. Host acuan punya 8 core / 7.7 GB; angka di bawah memakai
+# sekitar 4 GB dan 5.5 core, jadi masih ada ruang untuk sistem.
+#
+# Gotenberg dapat jatah terbesar karena menjalankan Chromium - satu laporan
+# dengan tabel lebar bisa memakai memori jauh di atas kondisi idle (326 MB).
+# Kalau batas ini terlalu ketat, container-nya dibunuh OOM di tengah render,
+# dan gejalanya muncul sebagai job gagal, bukan sebagai error yang jelas.
+x-limits-gotenberg: &limits-gotenberg
+  resources:
+    limits:
+      cpus: "2.0"
+      memory: 2g
+
+x-limits-api: &limits-api
+  resources:
+    limits:
+      cpus: "1.0"
+      memory: 512m
+
+x-limits-worker: &limits-worker
+  resources:
+    limits:
+      cpus: "1.5"
+      memory: 1g
+
+x-limits-redis: &limits-redis
+  resources:
+    limits:
+      cpus: "1.0"
+      memory: 512m
 
 services:
   api:
     <<: *app
     container_name: report-api
     command: ["bun", "run", "src/index.ts"]
+    deploy: *limits-api
     ports:
-      - "${PORT:-5006}:${PORT:-5006}"
+      - "${PORT:-5007}:${PORT:-5007}"
     healthcheck:
-      test: ["CMD", "bun", "-e", "fetch('http://localhost:' + (process.env.PORT || 5006) + '/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      test: ["CMD", "bun", "-e", "fetch('http://localhost:' + (process.env.PORT || 5007) + '/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -37,12 +77,28 @@ services:
     <<: *app
     container_name: report-worker
     command: ["bun", "run", "src/worker.ts"]
+    deploy: *limits-worker
+    # Worker tidak punya port HTTP, jadi yang diperiksa adalah hal yang paling
+    # menentukan hidupnya: koneksi ke Redis. Kalau Redis tidak terjangkau,
+    # worker tidak bisa mengambil job dan dianggap tidak sehat.
+    healthcheck:
+      test: ["CMD", "bun", "-e", "const s = await Bun.connect({ hostname: process.env.REDIS_HOST, port: Number(process.env.REDIS_PORT), socket: { data() {}, open() {}, error() {} } }); s.end()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
 
   redis:
     image: redis:7
     container_name: report-redis
     restart: unless-stopped
+    deploy: *limits-redis
     command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    # Dipublish ke host supaya `bun run dev` di mesin ini memakai Redis yang sama
+    # dengan api/worker di container - bukan antrean kedua yang terpisah.
+    # Hanya 127.0.0.1, jadi tidak terbuka ke jaringan.
+    ports:
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis-data:/data
     healthcheck:
@@ -50,15 +106,38 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   gotenberg:
     image: gotenberg/gotenberg:8
     container_name: report-gotenberg
     restart: unless-stopped
+    deploy: *limits-gotenberg
     command:
       - gotenberg
       - --api-timeout=120s
       - --chromium-disable-javascript=true
+    # Sama seperti redis: untuk `bun run dev` di host. Hanya 127.0.0.1,
+    # jadi tidak terbuka ke jaringan.
+    ports:
+      - "127.0.0.1:3100:3000"
+    # Tanpa healthcheck, api dan worker mulai begitu container Gotenberg
+    # menyala - padahal Chromium di dalamnya belum siap menerima render.
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:3000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   report-storage:

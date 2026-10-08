@@ -29,7 +29,7 @@ Query parameter `token` **hanya** berlaku untuk WebSocket. Untuk Endpoint HTTP, 
 
 ```javascript JavaScript
 const ws = new WebSocket(
-  `ws://localhost:5006/ws/reports/${jobId}?token=${encodeURIComponent(token)}`,
+  `ws://localhost:5007/ws/reports/${jobId}?token=${encodeURIComponent(token)}`,
 )
 
 ws.addEventListener('message', (event) => {
@@ -43,7 +43,7 @@ ws.addEventListener('close', (event) => {
 
 ```bash Request
 # Token tidak pernah di-log server, tapi URL ini bisa muncul di log browser.
-websocat "ws://localhost:5006/ws/reports/$JOB_ID?token=$TOKEN"
+websocat "ws://localhost:5007/ws/reports/$JOB_ID?token=$TOKEN"
 ```
 
 </CodeGroup>

@@ -3,8 +3,6 @@
 Microservice pembuat laporan **PDF asynchronous** untuk WPS (Bun + Hono + BullMQ/Redis + Gotenberg).
 `README.md` adalah dokumen layanan (daftar endpoint + katalog per-laporan); **file ini hanya soal cara bekerja di repo ini.**
 
-Bagian yang sudah usang (fase pembangunan, "struktur folder target", isi `package.json`/`tsconfig`/docker-compose sebagai target) sudah dihapus — semuanya sudah jadi dan sekarang bisa dibaca langsung dari filenya.
-
 ---
 
 ## 0. Aturan dasar
@@ -33,7 +31,7 @@ Entry point:
 Dokumentasi OpenAPI:
 
 - `/docs/openapi.json` **dirakit manual**, bukan `app.doc()`, karena `components.schemas` harus disuntik dari registry.
-- `/docs` = Swagger UI dari CDN lewat HTML statis di `app.ts`. Tidak menambah dependency npm.
+- `/docs` = situs Mintlify hasil `mint export`, dibangun ke dalam image oleh tahap `docs` di Dockerfile. `/swagger` = Swagger UI dari CDN lewat HTML statis di `app.ts` (tanpa dependency npm). Kalau `docs-site/` tidak ada (checkout biasa tanpa `docker compose build`), `/docs` **jatuh ke Swagger UI** — itu disengaja, bukan bug.
 
 Registry laporan:
 
@@ -91,11 +89,21 @@ bun test                                       # seluruh suite
 bun test tests/wps-sawmill-reports.test.ts     # satu file
 ```
 
-`typecheck` + `bun test` sudah cukup untuk perubahan logika/styling. Redis dan Gotenberg hanya perlu untuk alur end-to-end:
+`typecheck` + `bun test` sudah cukup untuk perubahan logika/styling. Redis dan Gotenberg hanya perlu untuk alur end-to-end.
+
+### Satu cara menjalankan saja
+
+Hanya ada **satu** compose file: `docker-compose.yml`. Empat container — `report-api`, `report-worker`, `report-redis`, `report-gotenberg`. Tidak ada compose kedua yang harus dihentikan atau dicocokkan.
 
 ```sh
-docker compose -f docker-compose.dev.yml up -d
-bun run dev          # API di :5006
+docker compose up -d
+curl.exe http://localhost:5007/health/ready
+```
+
+`api` dan `worker` satu image, hanya `command` yang beda. Redis dan Gotenberg dipublish ke `127.0.0.1` saja (`6379` dan `3100`) supaya **`bun run dev` di host memakai Redis yang sama** dengan container — bukan antrean kedua yang terpisah. Kalau ada proses lokal yang memakai port itu, compose gagal start; itu memang penanda bentrok, bukan kegagalan acak.
+
+```sh
+bun run dev          # API di :5007
 bun run dev:worker   # worker, proses terpisah
 bun run dev:token budi [jam]     # token testing (default user "tester", 1 jam)
 bun run scripts/ws-test.ts <jobId> <token>
@@ -104,10 +112,10 @@ bun run scripts/ws-test.ts <jobId> <token>
 **Menjalankan seluruh laporan sekaligus** (butuh API + worker + infra hidup):
 
 ```sh
-bun run e2e -- --from=2026-09-01 --to=2026-09-30 --base=http://localhost:5103
+bun run e2e -- --from=2026-09-01 --to=2026-09-30 --base=http://localhost:5007
 ```
 
-Param setiap laporan **diturunkan dari skema Zod-nya sendiri**, bukan dari daftar nama tipe — jadi laporan baru ikut teruji tanpa didaftarkan di script. Laporan yang berparam lookup (nomor produksi/SPK/kayu bulat/dll) nilainya di-harvest dari tabel yang dibaca stored procedure-nya, karena kunci tebakan hanya menghasilkan PDF kosong. Keluarannya: jumlah PDF per tipe, ukuran, dan daftar yang gagal.
+Param setiap laporan **diturunkan dari skema Zod-nya sendiri**, bukan dari daftar nama tipe — jadi laporan baru ikut teruji tanpa didaftarkan di script. Laporan yang berparam lookup (nomor produksi/SPK/kayu bulat/dll) nilainya di-harvest dari tabel yang dibaca stored procedure-nya, karena kunci tebakan hanya menghasilkan PDF kosong. Keluarannya: jumlah PDF per tipe, ukuran, dan daftar yang gagal; PDF tersimpan di `storage/e2e/` (bisa diganti dengan `--out=`).
 
 - Hasil "gagal" yang sebenarnya **`param-error`** hampir selalu bug harness, bukan bug aplikasi — cek dulu apakah parameternya bisa dibangun.
 - Laporan yang selesai tapi **kecil** (< 20 KB) kemungkinan merender empty state. Itu belum tentu bug: periode bisa memang kosong. Buktikan dengan menjalankan periodenya lebih luas, atau cek apakah HTML-nya berisi `Tidak ada data`.
@@ -151,10 +159,16 @@ Kegagalan diam-dikan yang paling sering di repo ini: **kolom salah atau pembagi 
 
 ## 7. Docker & environment
 
+- **Cuma ada satu compose file**, `docker-compose.yml` - 4 container: `report-api`, `report-worker`, `report-redis`, `report-gotenberg`. File `docker-compose.dev.yml` sudah dihapus; kalau suatu saat muncul compose kedua, itu kembali ke dual-stack yang lama dan harus dimatikan.
+- Redis (`6379`) dan Gotenberg (`3100`) dipublish ke `127.0.0.1`, bukan `0.0.0.0` — jadi `bun run dev` di host kena Redis yang sama dengan container. Kalau muncul 2 antrean atau job menggantung, periksa jangan sampai ada proses yang jalankan Redis sendiri di port itu.
+- `docker compose up -d` gagal start dengan "port is already allocated" = ada proses lokal sudah memakai 6379/3100. Matikan proses itu, jangan ganti port diam-diam — `.env.example` sudah menunjuk 6379/3100.
 - Dockerfile dipin ke `oven/bun:1.3.14`; lockfile berupa teks `bun.lock`. Kalau mengubah image, salin keduanya.
+- **Ada tahap `docs` di Dockerfile** yang menjalankan `mint export` (butuh Node, image `oven/bun` tidak punya). Jadi `docker compose build` **butuh internet**. Hasilnya disajikan service di `/docs`; lihat §11.
+- **Batas resource sudah ditetapkan** (`deploy.resources.limits`): gotenberg 2 CPU / 2 GB, worker 1.5 CPU / 1 GB, api dan redis 1 CPU / 512 MB. Acuan host 8 core / 7.7 GB, total terpakai ~5.5 core / 4 GB. Gotenberg dapat jatah terbesar karena Chromium. Kalau batasnya terlalu ketat, container dibunuh OOM di tengah render dan gejalanya muncul sebagai **job gagal tanpa pesan jelas**, bukan error yang mudah ditelusuri.
+- **PDF kedaluwarsa disapu berkala oleh worker**, bukan hanya saat start. `FILE_RETENTION_DAYS` (default 7) adalah umur file, `FILE_CLEANUP_INTERVAL_HOURS` (default 24) adalah frekuensi sapuan. Intervalnya sengaja lebih pendek dari retensi: kalau sama, file bisa hidup hampir dua kali lipat dari yang dimaksud. Penjadwalnya ada di `src/lib/repeat.ts` supaya bisa diuji tanpa menunggu berjam-jam.
 - **SQL Server tidak ada di compose.** Dari dalam container `DB_SERVER=localhost` pasti gagal — pakai `host.docker.internal`, dan pastikan SQL Server mengaktifkan TCP/IP dan port `1433` terbuka.
 - `api` dan `worker` **wajib** berbagi named volume `report-storage` (worker menulis PDF, API menyajikannya). Bind mount bermasalah izin tulis.
-- Matikan dengan `docker compose down` — **tanpa `-v`**.
+- Matikan dengan `docker compose down` — **tanpa `-v`**. Volume `redis-data` dan `report-storage` menyimpan antrean dan PDF yang belum diunduh; `-v` menghapus keduanya.
 - Di disk, file PDF selalu `storage/report-<jobId>.pdf` (nama generik, anti path-traversal). Nama unduhan di `Content-Disposition` boleh `<type>-<jobId>.pdf`. **Ini bukan bug** — jangan disamakan.
 - `GET /health/ready` hanya melaporkan boolean per komponen (DB, Redis, Gotenberg) tanpa detail error. DB `false` karena kredensial contoh itu wajar, jangan dianggap gagal.
 
@@ -166,7 +180,7 @@ Export Excel, rate limiting, S3/MinIO, multi-tenant, streaming query untuk lapor
 
 ---
 
-## 9. Yang sudah dipastian, dan yang masih terbuka
+## 9. Yang sudah dipastikan, dan yang masih terbuka
 
 **Sudah dipastikan** — jangan lagi dicantumkan sebagai asumsi:
 
@@ -206,6 +220,7 @@ Isi katalog: `type`, judul, bentuk `params`, nama stored procedure, nama paramet
 
 - **Semua perubahan dokumentasi masuk branch `docs`.** Jangan menyentuh `src/`, `tests/`, atau `package.json` dari branch itu. Kalau katalog perlu data baru dari kode (mis. laporan baru), buat commit di `development` lebih dulu, lalu merge ke `docs`.
 - **`docs/reports/` dan `docs/docs.json` jangan diedit manual** — generator menimpanya. Yang boleh diedit manual hanya 9 halaman API dan `docs/scripts/`.
+- `docs/AGENT-PROMPT.md` adalah catatan kerja agen yang **di-ignore Git** dan memuat path absolut mesin ini. Jangan diandalkan di checkout baru; aturan durable-nya ada di §11 ini.
 
 ### Siklus perubahan katalog (dua arah)
 
@@ -241,6 +256,39 @@ bun run docs/scripts/generate-catalog.ts --check   # gagal kalau katalog basi
 cd docs && npx mint broken-links                   # validasi link
 ```
 
+### Situsnya lokal saja, tidak ada publikasi
+
+Dokumentasi ini **situs Mintlify asli**, bukan renderer buatan sendiri. **Tidak ada deployment.** Repo ini tidak punya folder `.github/` sama sekali, jadi tidak ada workflow yang menerbitkan apa pun saat push. Cara memastikan: `ls .github` tidak mengembalikan apa-apa.
+
+Membacanya:
+
+```sh
+cd docs && npx mint dev
+```
+
+Atau lewat service, yang menyajikan file statis hasil `mint export`:
+
+```sh
+docker compose build     # menjalankan mint export di dalam build
+docker compose up -d     # buka http://localhost:5007/docs
+```
+
+Swagger UI pindah ke `/swagger`; spec mentahnya tetap di `/docs/openapi.json`.
+
+**Cara situs itu disiapkan ada di `docs/scripts/rewrite-static-paths.mjs`**, dan ada dua langkah yang keduanya wajib — kalau salah satu dilewat, gejalanya berbeda:
+
+1. **Path di atribut HTML ditulis ulang** (`href`, `id`, `content`, `data-current-path`). Item sidebar menyimpan route sebagai `id`, jadi menulis ulang `href` saja tidak cukup.
+2. **Skrip klik disuntikkan.** Router Mintlify menavigasi dari data internalnya sendiri, bukan dari `href`. Jadi klik pada `href="/docs/authentication"` yang sudah benar tetap mendarat di `/authentication` — prefix hilang dan user dapat 404. Skrip itu memaksa navigasi ke `href` milik link tersebut.
+
+**Data JSON internal di payload sengaja TIDAK ditulis ulang.** Data itulah yang dipakai router untuk menentukan menu mana yang aktif; begitu di-prefix, perbandingannya gagal dan sidebar tampil kosong. Ini sudah pernah dicoba — jangan diulang.
+
+Yang perlu diingat:
+
+- **Tidak ada `bun test` atau `tsc` yang menyentuh `docs/`.** Verifikasi satu-satunya adalah `mint dev` / `mint broken-links` dan diff di `git status`.
+- **`npx mint` butuh Node + jaringan.** Tidak ada di image `oven/bun`, dan memang tidak perlu ada. Karena itu `docker compose build` butuh internet.
+- **Verifikasi navigasi harus dengan benar-benar mengklik**, bukan membaca markup. Masalah aslinya justru tidak terlihat di markup: `href`-nya sudah benar, yang salah perilaku router saat diklik.
+- Kalau suatu saat publikasi diinginkan, itu keputusan terpisah: butuh file workflow, yang letaknya di luar `docs/`.
+
 ### Yang sudah diverifikasi
 
 | Pemeriksaan | Hasil |
@@ -256,7 +304,7 @@ cd docs && npx mint broken-links                   # validasi link
 
 - **Kategori proses diambil dari menu WPS `open-api-report`**, dibaca dari `resources/views/welcome.blade.php` — **bukan** dari struktur folder `resources/views/reports/`. Folder itu tidak mencerminkan proses dan sudah tidak relevan. Route di menu itu 1:1 dengan tipe registry, jadi bisa dipetakan.
 - Konsekuensinya: **tidak ada kategori "Mutasi" atau "Dashboard"**. Laporan `mutasi-s4s` dan `dashboard-sanding` masuk kategori produknya, mengikuti menu.
-- `Kayu Bulat` dan `Kayu Bulat (Rambang)` proses terpisah; yang Rambung berisi laporan KG.
+- `Kayu Bulat` dan `Kayu Bulat (Rambung)` proses terpisah; yang Rambung berisi laporan KG.
 - **Kartu SPK di menu itu di-comment-out**, jadi bukan kategori aktif: `spk-sawmill` ada di Sawn Timber.
 - Nama route di menu tidak selalu sama dengan `type` registry. Peta rename-nya ada di `OVERRIDES` pada generator, **dikunci per route penuh** (bukan per segment terakhir) karena `reports.mutasi.sanding` dan `dashboard.sanding` sama-sama berakhiran `sanding` padahal berbeda laporan.
 
@@ -267,4 +315,4 @@ cd docs && npx mint broken-links                   # validasi link
 - Empat laporan tidak punya nama stored procedure di kode (`penjualan-lokal`, `total-bagus-kulit-rambung`, `penerimaan-kayu-bulat-per-supplier`, dan `rekap-mutasi` yang memang docblock-nya menyatakan sengaja tidak memanggil SP). Halamannya menulis "Belum terdokumentasi di kode" — itu memang belum dikerjakan, di `development`.
 - Nama kategori `Kayu Bulat (Rambung)` mudah salah ketik. Kalau order navigasi terasa acak, cek dulu ejaan kategori di `CATEGORY_ORDER`.
 - **`--check` pernah bohong di Windows.** Karena `core.autocrlf=true`, `docs/` ter-checkout dengan CRLF sementara generator selalu menulis LF, jadi semua 18 file generated dilaporkan basi padahal isinya identik (`git diff --numstat` kosong). Sudah diperbaiki `.gitattributes` (`docs/** text eol=lf`) — kalau `--check` tiba-tiba gagal lagi, cek EOL dulu sebelum mengira katalognya benar-benar basi.
-- **`npx mint` bukan opsi di dalam image.** CLI Mintlify butuh Node + jaringan dan melaporkan versi `unknown`, jadi `docs/` tidak bisa dirender di container `oven/bun`. Menampilkan `.mdx` sebagai halaman harus lewat renderer sendiri, bukan Mintlify.
+- **`npx mint` tidak bisa jalan di dalam container.** CLI Mintlify butuh Node dan jaringan, sedangkan image `oven/bun` tidak punya Node. Jalankan di komputer, bukan lewat `docker exec`.

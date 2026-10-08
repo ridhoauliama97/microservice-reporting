@@ -8,7 +8,7 @@ const boolFromString = (defaultValue: 'true' | 'false') =>
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  PORT: z.coerce.number().int().positive().default(5006),
+  PORT: z.coerce.number().int().positive().default(5007),
   LOG_LEVEL: z
     .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace'])
     .default('info'),
@@ -47,6 +47,14 @@ const envSchema = z.object({
   REPORT_CONCURRENCY: z.coerce.number().int().positive().default(2),
   STORAGE_DIR: z.string().min(1).default('storage'),
   FILE_RETENTION_DAYS: z.coerce.number().int().positive().default(7),
+  // How often the worker sweeps expired PDFs. Without a repeating sweep the
+  // cleanup only happens at startup, so a worker that stays up for months keeps
+  // every file past its retention.
+  //
+  // Deliberately shorter than FILE_RETENTION_DAYS: sweeping on the same period
+  // as the retention means a file created just after a sweep is only deleted at
+  // the one after that, so it can live nearly twice as long as intended.
+  FILE_CLEANUP_INTERVAL_HOURS: z.coerce.number().int().positive().default(24),
 })
 
 const parsed = envSchema.safeParse(process.env)
