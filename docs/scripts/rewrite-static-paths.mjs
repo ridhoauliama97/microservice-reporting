@@ -82,7 +82,7 @@ const SHIM = `<script>
     overlay.id = 'pf-overlay';
     overlay.innerHTML = '<div id="pf-panel"><div id="pf-search"></div></div>';
     var style = document.createElement('style');
-    style.textContent = '#pf-overlay{position:fixed;inset:0;z-index:2147483000;display:none;padding:12vh 16px 16px;background:rgba(15,26,43,.5)}#pf-overlay.open{display:block}#pf-panel{max-width:640px;margin:0 auto;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 24px 64px rgba(0,0,0,.35)}@media (prefers-color-scheme:dark){#pf-panel{background:#0f1a2b}}#pf-panel .pagefind-ui{margin:0;padding:6px}';
+    style.textContent = '#pf-overlay{position:fixed;inset:0;z-index:2147483000;display:none;padding:12vh 16px 16px;background:rgba(15,26,43,.5)}#pf-overlay.open{display:block}#pf-panel{max-width:640px;margin:0 auto;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 24px 64px rgba(0,0,0,.35)}#pf-panel .pagefind-ui{margin:0;padding:6px;--pagefind-ui-text:#1f2937;--pagefind-ui-primary:#111827;--pagefind-ui-background:#fff;--pagefind-ui-border:#e5e7eb;--pagefind-ui-tag:#eef2f7}html.dark #pf-panel{background:#0f1a2b}html.dark #pf-panel .pagefind-ui{--pagefind-ui-text:#e5e7eb;--pagefind-ui-primary:#f3f4f6;--pagefind-ui-background:#0f1a2b;--pagefind-ui-border:#334155;--pagefind-ui-tag:#1e293b}';
     document.head.appendChild(style);
     var css = document.createElement('link');
     css.rel = 'stylesheet';
