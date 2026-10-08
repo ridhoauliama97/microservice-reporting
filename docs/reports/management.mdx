@@ -31,7 +31,7 @@ description: "Laporan dalam kelompok Management."
 ### `discrepancy-rekap-mutasi`
 
 - Stored procedure: `SP_LapRekapMutasiV2`
-- Nama parameter SP: `UsingMode` (berbeda dari nama field di `params`)
+- Nama parameter SP: `TglAwal`, `TglAkhir`, `UsingMode` (berbeda dari nama field di `params`)
 - Orientasi: landscape
 
 ### `flow-produksi-per-periode`
@@ -85,13 +85,13 @@ description: "Laporan dalam kelompok Management."
 ### `stock-hidup-per-nospk`
 
 - Stored procedure: `SP_LapSemuaStockHidupPerSPK`
-- Nama parameter SP: `UsingMode` (berbeda dari nama field di `params`)
+- Nama parameter SP: `TglAkhir`, `UsingMode` (berbeda dari nama field di `params`)
 - Orientasi: portrait
 
 ### `stock-hidup-per-nospk-discrepancy`
 
 - Stored procedure: `SP_LapSemuaStockHidupPerSPK`
-- Nama parameter SP: `UsingMode` (berbeda dari nama field di `params`)
+- Nama parameter SP: `TglAkhir`, `UsingMode` (berbeda dari nama field di `params`)
 - Orientasi: portrait
 
 <Warning>
@@ -101,9 +101,9 @@ Laporan di bawah ini mengikat nama parameter SP yang **berbeda** dari nama field
 | type | Nama field di params | Nama parameter SP |
 | --- | --- | --- |
 | `dashboard-ru` | `tglAkhir` | `Periode` |
-| `discrepancy-rekap-mutasi` | `tglAwal`, `tglAkhir` | `UsingMode` |
-| `stock-hidup-per-nospk` | `tglAkhir` | `UsingMode` |
-| `stock-hidup-per-nospk-discrepancy` | `tglAkhir` | `UsingMode` |
+| `discrepancy-rekap-mutasi` | `tglAwal`, `tglAkhir` | `TglAwal`, `TglAkhir`, `UsingMode` |
+| `stock-hidup-per-nospk` | `tglAkhir` | `TglAkhir`, `UsingMode` |
+| `stock-hidup-per-nospk-discrepancy` | `tglAkhir` | `TglAkhir`, `UsingMode` |
 
 ## Contoh Request Body
 

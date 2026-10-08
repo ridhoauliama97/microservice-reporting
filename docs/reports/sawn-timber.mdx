@@ -62,25 +62,25 @@ description: "Laporan dalam kelompok Sawn Timber."
 ### `detail-lembar-tally-hasil-sawmill`
 
 - Stored procedure: `SPWps_DetailLembarTallyHasilSawmill`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: portrait
 
 ### `kd-keluar-masuk`
 
 - Stored procedure: `SP_LapKDKeluarMasuk`
-- Nama parameter SP: `EndDate`, `NoRuangKD`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate`, `NoRuangKD` (berbeda dari nama field di `params`)
 - Orientasi: landscape
 
 ### `kd-upah-per-customer`
 
 - Stored procedure: `SP_LapKDUpahPerCutomer`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: procedure tidak punya parameter
 - Orientasi: landscape
 
 ### `kd-upah-per-no-proc-kd-detail`
 
 - Stored procedure: `SP_LapKDUpahPerNoProcKDPerCustomerDetail`
-- Nama parameter SP: `NoProcKD` (berbeda dari nama field di `params`)
+- Nama parameter SP: memakai nama default `@NoProcKD`
 - Orientasi: portrait
 
 ### `ketahanan-barang-st`
@@ -92,19 +92,19 @@ description: "Laporan dalam kelompok Sawn Timber."
 ### `label-st-hidup-detail`
 
 - Stored procedure: `SP_LapLabelSTHidupDetail`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: procedure tidak punya parameter
 - Orientasi: —
 
 ### `lembar-perhitungan-upah-borongan-sawmill`
 
 - Stored procedure: `SPWps_LapUpahSawmill`
-- Nama parameter SP: `NoProduksi` (berbeda dari nama field di `params`)
+- Nama parameter SP: memakai nama default `@NoProduksi`
 - Orientasi: portrait
 
 ### `mutasi-kd`
 
 - Stored procedure: `SP_LapMutasiKD`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: portrait
 
 ### `mutasi-sawn-timber-ton`
@@ -122,19 +122,19 @@ description: "Laporan dalam kelompok Sawn Timber."
 ### `pembelian-st-per-supplier-ton`
 
 - Stored procedure: `SP_LapPembelianSTPerSupplier`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: portrait
 
 ### `pembelian-st-timeline-ton`
 
 - Stored procedure: `SP_LapPembelianSTTimeline`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: portrait
 
 ### `penerimaan-st-hasil-sawmill`
 
 - Stored procedure: `SP_LapPenerimaanSTSawmill`, `SP_LapPenerimaanSTSawmill_Sub`
-- Nama parameter SP: `NoPenST` (berbeda dari nama field di `params`)
+- Nama parameter SP: memakai nama default `@NoPenST`
 - Orientasi: portrait
 
 ### `penerimaan-st-sawmill-kg`
@@ -158,7 +158,7 @@ description: "Laporan dalam kelompok Sawn Timber."
 ### `qc-sawmill-summary`
 
 - Stored procedure: `SP_LapQCSawmillSummary`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: landscape
 
 ### `rekap-hasil-sawmill-per-meja`
@@ -182,13 +182,13 @@ description: "Laporan dalam kelompok Sawn Timber."
 ### `rekap-kamar-kd`
 
 - Stored procedure: `SP_LapRekapKamarKD`, `SP_LapRekapKamarKD_Sub1`, `SP_LapRekapKamarKD_Sub2`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: portrait
 
 ### `rekap-pcs-telly-hasil-sawmill`
 
 - Stored procedure: `SPWps_RekapPcsTellyHasilSawmill`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: portrait
 
 ### `rekap-penerimaan-st-non-rambung`
@@ -206,31 +206,31 @@ description: "Laporan dalam kelompok Sawn Timber."
 ### `rekap-st-penjualan`
 
 - Stored procedure: `SP_LapRekapSTPenjualan`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: portrait
 
 ### `saldo-st-hidup-per-produk`
 
 - Stored procedure: `SPWps_LapSTHidupPerProduk`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: procedure tidak punya parameter
 - Orientasi: portrait
 
 ### `serah-terima-st-kamar-kd`
 
 - Stored procedure: `SP_LapSerahTerimaSTKDKeluar`
-- Nama parameter SP: `NoProcKD` (berbeda dari nama field di `params`)
+- Nama parameter SP: memakai nama default `@NoProcKD`
 - Orientasi: portrait
 
 ### `spk-sawmill`
 
 - Stored procedure: `SP_LapHasilSPKSawmill_d`, `SP_LapHasilSPKSawmill_h`
-- Nama parameter SP: `IdProduk`, `NoSPK` (berbeda dari nama field di `params`)
+- Nama parameter SP: memakai nama default `@NoSPK` dan `@IdProduk`
 - Orientasi: portrait
 
 ### `st-basah-hidup-per-umur-kayu-ton`
 
 - Stored procedure: `SP_LapSTBasahHidupPerUmurKayu`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: procedure tidak punya parameter
 - Orientasi: —
 
 ### `st-hidup-kering`
@@ -242,7 +242,7 @@ description: "Laporan dalam kelompok Sawn Timber."
 ### `st-hidup-per-spk`
 
 - Stored procedure: `SPWps_LapSTHidupPerProdukV2`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: procedure tidak punya parameter
 - Orientasi: portrait
 
 ### `st-masuk-per-group`
@@ -254,25 +254,25 @@ description: "Laporan dalam kelompok Sawn Timber."
 ### `st-rambung-mc1-mc2-detail`
 
 - Stored procedure: `SP_LapSTRambungMC1danMC2Detail`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: procedure tidak punya parameter
 - Orientasi: portrait
 
 ### `st-rambung-mc1-mc2-rangkuman`
 
 - Stored procedure: `SP_LapSTRambungMC1danMC2Rangkuman`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: procedure tidak punya parameter
 - Orientasi: portrait
 
 ### `st-sawmill-hari-tebal-lebar`
 
 - Stored procedure: `SPWps_LapSTSawmillPerHariPerTebalPerLebar`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: portrait
 
 ### `st-sawmill-masuk-per-group`
 
 - Stored procedure: `SP_LapSTSawmillMasukPerGroup`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: portrait
 
 ### `stock-st-basah`
@@ -302,13 +302,13 @@ description: "Laporan dalam kelompok Sawn Timber."
 ### `tracing-st`
 
 - Stored procedure: `SP_LapTracingST`
-- Nama parameter SP: `NoProduk` (berbeda dari nama field di `params`)
+- Nama parameter SP: memakai nama default `@NoProduk`
 - Orientasi: portrait
 
 ### `umur-sawn-timber-detail-ton`
 
 - Stored procedure: `SPWps_LapUmurST`
-- Nama parameter SP: `Umur1`, `Umur2`, `Umur3`, `Umur4` (berbeda dari nama field di `params`)
+- Nama parameter SP: memakai nama default `@Umur1` dan `@Umur2` dan `@Umur3` dan `@Umur4`
 - Orientasi: portrait
 
 <Warning>
@@ -317,29 +317,22 @@ Laporan di bawah ini mengikat nama parameter SP yang **berbeda** dari nama field
 
 | type | Nama field di params | Nama parameter SP |
 | --- | --- | --- |
-| `detail-lembar-tally-hasil-sawmill` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
-| `kd-keluar-masuk` | `tglAwal`, `tglAkhir`, `noRuangKd`? | `EndDate`, `NoRuangKD`, `StartDate` |
-| `kd-upah-per-no-proc-kd-detail` | `noProcKd` | `NoProcKD` |
-| `lembar-perhitungan-upah-borongan-sawmill` | `noProduksi` | `NoProduksi` |
-| `mutasi-kd` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
-| `pembelian-st-per-supplier-ton` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
-| `pembelian-st-timeline-ton` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
-| `penerimaan-st-hasil-sawmill` | `noPenST` | `NoPenST` |
-| `qc-sawmill-summary` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
-| `rekap-kamar-kd` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
-| `rekap-pcs-telly-hasil-sawmill` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
-| `rekap-st-penjualan` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
-| `serah-terima-st-kamar-kd` | `noProcKd` | `NoProcKD` |
-| `spk-sawmill` | `noSpk`, `idProduk` | `IdProduk`, `NoSPK` |
+| `detail-lembar-tally-hasil-sawmill` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
+| `kd-keluar-masuk` | `tglAwal`, `tglAkhir`, `noRuangKd`? | `StartDate`, `EndDate`, `NoRuangKD` |
+| `mutasi-kd` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
+| `pembelian-st-per-supplier-ton` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
+| `pembelian-st-timeline-ton` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
+| `qc-sawmill-summary` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
+| `rekap-kamar-kd` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
+| `rekap-pcs-telly-hasil-sawmill` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
+| `rekap-st-penjualan` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
 | `st-hidup-kering` | `hari`, `include`?, `exclude`? | `Hari`, `Mode` |
-| `st-sawmill-hari-tebal-lebar` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
-| `st-sawmill-masuk-per-group` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
+| `st-sawmill-hari-tebal-lebar` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
+| `st-sawmill-masuk-per-group` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
 | `stock-st-basah` | `tglAkhir` | `EndDate` |
 | `stock-st-kering` | `tglAkhir` | `EndDate` |
 | `stok-opname-st-detail-kd` | `noProcKd` | `NoProcKD`, `NoProcKdLookup` |
-| `total-bagus-kulit-rambung` | `tanggal` | `grade_id`, `report_date` |
-| `tracing-st` | `noProduk` | `NoProduk` |
-| `umur-sawn-timber-detail-ton` | `umur1`?, `umur2`?, `umur3`?, `umur4`? | `Umur1`, `Umur2`, `Umur3`, `Umur4` |
+| `total-bagus-kulit-rambung` | `tanggal` | `report_date`, `grade_id` |
 
 ## Contoh Request Body
 

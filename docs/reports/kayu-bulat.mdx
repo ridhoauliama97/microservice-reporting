@@ -37,7 +37,7 @@ description: "Laporan dalam kelompok Kayu Bulat."
 ### `balok-sudah-semprot`
 
 - Stored procedure: `SP_LapBalokSudahSemprot`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: —
 
 ### `hasil-output-racip-harian`
@@ -49,7 +49,7 @@ description: "Laporan dalam kelompok Kayu Bulat."
 ### `hidup-kb-per-group`
 
 - Stored procedure: `sp_LapHidupKBPerGroup`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: procedure tidak punya parameter
 - Orientasi: —
 
 ### `kayu-bulat-hidup`
@@ -61,7 +61,7 @@ description: "Laporan dalam kelompok Kayu Bulat."
 ### `kb-khusus-bangkang`
 
 - Stored procedure: `SP_LapKBKhususBangkang`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: procedure tidak punya parameter
 - Orientasi: —
 
 ### `mutasi-hasil-racip`
@@ -91,13 +91,13 @@ description: "Laporan dalam kelompok Kayu Bulat."
 ### `penerimaan-kayu-bulat-ext-ton`
 
 - Stored procedure: `SP_PenKBOutTon`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: memakai nama default `@NoKayuBulat`
 - Orientasi: —
 
 ### `penerimaan-kayu-bulat-int-ton`
 
 - Stored procedure: `SP_PenKBInTon`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: memakai nama default `@NoKayuBulat`
 - Orientasi: —
 
 ### `penerimaan-kayu-bulat-per-supplier`
@@ -109,19 +109,19 @@ description: "Laporan dalam kelompok Kayu Bulat."
 ### `penerimaan-kayu-bulat-per-supplier-grafik`
 
 - Stored procedure: `SP_LaPenerimaanKayuBulatBulananPerSupplier`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: portrait
 
 ### `penerimaan-kayu-bulat-per-supplier-group`
 
 - Stored procedure: `SP_LapPenerimaanKBPerSupplierGroup`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: landscape
 
 ### `perbandingan-kb-masuk-periode-1-dan-2`
 
 - Stored procedure: `SP_LapPerbandinganKbMasukPeriode1dan2`
-- Nama parameter SP: `Periode1Akhir`, `Periode1Awal`, `Periode2Akhir`, `Periode2Awal` (berbeda dari nama field di `params`)
+- Nama parameter SP: memakai nama default `@Periode1Awal` dan `@Periode1Akhir` dan `@Periode2Awal` dan `@Periode2Akhir`
 - Orientasi: portrait
 
 ### `rekap-pembelian-kayu-bulat`
@@ -139,37 +139,37 @@ description: "Laporan dalam kelompok Kayu Bulat."
 ### `stock-opname-kb`
 
 - Stored procedure: `sp_LapStockOpnameKB`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: procedure tidak punya parameter
 - Orientasi: portrait
 
 ### `stock-racip-kayu-lat`
 
 - Stored procedure: `sp_LapStockRacipKayuLat`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: memakai nama default `@TglAkhir`
 - Orientasi: portrait
 
 ### `target-masuk-bb-bulanan`
 
 - Stored procedure: `SP_LapTargetMasukBBBulanan`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: portrait
 
 ### `target-masuk-bb-harian`
 
 - Stored procedure: `SP_LapTargetMasukBB`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: landscape
 
 ### `timeline-kayu-bulat-bulanan`
 
 - Stored procedure: `SP_LapTimelineKBBulanan`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: portrait
 
 ### `timeline-kayu-bulat-harian`
 
 - Stored procedure: `SP_LapTimelineKBHarian`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: portrait
 
 ### `umur-kayu-bulat-non-rambung`
@@ -184,15 +184,14 @@ Laporan di bawah ini mengikat nama parameter SP yang **berbeda** dari nama field
 
 | type | Nama field di params | Nama parameter SP |
 | --- | --- | --- |
-| `balok-sudah-semprot` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
+| `balok-sudah-semprot` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
 | `hasil-output-racip-harian` | `tglAkhir` | `EndDate` |
-| `penerimaan-kayu-bulat-per-supplier-grafik` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
-| `penerimaan-kayu-bulat-per-supplier-group` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
-| `perbandingan-kb-masuk-periode-1-dan-2` | `periode1Awal`, `periode1Akhir`, `periode2Awal`, `periode2Akhir` | `Periode1Akhir`, `Periode1Awal`, `Periode2Akhir`, `Periode2Awal` |
-| `target-masuk-bb-bulanan` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
-| `target-masuk-bb-harian` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
-| `timeline-kayu-bulat-bulanan` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
-| `timeline-kayu-bulat-harian` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
+| `penerimaan-kayu-bulat-per-supplier-grafik` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
+| `penerimaan-kayu-bulat-per-supplier-group` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
+| `target-masuk-bb-bulanan` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
+| `target-masuk-bb-harian` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
+| `timeline-kayu-bulat-bulanan` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
+| `timeline-kayu-bulat-harian` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
 
 ## Contoh Request Body
 

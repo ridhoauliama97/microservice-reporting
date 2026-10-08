@@ -21,13 +21,13 @@ description: "Laporan dalam kelompok Penjualan Kayu."
 ### `koordinat-tanah`
 
 - Stored procedure: `SP_PrintCariKoordinatTanah`, `SP_PrintPersentaseCariKoordinat`
-- Nama parameter SP: `NoSPK` (berbeda dari nama field di `params`)
+- Nama parameter SP: memakai nama default `@NoSPK`
 - Orientasi: portrait
 
 ### `penjualan-barang-jadi-m3`
 
 - Stored procedure: `SP_LapPenjualanBarangJadi`
-- Nama parameter SP: `NoJual` (berbeda dari nama field di `params`)
+- Nama parameter SP: memakai nama default `@NoJual`
 - Orientasi: portrait
 
 ### `penjualan-lokal`
@@ -51,19 +51,19 @@ description: "Laporan dalam kelompok Penjualan Kayu."
 ### `rekap-penjualan-per-produk`
 
 - Stored procedure: `SP_LapJualPerProduk`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: portrait
 
 ### `surat-jalan`
 
 - Stored procedure: `SP_CetakSuratJalan`
-- Nama parameter SP: `NoJual` (berbeda dari nama field di `params`)
+- Nama parameter SP: memakai nama default `@NoJual`
 - Orientasi: portrait
 
 ### `timeline-rekap-penjualan-per-produk`
 
 - Stored procedure: `SP_LapJualPerProdukTimeLine`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: portrait
 
 <Warning>
@@ -72,12 +72,8 @@ Laporan di bawah ini mengikat nama parameter SP yang **berbeda** dari nama field
 
 | type | Nama field di params | Nama parameter SP |
 | --- | --- | --- |
-| `koordinat-tanah` | `noSpk` | `NoSPK` |
-| `penjualan-barang-jadi-m3` | `noJual` | `NoJual` |
-| `penjualan-lokal` | `tglAwal`, `tglAkhir` | `tglAkhir`, `tglAwal` |
-| `rekap-penjualan-per-produk` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
-| `surat-jalan` | `noJual` | `NoJual` |
-| `timeline-rekap-penjualan-per-produk` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
+| `rekap-penjualan-per-produk` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
+| `timeline-rekap-penjualan-per-produk` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
 
 ## Contoh Request Body
 

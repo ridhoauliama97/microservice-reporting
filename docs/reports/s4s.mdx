@@ -50,13 +50,13 @@ description: "Laporan dalam kelompok S4S."
 ### `label-s4s-hidup-per-jenis-kayu`
 
 - Stored procedure: `SP_LapS4SPerJenisKayu`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: procedure tidak punya parameter
 - Orientasi: —
 
 ### `label-s4s-hidup-per-produk-per-jenis-kayu`
 
 - Stored procedure: `SP_LapS4SHidupPerProdukdanPerJenis`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: procedure tidak punya parameter
 - Orientasi: —
 
 ### `mutasi-s4s`
@@ -74,31 +74,31 @@ description: "Laporan dalam kelompok S4S."
 ### `rekap-produksi-s4s-consolidated`
 
 - Stored procedure: `SP_LapRekapProduksiS4SConsolidated`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: portrait
 
 ### `rekap-produksi-s4s-per-jenis-per-grade`
 
 - Stored procedure: `SP_LapRekapProduksiS4SPerJenisPerGrade`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: portrait
 
 ### `rekap-produksi-s4s-rambung-per-grade`
 
 - Stored procedure: `SP_LapRekapProduksiS4SRambungPerGrade`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: landscape
 
 ### `s4s-hidup-detail`
 
 - Stored procedure: `SP_LapS4SHidupDetail`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: procedure tidak punya parameter
 - Orientasi: —
 
 ### `umur-s4s-detail`
 
 - Stored procedure: `SP_LapUmurS4S`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: memakai nama default `@Umur1` dan `@Umur2` dan `@Umur3` dan `@Umur4`
 - Orientasi: —
 
 <Warning>
@@ -107,9 +107,9 @@ Laporan di bawah ini mengikat nama parameter SP yang **berbeda** dari nama field
 
 | type | Nama field di params | Nama parameter SP |
 | --- | --- | --- |
-| `rekap-produksi-s4s-consolidated` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
-| `rekap-produksi-s4s-per-jenis-per-grade` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
-| `rekap-produksi-s4s-rambung-per-grade` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
+| `rekap-produksi-s4s-consolidated` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
+| `rekap-produksi-s4s-per-jenis-per-grade` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
+| `rekap-produksi-s4s-rambung-per-grade` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
 
 ## Contoh Request Body
 

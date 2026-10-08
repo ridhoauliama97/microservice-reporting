@@ -68,12 +68,20 @@ type JsonSchema = {
   anyOf?: JsonSchema[]
 }
 
+interface SpBinding {
+  /** The `params` field it binds, or null when the source names only the SP param. */
+  field: string | null
+  param: string
+  /** True for a hand-written `.input(...)` call, false for a factory spec. */
+  fromInput: boolean
+}
+
 interface ReportInfo {
   type: string
   title: string
   file: string | null
   sps: string[]
-  spParams: string[]
+  spBindings: SpBinding[]
   landscape: boolean
   orientationKnown: boolean
   notes: string[]
@@ -107,7 +115,7 @@ const SHARED_MODULE_NAMES = new Set([
 
 interface SourceFacts {
   sps: string[]
-  spParams: string[]
+  spBindings: SpBinding[]
   landscape: boolean
   orientationKnown: boolean
   notes: string[]
@@ -149,7 +157,7 @@ function blocksByType(src: string): Map<string, string> {
 function readSourceFacts(fileName: string | null, type: string): SourceFacts {
   const empty: SourceFacts = {
     sps: [],
-    spParams: [],
+    spBindings: [],
     landscape: false,
     orientationKnown: false,
     notes: [],
@@ -189,17 +197,7 @@ function readSourceFacts(fileName: string | null, type: string): SourceFacts {
     sps = collectSps(scope)
   }
 
-  const spParams = [
-    ...new Set(
-      [
-        ...[...scope.matchAll(/inputNames\s*:\s*\{([^}]*)\}/g)].flatMap((m) =>
-          [...m[1]!.matchAll(/['"]([A-Za-z0-9_]+)['"]/g)].map((x) => x[1]!),
-        ),
-        ...[...scope.matchAll(/inputName\s*:\s*['"]([A-Za-z0-9_]+)['"]/g)].map((m) => m[1]!),
-        ...[...scope.matchAll(/\.input\s*\(\s*['"]([A-Za-z0-9_]+)['"]\s*,\s*sql\./g)].map((m) => m[1]!),
-      ].filter((p) => !['TglAwal', 'TglAkhir'].includes(p)),
-    ),
-  ].sort()
+  const spBindings = collectSpBindings(scope)
 
   const landscape = /landscape\s*:\s*true/.test(scope)
 
@@ -209,11 +207,48 @@ function readSourceFacts(fileName: string | null, type: string): SourceFacts {
 
   return {
     sps,
-    spParams,
+    spBindings,
     landscape,
     orientationKnown: rendersPage,
     notes: [],
   }
+}
+
+/**
+ * The SP parameter names a report binds, each tied to the `params` field it
+ * feeds. Kept as field -> param rather than a flat list because the caller has
+ * to tell a real rename (`tglAkhir` -> `EndDate`) from the factory default,
+ * which is just the field name in PascalCase (`tglAkhir` -> `TglAkhir`).
+ *
+ * Three forms appear in this tree:
+ *   inputNames: { tglAwal: 'StartDate', tglAkhir: 'EndDate' }
+ *   inputName: 'EndDate'                       (single-param factories)
+ *   .input('NoProduksi', sql.NVarChar, params.noProduksi)
+ */
+function collectSpBindings(scope: string): SpBinding[] {
+  const found: SpBinding[] = []
+  for (const m of scope.matchAll(/inputNames\s*:\s*\{([^}]*)\}/g)) {
+    for (const pair of m[1]!.matchAll(/([A-Za-z0-9_]+)\s*:\s*['"]([A-Za-z0-9_]+)['"]/g)) {
+      found.push({ field: pair[1]!, param: pair[2]!, fromInput: false })
+    }
+  }
+  // .input('Param', sql.Type, params.field) - the field is known.
+  // .input('Param', sql.Type, <expr>)       - an internal switch, not a field.
+  for (const m of scope.matchAll(
+    /\.input\s*\(\s*['"]([A-Za-z0-9_]+)['"]\s*,\s*sql\.[A-Za-z0-9_]+(?:\s*\([^)]*\))?\s*,\s*(params\.([A-Za-z0-9_]+)|[^)]+)/g,
+  )) {
+    found.push({ field: m[3] ?? null, param: m[1]!, fromInput: true })
+  }
+  for (const m of scope.matchAll(/inputName\s*:\s*['"]([A-Za-z0-9_]+)['"]/g)) {
+    found.push({ field: null, param: m[1]!, fromInput: false })
+  }
+  const seen = new Set<string>()
+  return found.filter((b) => {
+    const key = `${b.field ?? ''}:${b.param}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
 }
 
 // --- categories ------------------------------------------------------------
@@ -484,7 +519,7 @@ const reportList: ReportInfo[] = Object.entries(reports)
       title: definition.title,
       file,
       sps: facts.sps,
-      spParams: facts.spParams,
+      spBindings: facts.spBindings,
       landscape: facts.landscape,
       orientationKnown: facts.orientationKnown,
       notes: [],
@@ -618,6 +653,74 @@ function paramsCell(shape: ShapeInfo): string {
     .join(', ')
 }
 
+/** The factory default for a field: its name in PascalCase, e.g. tglAwal -> TglAwal. */
+const toPascal = (name: string): string => name.charAt(0).toUpperCase() + name.slice(1)
+
+/**
+ * What the SP will actually be called with, field by field. An explicit binding
+ * wins; otherwise the factory default is the field name in PascalCase. `differs`
+ * is true only when a bound name is NOT that default, which is what makes a
+ * rename worth warning about (`tglAkhir` -> `EndDate`, or `tglAkhir` -> `TglAwal`
+ * for an "as of" procedure that declares only @TglAwal).
+ */
+function spParamsFor(
+  report: ReportInfo,
+  shape: ShapeInfo,
+): { fields: string[]; params: string[]; differs: boolean } {
+  const fields = shape.properties.map(([name]) => name)
+  // One field can feed several SP parameters (e.g. noProcKd -> NoProcKD and
+  // NoProcKdLookup), so each field keeps a list.
+  const byField = new Map<string, string[]>()
+  const loose: string[] = []
+  for (const binding of report.spBindings) {
+    if (binding.field) {
+      const list = byField.get(binding.field) ?? []
+      if (!list.includes(binding.param)) list.push(binding.param)
+      byField.set(binding.field, list)
+    } else if (!loose.includes(binding.param)) {
+      loose.push(binding.param)
+    }
+  }
+  // `inputName` names the SP param only; the factory it belongs to has a single
+  // field, so it can be tied to that one.
+  if (loose.length > 0 && fields.length === 1 && !byField.has(fields[0]!)) {
+    byField.set(fields[0]!, [loose[0]!])
+    loose.length = 0
+  }
+  // A hand-written report binds every parameter it sends; a field it does not
+  // bind is folded into another parameter (e.g. include/exclude -> @Mode) or is
+  // not a parameter at all, so it is left out rather than guessed.
+  const handWritten = report.spBindings.some((binding) => binding.fromInput)
+  const params: string[] = []
+  let differs = false
+  for (const field of fields) {
+    const bound = byField.get(field)
+    if (bound && bound.length > 0) {
+      params.push(...bound)
+      if (bound.some((param) => param.toLowerCase() !== field.toLowerCase())) differs = true
+    } else if (!handWritten) {
+      params.push(toPascal(field))
+    }
+  }
+  for (const param of loose) {
+    if (!params.includes(param)) {
+      params.push(param)
+      differs = true
+    }
+  }
+  return { fields, params, differs }
+}
+
+/** The "Nama parameter SP" line: no params, the factory defaults, or a rename. */
+function spParamText(sp: { fields: string[]; params: string[]; differs: boolean } | null): string {
+  if (!sp || sp.fields.length === 0) return 'procedure tidak punya parameter'
+  if (sp.params.length === 0) return 'Belum terdokumentasi di kode'
+  if (!sp.differs) {
+    return `memakai nama default ${sp.params.map((p) => `\`@${p}\``).join(' dan ')}`
+  }
+  return `${sp.params.map((p) => `\`${p}\``).join(', ')} (berbeda dari nama field di \`params\`)`
+}
+
 function orientationCell(report: ReportInfo): string {
   if (!report.orientationKnown) return '—'
   return report.landscape ? 'landscape' : 'portrait'
@@ -656,6 +759,9 @@ function categoryPage(category: string, reportsInCategory: ReportInfo[]): string
   for (const report of reportsInCategory) {
     lines.push(`### \`${report.type}\``, '')
 
+    const shape = shapes.find((s) => s.name === report.shapeName)
+    const sp = shape ? spParamsFor(report, shape) : null
+
     if (report.sps.length === 0) {
       lines.push(
         '- Stored procedure: Belum terdokumentasi di kode',
@@ -663,18 +769,17 @@ function categoryPage(category: string, reportsInCategory: ReportInfo[]): string
       )
     } else {
       lines.push(`- Stored procedure: ${report.sps.map((s) => `\`${s}\``).join(', ')}`)
-      lines.push(
-        report.spParams.length > 0
-          ? `- Nama parameter SP: ${report.spParams.map((p) => `\`${p}\``).join(', ')} (berbeda dari nama field di \`params\`)`
-          : '- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`',
-      )
+      lines.push(`- Nama parameter SP: ${spParamText(sp)}`)
     }
     lines.push(`- Orientasi: ${orientationCell(report)}`)
     lines.push('')
   }
 
-  const withDiffParams = reportsInCategory.filter((r) => r.spParams.length > 0)
-  if (withDiffParams.length > 0) {
+  const diffReports = reportsInCategory.filter((r) => {
+    const shape = shapes.find((s) => s.name === r.shapeName)
+    return shape ? spParamsFor(r, shape).differs : false
+  })
+  if (diffReports.length > 0) {
     lines.push(
       '<Warning>',
       'Laporan di bawah ini mengikat nama parameter SP yang **berbeda** dari nama field di `params`. KalauSP-nya diganti nama, nama parameter pun harus ikut menyesuaikan.',
@@ -683,10 +788,10 @@ function categoryPage(category: string, reportsInCategory: ReportInfo[]): string
       '| type | Nama field di params | Nama parameter SP |',
       '| --- | --- | --- |',
     )
-    for (const report of withDiffParams) {
-      const shape = shapes.find((s) => s.name === report.shapeName)
+    for (const report of diffReports) {
+      const shape = shapes.find((s) => s.name === report.shapeName)!
       lines.push(
-        `| \`${report.type}\` | ${paramsCell(shape!)} | ${report.spParams.map((p) => `\`${p}\``).join(', ')} |`,
+        `| \`${report.type}\` | ${paramsCell(shape)} | ${spParamsFor(report, shape).params.map((p) => `\`${p}\``).join(', ')} |`,
       )
     }
     lines.push('')

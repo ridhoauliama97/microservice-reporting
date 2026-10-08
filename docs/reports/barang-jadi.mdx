@@ -21,7 +21,7 @@ description: "Laporan dalam kelompok Barang Jadi."
 ### `barang-jadi-hidup-detail`
 
 - Stored procedure: `SP_LapBJHidupDetail`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: procedure tidak punya parameter
 - Orientasi: portrait
 
 ### `dashboard-barang-jadi`
@@ -39,7 +39,7 @@ description: "Laporan dalam kelompok Barang Jadi."
 ### `mutasi-barang-jadi-per-jenis-per-ukuran`
 
 - Stored procedure: `SP_LapMutasiBJPerJenisPerUkuran`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: landscape
 
 ### `rekap-produksi-barang-jadi-consolidated`
@@ -57,13 +57,13 @@ description: "Laporan dalam kelompok Barang Jadi."
 ### `saldo-barang-jadi-hidup-per-jenis-per-produk`
 
 - Stored procedure: `SP_LapBJHidupPerProduk`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: procedure tidak punya parameter
 - Orientasi: portrait
 
 ### `umur-barang-jadi-detail`
 
 - Stored procedure: `SP_LapUmurBarangJadi`
-- Nama parameter SP: `Umur1`, `Umur2`, `Umur3`, `Umur4` (berbeda dari nama field di `params`)
+- Nama parameter SP: memakai nama default `@Umur1` dan `@Umur2` dan `@Umur3` dan `@Umur4`
 - Orientasi: portrait
 
 <Warning>
@@ -72,8 +72,7 @@ Laporan di bawah ini mengikat nama parameter SP yang **berbeda** dari nama field
 
 | type | Nama field di params | Nama parameter SP |
 | --- | --- | --- |
-| `mutasi-barang-jadi-per-jenis-per-ukuran` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
-| `umur-barang-jadi-detail` | `umur1`?, `umur2`?, `umur3`?, `umur4`? | `Umur1`, `Umur2`, `Umur3`, `Umur4` |
+| `mutasi-barang-jadi-per-jenis-per-ukuran` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
 
 ## Contoh Request Body
 

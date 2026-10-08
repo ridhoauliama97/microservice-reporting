@@ -17,19 +17,19 @@ description: "Laporan dalam kelompok Rendemen Kayu."
 ### `produksi-per-spk`
 
 - Stored procedure: `SP_LapProduksiPerSPK`
-- Nama parameter SP: `NoSPK` (berbeda dari nama field di `params`)
+- Nama parameter SP: memakai nama default `@NoSPK`
 - Orientasi: portrait
 
 ### `rekap-rendemen-non-rambung`
 
 - Stored procedure: `SP_LapRekapRendemenNonRambung`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: memakai nama default `@Tahun` dan `@Bulan`
 - Orientasi: —
 
 ### `rekap-rendemen-rambung`
 
 - Stored procedure: `SP_LapRekapRendemenRambung`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: memakai nama default `@Tahun` dan `@Bulan`
 - Orientasi: —
 
 ### `rendemen-semua-proses`
@@ -37,14 +37,6 @@ description: "Laporan dalam kelompok Rendemen Kayu."
 - Stored procedure: `SP_LapRekapRendemenSemuaProses`
 - Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
 - Orientasi: landscape
-
-<Warning>
-Laporan di bawah ini mengikat nama parameter SP yang **berbeda** dari nama field di `params`. KalauSP-nya diganti nama, nama parameter pun harus ikut menyesuaikan.
-</Warning>
-
-| type | Nama field di params | Nama parameter SP |
-| --- | --- | --- |
-| `produksi-per-spk` | `noSpk` | `NoSPK` |
 
 ## Contoh Request Body
 

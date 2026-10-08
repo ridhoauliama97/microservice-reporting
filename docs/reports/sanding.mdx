@@ -38,25 +38,25 @@ description: "Laporan dalam kelompok Sanding."
 ### `rekap-produksi-sanding-consolidated`
 
 - Stored procedure: `SP_LapRekapProduksiSandingConsolidated`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: portrait
 
 ### `rekap-produksi-sanding-per-jenis-per-grade`
 
 - Stored procedure: `SP_LapRekapProduksiSandingPerJenisPerGrade`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: portrait
 
 ### `sanding-hidup-detail`
 
 - Stored procedure: `SP_LapSandingHidupDetail`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: procedure tidak punya parameter
 - Orientasi: —
 
 ### `umur-sanding-detail`
 
 - Stored procedure: `SP_LapUmurSanding`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: memakai nama default `@Umur1` dan `@Umur2` dan `@Umur3` dan `@Umur4`
 - Orientasi: —
 
 <Warning>
@@ -65,8 +65,8 @@ Laporan di bawah ini mengikat nama parameter SP yang **berbeda** dari nama field
 
 | type | Nama field di params | Nama parameter SP |
 | --- | --- | --- |
-| `rekap-produksi-sanding-consolidated` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
-| `rekap-produksi-sanding-per-jenis-per-grade` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
+| `rekap-produksi-sanding-consolidated` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
+| `rekap-produksi-sanding-per-jenis-per-grade` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
 
 ## Contoh Request Body
 

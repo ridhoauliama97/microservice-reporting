@@ -19,31 +19,31 @@ description: "Laporan dalam kelompok Verifikasi."
 ### `bahan-terpakai`
 
 - Stored procedure: `SPWps_LapBahanTerpakai`, `SPWps_LapSubBahanTerpakai`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: `TglAwal` (berbeda dari nama field di `params`)
 - Orientasi: portrait
 
 ### `bahan-yang-dihasilkan`
 
 - Stored procedure: `SPWps_LapBahanYangDihasilkan`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: `TglAwal` (berbeda dari nama field di `params`)
 - Orientasi: portrait
 
 ### `kapasitas-racip-kayu-bulat-hidup`
 
 - Stored procedure: `SP_KapasitasRacipKayuBulatHidup`, `SP_KapasitasRacipKayuBulatHidupJmlhHK`, `SP_KapasitasRacipKayuBulatHidupJmlhMeja`, `SP_KapasitasRacipKayuBulatHidupKG`
-- Nama parameter SP: `EndDate`, `StartDate` (berbeda dari nama field di `params`)
+- Nama parameter SP: `StartDate`, `EndDate` (berbeda dari nama field di `params`)
 - Orientasi: portrait
 
 ### `label-nyangkut`
 
 - Stored procedure: `SPWps_LapLabelNyangkut`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: procedure tidak punya parameter
 - Orientasi: portrait
 
 ### `rangkuman-bongkar-susun`
 
 - Stored procedure: `SPWps_LapRangkumanBongkarSusun`
-- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
+- Nama parameter SP: `TglAwal` (berbeda dari nama field di `params`)
 - Orientasi: portrait
 
 ### `rangkuman-jumlah-label-input`
@@ -58,7 +58,10 @@ Laporan di bawah ini mengikat nama parameter SP yang **berbeda** dari nama field
 
 | type | Nama field di params | Nama parameter SP |
 | --- | --- | --- |
-| `kapasitas-racip-kayu-bulat-hidup` | `tglAwal`, `tglAkhir` | `EndDate`, `StartDate` |
+| `bahan-terpakai` | `tglAkhir` | `TglAwal` |
+| `bahan-yang-dihasilkan` | `tglAkhir` | `TglAwal` |
+| `kapasitas-racip-kayu-bulat-hidup` | `tglAwal`, `tglAkhir` | `StartDate`, `EndDate` |
+| `rangkuman-bongkar-susun` | `tglAkhir` | `TglAwal` |
 
 ## Contoh Request Body
 
