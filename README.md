@@ -46,7 +46,7 @@ bun install                  # install dependency
 cp .env.example .env         # lalu isi kredensial database
 docker compose up -d
 docker compose ps            # api (healthy), worker, redis (healthy), gotenberg
-curl.exe http://localhost:5006/health/ready
+curl.exe http://localhost:5007/health/ready
 ```
 
 Empat container: `report-api`, `report-worker`, `report-redis`, `report-gotenberg`. API dan worker memakai image yang sama, hanya perintah jalannya yang berbeda.
@@ -54,7 +54,7 @@ Empat container: `report-api`, `report-worker`, `report-redis`, `report-gotenber
 Untuk mengembangkan dengan hot reload, jalankan API dan worker di komputer Anda. Redis dan Gotenberg tetap dipakai dari container, karena portnya dipublish ke `127.0.0.1`:
 
 ```sh
-bun run dev          # API di port 5006
+bun run dev          # API di port 5007
 bun run dev:worker   # worker, proses terpisah
 ```
 
@@ -101,7 +101,7 @@ Job hanya bisa diakses pemiliknya. Job milik user lain dibalas **404**, supaya k
 
 ## Dokumentasi
 
-- **Situs dokumentasi**: buka `http://localhost:5006/docs` setelah `docker compose up -d`. Situsnya dibangun otomatis dari folder `docs/` saat `docker compose build`, jadi tidak perlu dijalankan terpisah. Swagger UI ada di `/swagger`, spec mentahnya di `/docs/openapi.json`.
+- **Situs dokumentasi**: buka `http://localhost:5007/docs` setelah `docker compose up -d`. Situsnya dibangun otomatis dari folder `docs/` saat `docker compose build`, jadi tidak perlu dijalankan terpisah. Swagger UI ada di `/swagger`, spec mentahnya di `/docs/openapi.json`.
 - **Situs dokumentasi** ada di folder `docs/` (Mintlify). Isinya 9 halaman API dan katalog seluruh jenis laporan yang dikelompokkan per proses. Untuk melihatnya:
 
   ```sh

@@ -75,11 +75,11 @@ Status API dipetakan dari status internal antrian BullMQ:
 <CodeGroup>
 
 ```bash Request
-curl.exe http://localhost:5006/reports/$JOB_ID -H "Authorization: Bearer $TOKEN"
+curl.exe http://localhost:5007/reports/$JOB_ID -H "Authorization: Bearer $TOKEN"
 ```
 
 ```javascript JavaScript
-const res = await fetch(`http://localhost:5006/reports/${jobId}`, {
+const res = await fetch(`http://localhost:5007/reports/${jobId}`, {
   headers: { Authorization: `Bearer ${token}` },
 })
 const job = await res.json()

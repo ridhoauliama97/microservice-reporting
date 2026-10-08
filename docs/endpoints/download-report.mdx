@@ -24,11 +24,11 @@ Mengirim file PDF sebagai attachment. Hanya bisa dipanggil setelah job berstatus
 <CodeGroup>
 
 ```bash Request
-curl.exe http://localhost:5006/reports/$JOB_ID/download -H "Authorization: Bearer $TOKEN" -o laporan.pdf
+curl.exe http://localhost:5007/reports/$JOB_ID/download -H "Authorization: Bearer $TOKEN" -o laporan.pdf
 ```
 
 ```javascript JavaScript
-const res = await fetch(`http://localhost:5006/reports/${jobId}/download`, {
+const res = await fetch(`http://localhost:5007/reports/${jobId}/download`, {
   headers: { Authorization: `Bearer ${token}` },
 })
 if (!res.ok) throw new Error((await res.json()).error.code)

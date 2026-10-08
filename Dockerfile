@@ -35,5 +35,5 @@ COPY src ./src
 COPY --from=docs /site ./docs-site
 RUN mkdir -p /app/storage && chown -R bun:bun /app
 USER bun
-EXPOSE 5006
+EXPOSE 5007
 CMD ["bun", "run", "src/index.ts"]

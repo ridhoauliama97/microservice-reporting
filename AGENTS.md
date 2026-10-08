@@ -97,13 +97,13 @@ Hanya ada **satu** compose file: `docker-compose.yml`. Empat container — `repo
 
 ```sh
 docker compose up -d
-curl.exe http://localhost:5006/health/ready
+curl.exe http://localhost:5007/health/ready
 ```
 
 `api` dan `worker` satu image, hanya `command` yang beda. Redis dan Gotenberg dipublish ke `127.0.0.1` saja (`6379` dan `3100`) supaya **`bun run dev` di host memakai Redis yang sama** dengan container — bukan antrean kedua yang terpisah. Kalau ada proses lokal yang memakai port itu, compose gagal start; itu memang penanda bentrok, bukan kegagalan acak.
 
 ```sh
-bun run dev          # API di :5006
+bun run dev          # API di :5007
 bun run dev:worker   # worker, proses terpisah
 bun run dev:token budi [jam]     # token testing (default user "tester", 1 jam)
 bun run scripts/ws-test.ts <jobId> <token>
@@ -112,7 +112,7 @@ bun run scripts/ws-test.ts <jobId> <token>
 **Menjalankan seluruh laporan sekaligus** (butuh API + worker + infra hidup):
 
 ```sh
-bun run e2e -- --from=2026-09-01 --to=2026-09-30 --base=http://localhost:5006
+bun run e2e -- --from=2026-09-01 --to=2026-09-30 --base=http://localhost:5007
 ```
 
 Param setiap laporan **diturunkan dari skema Zod-nya sendiri**, bukan dari daftar nama tipe — jadi laporan baru ikut teruji tanpa didaftarkan di script. Laporan yang berparam lookup (nomor produksi/SPK/kayu bulat/dll) nilainya di-harvest dari tabel yang dibaca stored procedure-nya, karena kunci tebakan hanya menghasilkan PDF kosong. Keluarannya: jumlah PDF per tipe, ukuran, dan daftar yang gagal; PDF tersimpan di `storage/e2e/` (bisa diganti dengan `--out=`).
@@ -270,7 +270,7 @@ Atau lewat service, yang menyajikan file statis hasil `mint export`:
 
 ```sh
 docker compose build     # menjalankan mint export di dalam build
-docker compose up -d     # buka http://localhost:5006/docs
+docker compose up -d     # buka http://localhost:5007/docs
 ```
 
 Swagger UI pindah ke `/swagger`; spec mentahnya tetap di `/docs/openapi.json`.
