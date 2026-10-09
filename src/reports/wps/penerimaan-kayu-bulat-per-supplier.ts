@@ -9,11 +9,16 @@ import { periodParamsSchema, type PeriodParams } from "../period-params";
 import type { ReportDefinition } from "../types";
 
 /**
- * Special-case report (the legacy app builds this with a custom query, not
- * the SP): a detail list grouped per supplier with sub totals, followed by a
- * daily recap per group/grade — ported 1:1 from
+ * SP_LaPenerimaanKayuBulatBulananPerSupplier +
+ * SP_SubLaPenerimaanKayuBulatBulananPerSupplier — "Laporan Penerimaan Kayu
+ * Bulat Bulanan Per Supplier/Hari": a detail list grouped per supplier with
+ * sub totals, followed by a daily recap per group/grade — ported 1:1 from
  * open-api-report's PenerimaanKayuBulatBulananPerSupplierReportService +
  * penerimaan-bulanan-per-supplier-pdf.blade.php.
+ *
+ * The legacy service runs those two procedures by default (EXEC), and falls
+ * back to a manual query only when CALL_SYNTAX=query; this port inlines the
+ * query (DETAIL_SQL) that the reference actually renders.
  *
  * Penerimaan detail comes from KayuBulat_h joined with the KB grade (KG)
  * detail; "Ton" per balok = SUM(FLOOR(Tebal*Lebar*Panjang/7200.8*10000))/10000
