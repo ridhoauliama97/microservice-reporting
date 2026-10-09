@@ -26,8 +26,8 @@ description: "Laporan dalam kelompok Sawn Timber."
 | `qc-sawmill-discrepancy` | Laporan QC Sawmill - Discrepancy | `tglAwal`, `tglAkhir` | `SP_LapQCSawmillDescr` | — |
 | `qc-sawmill-summary` | Laporan QC Sawmill - Summary | `tglAwal`, `tglAkhir` | `SP_LapQCSawmillSummary` | landscape |
 | `rekap-hasil-sawmill-per-meja` | Laporan Rekap Hasil Sawmill Per-Meja | `tglAwal`, `tglAkhir` | `SPWps_LapRekapHasilSawmillPerMeja` | landscape |
-| `rekap-hasil-sawmill-per-meja-semua-meja` | Laporan Rekap Hasil Sawmill Per-Meja (Semua Meja) | `tglAwal`, `tglAkhir` | `SPWps_LapRekapHasilSawmillPerMejaUpahBoronganV2` | — |
-| `rekap-hasil-sawmill-per-meja-upah-borongan` | Laporan Rekap Hasil Sawmill Per-Meja (Upah Borongan) | `tglAwal`, `tglAkhir` | `SPWps_LapRekapHasilSawmillPerMejaUpahBorongan` | — |
+| `rekap-hasil-sawmill-per-meja-semua-meja` | Laporan Rekap Hasil Sawmill Per-Meja (Semua Meja) | `tglAwal`, `tglAkhir` | `SPWps_LapRekapHasilSawmillPerMejaUpahBoronganV2`, `SPWps_LapRekapHasilSawmillPerMejaUpahBoronganV2_Sub` | — |
+| `rekap-hasil-sawmill-per-meja-upah-borongan` | Laporan Rekap Hasil Sawmill Per-Meja (Upah Borongan) | `tglAwal`, `tglAkhir` | `SPWps_LapRekapHasilSawmillPerMejaUpahBorongan`, `SPWps_LapRekapHasilSawmillPerMejaUpahBorongan_Sub` | — |
 | `rekap-kamar-kd` | Laporan Rekap Kamar KD | `tglAwal`, `tglAkhir` | `SP_LapRekapKamarKD`, `SP_LapRekapKamarKD_Sub1`, `SP_LapRekapKamarKD_Sub2` | portrait |
 | `rekap-pcs-telly-hasil-sawmill` | Laporan Rekap Jumlah (Pcs) Telly Hasil Sawmill | `tglAwal`, `tglAkhir` | `SPWps_RekapPcsTellyHasilSawmill` | portrait |
 | `rekap-penerimaan-st-non-rambung` | Laporan Rekap Penerimaan ST Dari Sawmill (Non Rambung) | `tglAwal`, `tglAkhir` | `SPWps_LapRekapPenSTDariSawmill` | landscape |
@@ -169,13 +169,13 @@ description: "Laporan dalam kelompok Sawn Timber."
 
 ### `rekap-hasil-sawmill-per-meja-semua-meja`
 
-- Stored procedure: `SPWps_LapRekapHasilSawmillPerMejaUpahBoronganV2`
+- Stored procedure: `SPWps_LapRekapHasilSawmillPerMejaUpahBoronganV2`, `SPWps_LapRekapHasilSawmillPerMejaUpahBoronganV2_Sub`
 - Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
 - Orientasi: —
 
 ### `rekap-hasil-sawmill-per-meja-upah-borongan`
 
-- Stored procedure: `SPWps_LapRekapHasilSawmillPerMejaUpahBorongan`
+- Stored procedure: `SPWps_LapRekapHasilSawmillPerMejaUpahBorongan`, `SPWps_LapRekapHasilSawmillPerMejaUpahBorongan_Sub`
 - Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
 - Orientasi: —
 

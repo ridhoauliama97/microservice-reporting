@@ -175,9 +175,13 @@ function readSourceFacts(fileName: string | null, type: string): SourceFacts {
   const collectSps = (text: string): string[] => [
     ...new Set(
       [
-        ...[...text.matchAll(/(?:storedProcedure|spName|mainSpName)\s*:\s*['"]([A-Za-z0-9_]+)['"]/g)].map(
-          (m) => m[1]!,
-        ),
+        ...[
+          ...text.matchAll(
+            /(?:storedProcedure|spName|mainSpName|mainSp|subSp)\s*:\s*['"]([A-Za-z0-9_]+)['"]/g,
+          ),
+        ].map((m) => m[1]!),
+        // Any SP string literal in the report's scope, e.g. run("SP_x").
+        ...[...text.matchAll(/['"](SP[A-Za-z0-9_]+)['"]/g)].map((m) => m[1]!),
         ...[...text.matchAll(/\.execute\s*\(\s*['"]([A-Za-z0-9_]+)['"]/g)].map((m) => m[1]!),
         // A constant holding the name, e.g. const STORED_PROCEDURE = "SP_x";
         ...[...text.matchAll(/=\s*['"](SP[A-Za-z0-9_]+)['"]/g)].map((m) => m[1]!),

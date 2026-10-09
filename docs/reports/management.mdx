@@ -14,7 +14,7 @@ description: "Laporan dalam kelompok Management."
 | `label-perhari` | Laporan Label Perhari | `tglAwal`, `tglAkhir` | `SPWps_LapLabelPerhari` | portrait |
 | `produksi-hulu-hilir` | Laporan Produksi Hulu Hilir | `tglAwal`, `tglAkhir` | `SPWps_LapProduksiSemuaMesinV2` | landscape |
 | `produksi-semua-mesin` | Laporan Semua Mesin | `tglAwal`, `tglAkhir` | `SPWps_LapProduksiSemuaMesin` | landscape |
-| `rekap-mutasi` | Laporan Rekap Mutasi | `tglAwal`, `tglAkhir` | Belum terdokumentasi di kode | portrait |
+| `rekap-mutasi` | Laporan Rekap Mutasi | `tglAwal`, `tglAkhir` | `SP_Mutasi_BarangJadi`, `SP_Mutasi_CCAkhir`, `SP_Mutasi_FingerJoint`, `SP_Mutasi_KayuBulat`, `SP_Mutasi_KayuBulatKG`, `SP_Mutasi_Laminating`, `SP_Mutasi_Moulding`, `SP_Mutasi_S4S`, `SP_Mutasi_ST`, `SP_Mutasi_Sanding`, `SP_SubMutasi_BarangJadi`, `SP_SubMutasi_CCAkhir`, `SP_SubMutasi_FingerJoint`, `SP_SubMutasi_Laminating`, `SP_SubMutasi_Moulding`, `SP_SubMutasi_S4S`, `SP_SubMutasi_Sanding` | portrait |
 | `rekap-mutasi-cross-tab` | Laporan Rekap Mutasi (Cross Tab) | `tglAwal`, `tglAkhir` | `SP_LapRekapMutasi` | landscape |
 | `rekap-stock-on-hand` | Laporan Rekap Stock On Hand | `tglAwal`, `tglAkhir`, `sections`? | `SPWps_LapRekapStockOnHand_SubBJ`, `SPWps_LapRekapStockOnHand_SubCCAkhir`, `SPWps_LapRekapStockOnHand_SubFJ`, `SPWps_LapRekapStockOnHand_SubKB`, `SPWps_LapRekapStockOnHand_SubLMT`, `SPWps_LapRekapStockOnHand_SubMoulding`, `SPWps_LapRekapStockOnHand_SubReproses`, `SPWps_LapRekapStockOnHand_SubS4S`, `SPWps_LapRekapStockOnHand_SubST`, `SPWps_LapRekapStockOnHand_SubSanding` | portrait |
 | `stock-hidup-per-nospk` | Laporan Stock Hidup Per No SPK | `tglAkhir` | `SP_LapSemuaStockHidupPerSPK` | portrait |
@@ -66,8 +66,8 @@ description: "Laporan dalam kelompok Management."
 
 ### `rekap-mutasi`
 
-- Stored procedure: Belum terdokumentasi di kode
-- Nama parameter SP: Belum terdokumentasi di kode
+- Stored procedure: `SP_Mutasi_BarangJadi`, `SP_Mutasi_CCAkhir`, `SP_Mutasi_FingerJoint`, `SP_Mutasi_KayuBulat`, `SP_Mutasi_KayuBulatKG`, `SP_Mutasi_Laminating`, `SP_Mutasi_Moulding`, `SP_Mutasi_S4S`, `SP_Mutasi_ST`, `SP_Mutasi_Sanding`, `SP_SubMutasi_BarangJadi`, `SP_SubMutasi_CCAkhir`, `SP_SubMutasi_FingerJoint`, `SP_SubMutasi_Laminating`, `SP_SubMutasi_Moulding`, `SP_SubMutasi_S4S`, `SP_SubMutasi_Sanding`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
 - Orientasi: portrait
 
 ### `rekap-mutasi-cross-tab`

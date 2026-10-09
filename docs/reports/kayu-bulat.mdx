@@ -18,7 +18,7 @@ description: "Laporan dalam kelompok Kayu Bulat."
 | `mutasi-racip-detail` | Laporan Mutasi Racip Detail | `tglAwal`, `tglAkhir` | `SPWps_LapMutasiRacipanDetail` | landscape |
 | `penerimaan-kayu-bulat-ext-ton` | Laporan Penerimaan Kayu Bulat - Ext Ton | `noKayuBulat` | `SP_PenKBOutTon` | — |
 | `penerimaan-kayu-bulat-int-ton` | Laporan Penerimaan Kayu Bulat - Int Ton | `noKayuBulat` | `SP_PenKBInTon` | — |
-| `penerimaan-kayu-bulat-per-supplier` | Laporan Penerimaan Kayu Bulat Per Supplier / Hari | `tglAwal`, `tglAkhir` | Belum terdokumentasi di kode | portrait |
+| `penerimaan-kayu-bulat-per-supplier` | Laporan Penerimaan Kayu Bulat Per Supplier / Hari | `tglAwal`, `tglAkhir` | `SP_LaPenerimaanKayuBulatBulananPerSupplier`, `SP_SubLaPenerimaanKayuBulatBulananPerSupplier` | portrait |
 | `penerimaan-kayu-bulat-per-supplier-grafik` | Laporan Penerimaan Kayu Bulat Per Supplier Bulanan (Grafik) | `tglAwal`, `tglAkhir` | `SP_LaPenerimaanKayuBulatBulananPerSupplier` | portrait |
 | `penerimaan-kayu-bulat-per-supplier-group` | Laporan Penerimaan Kayu Bulat Per-Supplier Berdasarkan Group Kayu | `tglAwal`, `tglAkhir` | `SP_LapPenerimaanKBPerSupplierGroup` | landscape |
 | `perbandingan-kb-masuk-periode-1-dan-2` | Laporan Perbandingan KB Masuk Periode 1 dan 2 | `periode1Awal`, `periode1Akhir`, `periode2Awal`, `periode2Akhir` | `SP_LapPerbandinganKbMasukPeriode1dan2` | portrait |
@@ -102,8 +102,8 @@ description: "Laporan dalam kelompok Kayu Bulat."
 
 ### `penerimaan-kayu-bulat-per-supplier`
 
-- Stored procedure: Belum terdokumentasi di kode
-- Nama parameter SP: Belum terdokumentasi di kode
+- Stored procedure: `SP_LaPenerimaanKayuBulatBulananPerSupplier`, `SP_SubLaPenerimaanKayuBulatBulananPerSupplier`
+- Nama parameter SP: memakai nama default `@TglAwal` dan `@TglAkhir`
 - Orientasi: portrait
 
 ### `penerimaan-kayu-bulat-per-supplier-grafik`
